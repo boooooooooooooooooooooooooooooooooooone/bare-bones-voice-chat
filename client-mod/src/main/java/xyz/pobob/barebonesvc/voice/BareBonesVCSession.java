@@ -270,6 +270,7 @@ public class BareBonesVCSession {
             this.send(clientDisconnectPacket.serialize());
         }
 
+        this.client.close();
         this.client = null;
 
         if (this.micThread != null) {
