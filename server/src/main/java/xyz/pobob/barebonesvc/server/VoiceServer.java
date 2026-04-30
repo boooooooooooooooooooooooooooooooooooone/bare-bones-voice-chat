@@ -62,7 +62,7 @@ public class VoiceServer {
         Thread console = new Thread(new ConsoleListener(this, dispatcher));
 
         console.setName("ConsoleThread");
-        console.setDaemon(true);
+        console.setDaemon(false);
         console.start();
 
         ServerKeepAliveThreads.startSending(this);

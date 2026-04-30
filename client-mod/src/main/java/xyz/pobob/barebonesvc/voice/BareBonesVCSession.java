@@ -154,7 +154,9 @@ public class BareBonesVCSession {
 
                         } else if (data[2] == Packet.Type.SERVER_KEEP_ALIVE.id) {
 
-                            this.lastKeepAlive = System.currentTimeMillis();
+                            if (this.isConnected()) {
+                                this.lastKeepAlive = System.currentTimeMillis();
+                            }
 
                         } else if (data[2] == Packet.Type.SERVER_DISCONNECT.id) {
 
