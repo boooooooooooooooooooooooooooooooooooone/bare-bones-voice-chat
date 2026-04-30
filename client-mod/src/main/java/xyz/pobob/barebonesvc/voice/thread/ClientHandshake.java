@@ -2,45 +2,46 @@ package xyz.pobob.barebonesvc.voice.thread;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
-import xyz.pobob.barebonesvc.BareBonesVCClient;
 import xyz.pobob.barebonesvc.voice.BareBonesVCSession;
 
-public class ClientHandshake {
+public class ClientHandshake extends Thread {
 
     private static final int MAX_SENDS = 20;
 
-    public void start(final byte[] rawPacket) {
+    private final byte[] rawPacket;
 
-        BareBonesVCClient.LOGGER.info("Started connecting to voice server {}", BareBonesVCSession.instance().getReadableAddress());
+    public ClientHandshake(byte[] rawPacket) {
+        this.rawPacket = rawPacket;
 
-        Thread sendHellos = new Thread(() -> {
+        this.setName("BareBonesVCHandshakeSendThread");
+        this.setDaemon(true);
+    }
 
-            if (!BareBonesVCSession.instance().send(rawPacket)) {
-                if (MinecraftClient.getInstance().player != null) {
-                    MinecraftClient.getInstance().player.sendMessage(Text.of("A network error occurred. Check logs!"), true);
-                }
-                BareBonesVCSession.instance().stopNow();
-                return;
+    @Override
+    public void run() {
+        if (!BareBonesVCSession.instance().send(this.rawPacket)) {
+            if (MinecraftClient.getInstance().player != null) {
+                MinecraftClient.getInstance().player.sendMessage(Text.of("A network error occurred. Check logs!"), true);
             }
+            BareBonesVCSession.instance().stopNow();
+            return;
+        }
 
-            int count = 0;
-            while (BareBonesVCSession.instance().isRunning() && BareBonesVCSession.instance().config != null && count < MAX_SENDS) {
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException ignored) {}
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException ignored) {}
 
-                BareBonesVCSession.instance().send(rawPacket);
-                count++;
-            }
-            if (count >= MAX_SENDS) {
-                BareBonesVCSession.instance().disconnect();
-            }
+        int count = 0;
+        while (BareBonesVCSession.instance().isRunning() && BareBonesVCSession.instance().config == null && count < MAX_SENDS) {
+            BareBonesVCSession.instance().send(this.rawPacket);
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException ignored) {}
 
-        });
-
-        sendHellos.setName("BareBonesVCHandshakeSendThread");
-        sendHellos.setDaemon(true);
-        sendHellos.start();
-
+            count++;
+        }
+        if (count >= MAX_SENDS) {
+            BareBonesVCSession.instance().disconnect();
+        }
     }
 }

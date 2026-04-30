@@ -20,6 +20,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
+// class copied from Simple Voice Chat
 public class MicThread extends Thread {
     @Nullable
     private final ClientVoicechat client;
@@ -240,8 +241,6 @@ public class MicThread extends Thread {
         //     Voicechat.LOGGER.error("Failed to record audio", new Object[]{e});
         //     this.client.setRecording(false);
         // }
-
-        // just use OBS bruz
 
     }
 

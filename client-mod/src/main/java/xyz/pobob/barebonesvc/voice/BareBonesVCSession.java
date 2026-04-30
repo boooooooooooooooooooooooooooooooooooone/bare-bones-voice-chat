@@ -80,6 +80,9 @@ public class BareBonesVCSession {
 
         this.running = true;
 
+        this.clientHelloPacket.create(MinecraftClient.getInstance().getGameProfile().name(), MinecraftClient.getInstance().getGameProfile().id());
+        ClientHandshake clientHandshake = new ClientHandshake(this.clientHelloPacket.serialize());
+
         Thread networkThread = new Thread(() -> {
             while (this.isRunning()) {
                 final byte[] data;
@@ -172,13 +175,13 @@ public class BareBonesVCSession {
 
             this.stopNow();
         });
-
         networkThread.setName("BareBonesVCNetworkThread");
-        networkThread.setDaemon(true);
 
-        this.clientHelloPacket.create(MinecraftClient.getInstance().getGameProfile().name(), MinecraftClient.getInstance().getGameProfile().id());
-        new ClientHandshake().start(this.clientHelloPacket.serialize());
+        clientHandshake.start();
         networkThread.start();
+
+        BareBonesVCClient.LOGGER.info("Started connecting to voice server {}", BareBonesVCSession.instance().getReadableAddress());
+
 
     }
 
