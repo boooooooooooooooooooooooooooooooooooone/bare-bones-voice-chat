@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "barebonesvc",
+  "version": "${version}",
+
+  "name": "Bare Bones Voice Chat",
+  "description": "A Simple Voice Chat addon that detaches the voice server from the Minecraft server",
+  "authors": ["Bone", "Nelosi"],
+  "contact": {},
+
+  "license": "All-Rights-Reserved",
+  "icon": "assets/barebonesvc/icon.png",
+
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "xyz.pobob.barebonesvc.BareBonesVCClient"
+    ]
+  },
+
+  "mixins": [
+    "barebonesvc.mixins.json"
+  ],
+
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-api": "*",
+    "minecraft": "${minecraft_version}",
+    "voicechat": ">=${voicechat_version}"
+  }
+}
