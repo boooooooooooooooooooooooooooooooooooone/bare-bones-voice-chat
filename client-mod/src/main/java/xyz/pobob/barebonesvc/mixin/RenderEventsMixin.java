@@ -16,6 +16,7 @@ public class RenderEventsMixin {
     @Shadow private void renderIcon(DrawContext guiGraphics, Identifier texture) {}
     @Final @Shadow private static Identifier MICROPHONE_ICON;
     @Final @Shadow private static Identifier WHISPER_MICROPHONE_ICON;
+
     @Inject(
             method = "onRenderHUD",
             at = @At(

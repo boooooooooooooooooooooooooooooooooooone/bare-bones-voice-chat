@@ -12,7 +12,6 @@ public class Config {
     public int port;
     public boolean mojangAuth;
     public int mtuSize;
-    public int keepAliveInterval;
     public double voiceDistance;
     public Codec codec;
     public boolean groupsEnabled;

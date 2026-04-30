@@ -126,39 +126,6 @@ public final class Questionnaire {
         }
 
         while (true) {
-            System.out.println("Enter the keepalive interval in milliseconds (blank = 1000):");
-
-            String line;
-            try {
-                line = scanner.nextLine();
-            } catch (Exception e) {
-                System.out.println("Input interrupted. Exiting setup.");
-                return;
-            }
-
-            line = line.trim();
-
-            if (!line.isEmpty()) {
-                try {
-                    int val = Integer.parseInt(line);
-                    if (val < 1000) {
-                        System.out.println("Keepalive interval must be at least 1000ms");
-                    } else {
-                        config.keepAliveInterval = val;
-                        System.out.println("Set keepalive interval to " + config.keepAliveInterval + "\n");
-                        break;
-                    }
-                } catch (NumberFormatException e) {
-                    System.out.println("Invalid keepalive interval");
-                }
-            } else {
-                config.keepAliveInterval = 1000;
-                System.out.println("Set keepalive interval to " + config.keepAliveInterval + "\n");
-                break;
-            }
-        }
-
-        while (true) {
             System.out.println("Enter the voice distance (blank = 64) (note that this is only an instruction for clients and sound packets will always be sent to every user connected to the server):");
 
             String line;

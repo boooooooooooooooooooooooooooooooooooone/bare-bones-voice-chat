@@ -107,10 +107,9 @@ public class BareBonesVCSession {
                             };
 
                             BareBonesVCClient.LOGGER.info(
-                                    "Server config packet received! mojang auth={}, mtu={}, keep alive={}, voice distance={}, codec={}, groups enabled={}",
+                                    "Server config packet received! mojang auth={}, mtu={}, voice distance={}, codec={}, groups enabled={}",
                                     this.serverHelloPacket.getMojangAuth(),
                                     this.serverHelloPacket.getMtuSize(),
-                                    this.serverHelloPacket.getKeepAliveInterval(),
                                     this.serverHelloPacket.getVoiceDistance(),
                                     codec,
                                     this.serverHelloPacket.getGroupsEnabled()
@@ -119,7 +118,6 @@ public class BareBonesVCSession {
                             this.config = new SessionConfig(
                                     this.serverHelloPacket.getMojangAuth(),
                                     this.serverHelloPacket.getMtuSize(),
-                                    this.serverHelloPacket.getKeepAliveInterval(),
                                     this.serverHelloPacket.getVoiceDistance(),
                                     codec,
                                     this.serverHelloPacket.getGroupsEnabled()

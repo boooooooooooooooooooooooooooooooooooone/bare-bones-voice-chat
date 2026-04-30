@@ -120,7 +120,6 @@ public class VoiceServer {
                         this.localServerHelloPacket.get().create(
                                 this.config.mojangAuth,
                                 this.config.mtuSize,
-                                this.config.keepAliveInterval,
                                 this.config.voiceDistance,
                                 this.config.codec,
                                 this.config.groupsEnabled
