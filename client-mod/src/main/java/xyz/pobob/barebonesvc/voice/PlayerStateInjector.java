@@ -15,7 +15,7 @@ import java.util.UUID;
 public class PlayerStateInjector {
 
     // copied from SVC's ClientPlayerStateManager
-    public static void updatePlayerState(UUID uuid, PlayerState state) {
+    public static synchronized void updatePlayerState(UUID uuid, PlayerState state) {
         ((PlayerStatesAccessor) ClientManager.getPlayerStateManager()).getPlayerStates().put(uuid, state);
         Voicechat.LOGGER.debug("Got state for {}: {}", state.getName(), state);
         VoicechatClient.USERNAME_CACHE.updateUsernameAndSave(state.getUuid(), state.getName());

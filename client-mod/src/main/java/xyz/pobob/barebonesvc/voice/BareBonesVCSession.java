@@ -1,12 +1,8 @@
 package xyz.pobob.barebonesvc.voice;
 
 import de.maxhenkel.voicechat.Voicechat;
-import de.maxhenkel.voicechat.VoicechatClient;
 import de.maxhenkel.voicechat.config.ServerConfig;
 import de.maxhenkel.voicechat.debug.CooldownTimer;
-import de.maxhenkel.voicechat.gui.group.GroupList;
-import de.maxhenkel.voicechat.gui.group.JoinGroupList;
-import de.maxhenkel.voicechat.gui.volume.AdjustVolumeList;
 import de.maxhenkel.voicechat.voice.client.AudioChannel;
 import de.maxhenkel.voicechat.voice.client.ChatUtils;
 import de.maxhenkel.voicechat.voice.client.ClientManager;
