@@ -1,20 +1,25 @@
 package xyz.pobob.barebonesvc.voice;
 
 import de.maxhenkel.voicechat.Voicechat;
+import de.maxhenkel.voicechat.VoicechatClient;
 import de.maxhenkel.voicechat.config.ServerConfig;
 import de.maxhenkel.voicechat.debug.CooldownTimer;
+import de.maxhenkel.voicechat.gui.group.GroupList;
+import de.maxhenkel.voicechat.gui.group.JoinGroupList;
+import de.maxhenkel.voicechat.gui.volume.AdjustVolumeList;
 import de.maxhenkel.voicechat.voice.client.AudioChannel;
 import de.maxhenkel.voicechat.voice.client.ChatUtils;
 import de.maxhenkel.voicechat.voice.client.ClientManager;
 import de.maxhenkel.voicechat.voice.client.ClientVoicechat;
 import de.maxhenkel.voicechat.voice.common.PlayerSoundPacket;
+import de.maxhenkel.voicechat.voice.common.PlayerState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
 import xyz.pobob.barebonesvc.BareBonesVCClient;
 import xyz.pobob.barebonesvc.net.*;
 import xyz.pobob.barebonesvc.voice.thread.ClientHandshake;
-import xyz.pobob.barebonesvc.voice.thread.ClientKeepAliveThreads;
 import xyz.pobob.barebonesvc.voice.thread.MicThread;
+import xyz.pobob.barebonesvc.voice.thread.NetworkThreads;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -29,7 +34,8 @@ public class BareBonesVCSession {
     private final ServerAudioPacket serverAudioPacket = new ServerAudioPacket();
     private final ServerHelloPacket serverHelloPacket = new ServerHelloPacket();
     private final ClientHelloPacket clientHelloPacket = new ClientHelloPacket();
-    private final ClientDisconnectPacket clientDisconnectPacket = new ClientDisconnectPacket();
+    private final ClientUpdatePlayerPacket clientUpdatePlayerPacket = new ClientUpdatePlayerPacket();
+    private final ServerUpdatePlayerPacket serverUpdatePlayerPacket = new ServerUpdatePlayerPacket();
 
     private final byte[] recvBuf = new byte[4096];
     private final DatagramPacket recvPacket = new DatagramPacket(recvBuf, recvBuf.length);
@@ -80,7 +86,11 @@ public class BareBonesVCSession {
 
         this.running = true;
 
-        this.clientHelloPacket.create(MinecraftClient.getInstance().getGameProfile().name(), MinecraftClient.getInstance().getGameProfile().id());
+        this.clientHelloPacket.create(
+                MinecraftClient.getInstance().getGameProfile().name(),
+                MinecraftClient.getInstance().getGameProfile().id(),
+                ClientManager.getPlayerStateManager().isDisabled()
+        );
         ClientHandshake clientHandshake = new ClientHandshake(this.clientHelloPacket.serialize());
 
         Thread networkThread = new Thread(() -> {
@@ -127,13 +137,14 @@ public class BareBonesVCSession {
                             );
 
                             this.lastKeepAlive = System.currentTimeMillis();
-                            ClientKeepAliveThreads.startSending();
-                            ClientKeepAliveThreads.startCheckingConnectionHealth();
+                            NetworkThreads.startSendingKeepAlives();
+                            NetworkThreads.startCheckingConnectionHealth();
+                            NetworkThreads.startUpdatingPlayerState();
 
                             if (this.serverHelloPacket.getMojangAuth()) {
                                 // TODO add mojang auth
                             } else {
-                                this.accessSvc();
+                                this.startVoiceChat();
                             }
 
                         }
@@ -161,7 +172,19 @@ public class BareBonesVCSession {
                                 this.lastKeepAlive = System.currentTimeMillis();
                             }
 
-                        } else if (data[2] == Packet.Type.SERVER_DISCONNECT.id) {
+                        } else if (data[2] == Packet.Type.SERVER_UPDATE_PLAYER.id) {
+
+                            this.serverUpdatePlayerPacket.deserialize(data);
+                            PlayerState state = new PlayerState(
+                                    this.serverUpdatePlayerPacket.getUUID(),
+                                    this.serverUpdatePlayerPacket.getUsername(),
+                                    this.serverUpdatePlayerPacket.getDisabled(),
+                                    this.serverUpdatePlayerPacket.getDisconnected()
+                            );
+
+                            PlayerStateInjector.updatePlayerState(state.getUuid(), state);
+
+                        } else if (data[2] == Packet.Type.SERVER_CLOSE.id) {
 
                             if (MinecraftClient.getInstance().player != null) {
                                 MinecraftClient.getInstance().player.sendMessage(Text.of("Bare Bones VC server was stopped"), true);
@@ -185,7 +208,8 @@ public class BareBonesVCSession {
 
     }
 
-    private void accessSvc() {
+    private void startVoiceChat() {
+
         this.client = new ClientVoicechat();
 
         // create ClientVoicechatConnection instance to satisfy not-null checks
@@ -204,6 +228,7 @@ public class BareBonesVCSession {
         });
         micThread.start();
         BareBonesVCClient.LOGGER.info("Starting microphone thread");
+
     }
 
     private void processSoundPacket(PlayerSoundPacket packet) {
@@ -267,7 +292,8 @@ public class BareBonesVCSession {
         BareBonesVCClient.LOGGER.info("Disconnected from {}", this.getReadableAddress());
 
         if (this.isRunning()) {
-            this.send(clientDisconnectPacket.serialize());
+            this.clientUpdatePlayerPacket.create(ClientManager.getPlayerStateManager().isDisabled(), true);
+            this.send(this.clientUpdatePlayerPacket.serialize());
         }
 
         this.client.close();

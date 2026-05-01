@@ -1,13 +1,15 @@
 package xyz.pobob.barebonesvc.voice.thread;
 
+import de.maxhenkel.voicechat.voice.client.ClientManager;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
 import xyz.pobob.barebonesvc.net.ClientKeepAlivePacket;
+import xyz.pobob.barebonesvc.net.ClientUpdatePlayerPacket;
 import xyz.pobob.barebonesvc.voice.BareBonesVCSession;
 
-public class ClientKeepAliveThreads {
+public class NetworkThreads {
 
-    public static void startSending() {
+    public static void startSendingKeepAlives() {
         ClientKeepAlivePacket keepAlive = new ClientKeepAlivePacket();
 
         Thread keepAliveSendThread = new Thread(() -> {
@@ -55,6 +57,32 @@ public class ClientKeepAliveThreads {
         keepAliveCheckThread.setDaemon(true);
         keepAliveCheckThread.setName("BareBonesVCCheckConnectionThread");
         keepAliveCheckThread.start();
+    }
+
+    public static void startUpdatingPlayerState() {
+        final ClientUpdatePlayerPacket clientUpdatePlayerPacket = new ClientUpdatePlayerPacket();
+
+        Thread updatePlayerState = new Thread(() -> {
+            while (BareBonesVCSession.instance().isRunning()) {
+                clientUpdatePlayerPacket.create(isDisabled(), false);
+
+                BareBonesVCSession.instance().send(clientUpdatePlayerPacket.serialize());
+
+                try {
+                    Thread.sleep(2500);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        });
+
+        updatePlayerState.setDaemon(true);
+        updatePlayerState.setName("BareBonesVCUpdateStateThread");
+        updatePlayerState.start();
+    }
+
+    private static synchronized boolean isDisabled() {
+        return ClientManager.getPlayerStateManager().isDisabled();
     }
 
 }

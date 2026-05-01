@@ -5,22 +5,25 @@ import xyz.pobob.barebonesvc.util.Bytes;
 import java.util.UUID;
 
 /**
- * [USERNAME : len-17][UUID : 16][DISABLED : 1]
+ * [USERNAME : len-17][UUID : 16][DISABLED + DISCONNECTED : 1]
  */
-public class ClientHelloPacket extends Packet {
+public class ServerUpdatePlayerPacket extends Packet {
 
     private String username;
     private UUID uuid;
     private boolean disabled;
+    private boolean disconnected;
 
     public String getUsername() {return this.username;}
     public UUID getUUID() {return this.uuid;}
-    public boolean isDisabled() {return this.disabled;}
+    public boolean getDisabled() {return this.disabled;}
+    public boolean getDisconnected() {return this.disconnected;}
 
-    public void create(String username, UUID playerId, boolean disabled) {
-        this.username = (username.length() <= 16) ? username : username.substring(0,16);
-        this.uuid = playerId;
+    public void create(String username, UUID uuid, boolean disabled, boolean disconnected) {
+        this.username = username;
+        this.uuid = uuid;
         this.disabled = disabled;
+        this.disconnected = disconnected;
     }
 
     @Override
@@ -28,11 +31,11 @@ public class ClientHelloPacket extends Packet {
         byte[] usernameBytes = Bytes.of(this.username);
 
         return Bytes.join(
-                Type.CLIENT_HELLO.createHeader(usernameBytes.length + 17),
+                Type.SERVER_UPDATE_PLAYER.createHeader(usernameBytes.length + 16 + 1),
                 usernameBytes,
                 Bytes.of(this.uuid.getMostSignificantBits()),
                 Bytes.of(this.uuid.getLeastSignificantBits()),
-                new byte[] {(byte) (this.disabled ? 1 : 0)}
+                new byte[] {(byte) ((this.disabled ? 1 : 0) + (this.disconnected ? 2 : 0))}
         );
     }
 
@@ -45,5 +48,6 @@ public class ClientHelloPacket extends Packet {
                 Bytes.getLong(data, 5 + len - 8 - 1)
         );
         this.disabled = (data[5 + len - 1] & 1) == 1;
+        this.disconnected = (data[5 + len - 1] & 2) == 2;
     }
 }

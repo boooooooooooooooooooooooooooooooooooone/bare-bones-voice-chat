@@ -6,8 +6,9 @@ import xyz.pobob.barebonesvc.util.Bytes;
  * [MAGIC : 1][VERSION : 1][TYPE : 1][LENGTH : 2][PAYLOAD]
  */
 public abstract class Packet {
+
     public static final byte MAGIC_BYTE = 0x65;
-    public static final byte VERSION = 0x01;
+    public static final byte VERSION = 0x02;
 
     public Type type;
 
@@ -28,10 +29,11 @@ public abstract class Packet {
         SERVER_HELLO((byte) 0x02),
         CLIENT_KEEP_ALIVE((byte) 0x03),
         SERVER_KEEP_ALIVE((byte) 0x04),
-        CLIENT_DISCONNECT((byte) 0x05),
-        SERVER_DISCONNECT((byte) 0x06),
-        CLIENT_AUDIO((byte) 0x07),
-        SERVER_AUDIO((byte) 0x08);
+        SERVER_CLOSE((byte) 0x05),
+        CLIENT_AUDIO((byte) 0x06),
+        SERVER_AUDIO((byte) 0x07),
+        CLIENT_UPDATE_PLAYER((byte) 0x08),
+        SERVER_UPDATE_PLAYER((byte) 0x09);
 
         public final byte id;
 

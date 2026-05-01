@@ -8,6 +8,7 @@
     "ClientPlayerStateManagerMixin",
     "ClientVoicechatMixin",
     "KeyEventsMixin",
+    "PlayerStatesAccessor",
     "RenderEventsMixin",
     "TalkCacheMixin",
     "VoiceChatScreenMixin"

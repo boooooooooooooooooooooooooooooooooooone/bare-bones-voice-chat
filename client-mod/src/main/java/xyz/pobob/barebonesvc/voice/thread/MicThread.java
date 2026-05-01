@@ -20,7 +20,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
-// class copied from Simple Voice Chat
+// class copied from SVC
 public class MicThread extends Thread {
     @Nullable
     private final ClientVoicechat client;

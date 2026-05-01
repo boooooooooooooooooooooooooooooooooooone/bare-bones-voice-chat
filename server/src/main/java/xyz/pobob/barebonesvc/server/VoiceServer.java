@@ -26,8 +26,10 @@ public class VoiceServer {
     private final ThreadLocal<ServerHelloPacket> localServerHelloPacket = ThreadLocal.withInitial(ServerHelloPacket::new);
     private final ThreadLocal<ClientAudioPacket> localClientAudioPacket = ThreadLocal.withInitial(ClientAudioPacket::new);
     private final ThreadLocal<ServerAudioPacket> localServerAudioPacket = ThreadLocal.withInitial(ServerAudioPacket::new);
+    private final ThreadLocal<ClientUpdatePlayerPacket> localClientUpdatePlayerPacket = ThreadLocal.withInitial(ClientUpdatePlayerPacket::new);
+    private final ThreadLocal<ServerUpdatePlayerPacket> localServerUpdatePlayerPacket = ThreadLocal.withInitial(ServerUpdatePlayerPacket::new);
 
-    private final ServerDisconnectPacket serverDisconnectPacket = new ServerDisconnectPacket();
+    private final ServerClosePacket serverClosePacket = new ServerClosePacket();
 
     private final byte[] recvBuf = new byte[4096];
     private final DatagramPacket recvPacket = new DatagramPacket(this.recvBuf, this.recvBuf.length);
@@ -90,11 +92,7 @@ public class VoiceServer {
                             this.localClientAudioPacket.get().deserialize(data);
                             this.localServerAudioPacket.get().create(this.localClientAudioPacket.get(), this.connected.get(clientAddress).getUUID());
 
-                            for (SocketAddress address : this.connected.keySet()) {
-                                if (!Objects.equals(address, clientAddress)) {
-                                    this.send(this.localServerAudioPacket.get().serialize(), address);
-                                }
-                            }
+                            this.announce(clientAddress, this.localServerAudioPacket.get().serialize());
                         }
 
                     } else if (data[2] == Packet.Type.CLIENT_KEEP_ALIVE.id) {
@@ -103,11 +101,25 @@ public class VoiceServer {
                             this.connected.get(clientAddress).setLastKeepAliveResponse(System.currentTimeMillis());
                         }
 
-                    } else if (data[2] == Packet.Type.CLIENT_DISCONNECT.id) {
+                    } else if (data[2] == Packet.Type.CLIENT_UPDATE_PLAYER.id) {
 
                         if (this.connected.containsKey(clientAddress)) {
-                            ClientConnection disconnected = this.connected.remove(clientAddress);
-                            BareBonesVCServer.LOGGER.info("Client disconnected: " + disconnected.getUsername() + " (" + disconnected.getUUID() + ")");
+                            ClientUpdatePlayerPacket clientUpdatePlayerPacket = this.localClientUpdatePlayerPacket.get();
+                            clientUpdatePlayerPacket.deserialize(data);
+
+                            if (clientUpdatePlayerPacket.isDisconnected()) {
+                                ClientConnection disconnected = this.connected.remove(clientAddress);
+                                BareBonesVCServer.LOGGER.info("Client disconnected: " + disconnected.getUsername() + " (" + disconnected.getUUID() + ")");
+
+                                this.localServerUpdatePlayerPacket.get().create(disconnected.getUsername(), disconnected.getUUID(), disconnected.isDisabled(), true);
+                            } else {
+                                ClientConnection connection = this.connected.get(clientAddress);
+                                connection.setDisabled(clientUpdatePlayerPacket.isDisabled());
+
+                                this.localServerUpdatePlayerPacket.get().create(connection.getUsername(), connection.getUUID(), clientUpdatePlayerPacket.isDisabled(), false);
+                            }
+
+                            this.announce(clientAddress, this.localServerUpdatePlayerPacket.get().serialize());
                         }
 
                     } else if (data[2] == Packet.Type.CLIENT_HELLO.id) {
@@ -130,8 +142,15 @@ public class VoiceServer {
 
                         this.connected.put(clientAddress, new ClientConnection(
                                 this.localClientHelloPacket.get().getUsername(),
-                                this.localClientHelloPacket.get().getUUID()
+                                this.localClientHelloPacket.get().getUUID(),
+                                this.localClientHelloPacket.get().isDisabled()
                         ));
+
+                        ServerUpdatePlayerPacket serverUpdatePlayerPacket = this.localServerUpdatePlayerPacket.get();
+                        for (ClientConnection client : this.connected.values()) {
+                            serverUpdatePlayerPacket.create(client.getUsername(), client.getUUID(), client.isDisabled(), false);
+                            this.send(serverUpdatePlayerPacket.serialize(), clientAddress);
+                        }
 
                     }
                 });
@@ -143,7 +162,14 @@ public class VoiceServer {
         networkThread.setName("BareBonesNetworkThread");
         networkThread.start();
 
+    }
 
+    private void announce(SocketAddress src, byte[] data) {
+        for (SocketAddress address : this.connected.keySet()) {
+            if (!Objects.equals(address, src)) {
+                this.send(data, address);
+            }
+        }
     }
 
     public synchronized boolean send(byte[] data, SocketAddress address) {
@@ -182,7 +208,7 @@ public class VoiceServer {
 
     public void close() {
         for (SocketAddress address : this.connected.keySet()) {
-            this.send(this.serverDisconnectPacket.serialize(), address);
+            this.send(this.serverClosePacket.serialize(), address);
         }
         this.stopNow();
     }
