@@ -1,4 +1,4 @@
-package xyz.pobob.barebonesvc.server;
+package xyz.pobob.barebonesvc.voiceserver;
 
 import xyz.pobob.barebonesvc.BareBonesVCServer;
 import xyz.pobob.barebonesvc.Config;
@@ -7,7 +7,7 @@ import xyz.pobob.barebonesvc.cli.command.ConsoleListener;
 import xyz.pobob.barebonesvc.cli.command.ListCommand;
 import xyz.pobob.barebonesvc.cli.command.StopCommand;
 import xyz.pobob.barebonesvc.net.*;
-import xyz.pobob.barebonesvc.server.thread.ServerKeepAliveThreads;
+import xyz.pobob.barebonesvc.voiceserver.thread.ServerKeepAliveThreads;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -124,10 +124,12 @@ public class VoiceServer {
 
                     } else if (data[2] == Packet.Type.CLIENT_HELLO.id) {
 
-                        this.localClientHelloPacket.get().deserialize(data);
+                        ClientHelloPacket clientHelloPacket = this.localClientHelloPacket.get();
+
+                        clientHelloPacket.deserialize(data);
 
                         if (this.connected.containsKey(clientAddress)) return;
-                        BareBonesVCServer.LOGGER.info("Client connected: " + this.localClientHelloPacket.get().getUsername() + " (" + this.localClientHelloPacket.get().getUUID() + ")");
+                        BareBonesVCServer.LOGGER.info("Client connected: " + clientHelloPacket.getUsername() + " (" + clientHelloPacket.getUUID() + ")");
 
                         this.localServerHelloPacket.get().create(
                                 this.config.mojangAuth,
@@ -138,12 +140,13 @@ public class VoiceServer {
                         );
                         if (!this.send(this.localServerHelloPacket.get().serialize(), clientAddress)) {
                             BareBonesVCServer.LOGGER.severe("An error occurred while sending handshake to " + readableAddress);
+                            return;
                         }
 
                         this.connected.put(clientAddress, new ClientConnection(
-                                this.localClientHelloPacket.get().getUsername(),
-                                this.localClientHelloPacket.get().getUUID(),
-                                this.localClientHelloPacket.get().isDisabled()
+                                clientHelloPacket.getUsername(),
+                                clientHelloPacket.getUUID(),
+                                clientHelloPacket.isDisabled()
                         ));
 
                         ServerUpdatePlayerPacket serverUpdatePlayerPacket = this.localServerUpdatePlayerPacket.get();
@@ -151,6 +154,9 @@ public class VoiceServer {
                             serverUpdatePlayerPacket.create(client.getUsername(), client.getUUID(), client.isDisabled(), false);
                             this.send(serverUpdatePlayerPacket.serialize(), clientAddress);
                         }
+
+                        serverUpdatePlayerPacket.create(clientHelloPacket.getUsername(), clientHelloPacket.getUUID(), clientHelloPacket.isDisabled(), false);
+                        this.announce(clientAddress, serverUpdatePlayerPacket.serialize());
 
                     }
                 });

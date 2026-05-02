@@ -1,9 +1,9 @@
-package xyz.pobob.barebonesvc.server.thread;
+package xyz.pobob.barebonesvc.voiceserver.thread;
 
 import xyz.pobob.barebonesvc.BareBonesVCServer;
 import xyz.pobob.barebonesvc.net.ServerKeepAlivePacket;
-import xyz.pobob.barebonesvc.server.ClientConnection;
-import xyz.pobob.barebonesvc.server.VoiceServer;
+import xyz.pobob.barebonesvc.voiceserver.ClientConnection;
+import xyz.pobob.barebonesvc.voiceserver.VoiceServer;
 
 import java.net.SocketAddress;
 import java.util.Map;

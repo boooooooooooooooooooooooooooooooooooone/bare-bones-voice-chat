@@ -1,7 +1,7 @@
 package xyz.pobob.barebonesvc.cli.command;
 
 import xyz.pobob.barebonesvc.BareBonesVCServer;
-import xyz.pobob.barebonesvc.server.VoiceServer;
+import xyz.pobob.barebonesvc.voiceserver.VoiceServer;
 
 public class StopCommand implements Command {
 

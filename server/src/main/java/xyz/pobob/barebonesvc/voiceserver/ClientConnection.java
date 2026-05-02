@@ -1,4 +1,4 @@
-package xyz.pobob.barebonesvc.server;
+package xyz.pobob.barebonesvc.voiceserver;
 
 import java.util.UUID;
 

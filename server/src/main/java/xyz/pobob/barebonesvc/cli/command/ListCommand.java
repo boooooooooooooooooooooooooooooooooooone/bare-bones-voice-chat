@@ -1,8 +1,8 @@
 package xyz.pobob.barebonesvc.cli.command;
 
 import xyz.pobob.barebonesvc.BareBonesVCServer;
-import xyz.pobob.barebonesvc.server.ClientConnection;
-import xyz.pobob.barebonesvc.server.VoiceServer;
+import xyz.pobob.barebonesvc.voiceserver.ClientConnection;
+import xyz.pobob.barebonesvc.voiceserver.VoiceServer;
 
 import java.util.stream.Collectors;
 

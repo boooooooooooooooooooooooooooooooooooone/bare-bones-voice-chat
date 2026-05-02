@@ -7,7 +7,7 @@ import xyz.pobob.barebonesvc.net.ClientKeepAlivePacket;
 import xyz.pobob.barebonesvc.net.ClientUpdatePlayerPacket;
 import xyz.pobob.barebonesvc.voice.BareBonesVCSession;
 
-public class NetworkThreads {
+public class MiscNetworkThreads {
 
     public static void startSendingKeepAlives() {
         ClientKeepAlivePacket keepAlive = new ClientKeepAlivePacket();
@@ -63,13 +63,20 @@ public class NetworkThreads {
         final ClientUpdatePlayerPacket clientUpdatePlayerPacket = new ClientUpdatePlayerPacket();
 
         Thread updatePlayerState = new Thread(() -> {
-            while (BareBonesVCSession.instance().isRunning()) {
-                clientUpdatePlayerPacket.create(isDisabled(), false);
+            boolean last = isDisabled();
 
-                BareBonesVCSession.instance().send(clientUpdatePlayerPacket.serialize());
+            while (BareBonesVCSession.instance().isRunning()) {
+                boolean current = isDisabled();
+                if (current != last) {
+
+                    clientUpdatePlayerPacket.create(current, false);
+                    BareBonesVCSession.instance().send(clientUpdatePlayerPacket.serialize());
+                    last = current;
+
+                }
 
                 try {
-                    Thread.sleep(2500);
+                    Thread.sleep(1250);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }

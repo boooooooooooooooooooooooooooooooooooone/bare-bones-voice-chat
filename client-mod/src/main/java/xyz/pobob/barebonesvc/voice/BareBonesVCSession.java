@@ -15,7 +15,7 @@ import xyz.pobob.barebonesvc.BareBonesVCClient;
 import xyz.pobob.barebonesvc.net.*;
 import xyz.pobob.barebonesvc.voice.thread.ClientHandshake;
 import xyz.pobob.barebonesvc.voice.thread.MicThread;
-import xyz.pobob.barebonesvc.voice.thread.NetworkThreads;
+import xyz.pobob.barebonesvc.voice.thread.MiscNetworkThreads;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -133,9 +133,9 @@ public class BareBonesVCSession {
                             );
 
                             this.lastKeepAlive = System.currentTimeMillis();
-                            NetworkThreads.startSendingKeepAlives();
-                            NetworkThreads.startCheckingConnectionHealth();
-                            NetworkThreads.startUpdatingPlayerState();
+                            MiscNetworkThreads.startSendingKeepAlives();
+                            MiscNetworkThreads.startCheckingConnectionHealth();
+                            MiscNetworkThreads.startUpdatingPlayerState();
 
                             if (this.serverHelloPacket.getMojangAuth()) {
                                 // TODO add mojang auth
