@@ -96,7 +96,6 @@ public class BareBonesVCSession {
                     data = this.receive();
                     if (data.length < 5) continue;
                 } catch (IOException e) {
-                    this.packetReadError();
                     continue;
                 }
 
@@ -325,10 +324,6 @@ public class BareBonesVCSession {
     public static void invalidAddress() {
         if (MinecraftClient.getInstance().player == null) return;
         MinecraftClient.getInstance().player.sendMessage(Text.of("Failed to resolve address"), true);
-    }
-
-    public void packetReadError() {
-        BareBonesVCClient.LOGGER.error("An error occurred while reading packet from {}", this.getReadableAddress());
     }
 
     public String getReadableAddress() {

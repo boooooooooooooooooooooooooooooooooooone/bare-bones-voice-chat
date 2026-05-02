@@ -19,6 +19,6 @@ jar {
                 'Main-Class': 'xyz.pobob.barebonesvc.BareBonesVCServer'
         )
     }
-    archiveBaseName.set('barebonesvcserver')
+    archiveBaseName.set('barebonesvc-server')
     from(project(":common").sourceSets.main.output)
 }
