@@ -138,6 +138,7 @@ public class BareBonesVCSession {
 
                             if (this.serverHelloPacket.getMojangAuth()) {
                                 // TODO add mojang auth
+                                this.startVoiceChat();
                             } else {
                                 this.startVoiceChat();
                             }
@@ -207,20 +208,11 @@ public class BareBonesVCSession {
 
         this.client = new ClientVoicechat();
 
-        // create ClientVoicechatConnection instance to satisfy not-null checks
-        // see ClientVoicechatMixin
-        try {
-            this.client.connect(null);
-        } catch (Exception ignored) {}
-
-
         if (this.micThread != null) {
             this.micThread.close();
         }
-        this.micThread = new MicThread(this.client, e -> {
-            BareBonesVCClient.LOGGER.error("Failed to start microphone thread", e);
-            ChatUtils.sendModErrorMessage("message.voicechat.microphone_unavailable", e);
-        });
+        this.micThread = new MicThread(this.client,
+                e -> BareBonesVCClient.LOGGER.error("Failed to start microphone thread", e));
         micThread.start();
         BareBonesVCClient.LOGGER.info("Starting microphone thread");
 

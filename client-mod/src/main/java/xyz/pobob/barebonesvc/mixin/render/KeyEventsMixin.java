@@ -1,4 +1,4 @@
-package xyz.pobob.barebonesvc.mixin;
+package xyz.pobob.barebonesvc.mixin.render;
 
 import de.maxhenkel.voicechat.voice.client.KeyEvents;
 import org.spongepowered.asm.mixin.Mixin;

@@ -1,4 +1,4 @@
-package xyz.pobob.barebonesvc.mixin;
+package xyz.pobob.barebonesvc.mixin.render;
 
 import de.maxhenkel.voicechat.gui.VoiceChatScreen;
 import de.maxhenkel.voicechat.gui.VoiceChatScreenBase;
@@ -8,7 +8,8 @@ import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.objectweb.asm.Opcodes;
-import org.spongepowered.asm.mixin.*;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -47,9 +48,8 @@ public abstract class VoiceChatScreenMixin extends VoiceChatScreenBase {
     private void onInit(CallbackInfo ci) {
         MinecraftClient minecraft = MinecraftClient.getInstance();
 
-        ButtonWidget bareBonesVC = ButtonWidget.builder(BARE_BONES_VC, button -> {
-            minecraft.setScreen(BareBonesVCSession.instance().isRunning() ? new ManagementScreen() : new ConnectionScreen());
-        }).dimensions(this.guiLeft + 6, this.guiTop + 6 + 38, 183, 20).build();
+        ButtonWidget bareBonesVC = ButtonWidget.builder(BARE_BONES_VC,
+                button -> minecraft.setScreen(BareBonesVCSession.instance().isRunning() ? new ManagementScreen() : new ConnectionScreen())).dimensions(this.guiLeft + 6, this.guiTop + 6 + 38, 183, 20).build();
         this.addDrawableChild(bareBonesVC);
 
     }

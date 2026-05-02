@@ -5,13 +5,12 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "ClientManagerMixin",
-    "ClientPlayerStateManagerMixin",
-    "ClientVoicechatMixin",
-    "KeyEventsMixin",
-    "PlayerStatesAccessor",
-    "RenderEventsMixin",
-    "TalkCacheMixin",
-    "VoiceChatScreenMixin"
+    "clientplayerstatemanager.ClientPlayerStateManagerMixin",
+    "clientplayerstatemanager.PlayerStatesAccessor",
+    "render.KeyEventsMixin",
+    "render.RenderEventsMixin",
+    "render.TalkCacheMixin",
+    "render.VoiceChatScreenMixin"
   ],
   "client": [
   ],

@@ -65,6 +65,9 @@ public class MiscNetworkThreads {
         Thread updatePlayerState = new Thread(() -> {
             boolean last = isDisabled();
 
+            clientUpdatePlayerPacket.create(last, false);
+            BareBonesVCSession.instance().send(clientUpdatePlayerPacket.serialize());
+
             while (BareBonesVCSession.instance().isRunning()) {
                 boolean current = isDisabled();
                 if (current != last) {

@@ -8,7 +8,7 @@ import de.maxhenkel.voicechat.gui.volume.AdjustVolumeList;
 import de.maxhenkel.voicechat.voice.client.ClientManager;
 import de.maxhenkel.voicechat.voice.client.ClientVoicechat;
 import de.maxhenkel.voicechat.voice.common.PlayerState;
-import xyz.pobob.barebonesvc.mixin.PlayerStatesAccessor;
+import xyz.pobob.barebonesvc.mixin.clientplayerstatemanager.PlayerStatesAccessor;
 
 import java.util.UUID;
 
