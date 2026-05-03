@@ -28,8 +28,11 @@ import java.util.concurrent.Executors;
 public class BareBonesVCSession {
 
     private final ServerAudioPacket serverAudioPacket = new ServerAudioPacket();
-    private final ServerHelloPacket serverHelloPacket = new ServerHelloPacket();
+
     private final ClientHelloPacket clientHelloPacket = new ClientHelloPacket();
+    private final ServerHelloPacket serverHelloPacket = new ServerHelloPacket();
+    private final ClientKeepAlivePacket clientKeepAlivePacket = new ClientKeepAlivePacket();
+    private final ServerKeepAlivePacket serverKeepAlivePacket = new ServerKeepAlivePacket();
     private final ClientUpdatePlayerPacket clientUpdatePlayerPacket = new ClientUpdatePlayerPacket();
     private final ServerUpdatePlayerPacket serverUpdatePlayerPacket = new ServerUpdatePlayerPacket();
 
