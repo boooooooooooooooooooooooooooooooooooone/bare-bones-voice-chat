@@ -8,7 +8,7 @@ import xyz.pobob.barebonesvc.util.Bytes;
 public abstract class Packet {
 
     public static final byte MAGIC_BYTE = 0x65;
-    public static final byte VERSION = 0x02;
+    public static final byte VERSION = 0x03;
 
     public Type type;
 
