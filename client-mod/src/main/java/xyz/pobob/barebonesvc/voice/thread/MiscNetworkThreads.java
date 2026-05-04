@@ -63,6 +63,13 @@ public class MiscNetworkThreads {
         final ClientUpdatePlayerPacket clientUpdatePlayerPacket = new ClientUpdatePlayerPacket();
 
         Thread updatePlayerState = new Thread(() -> {
+
+            try {
+                Thread.sleep(1250);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+
             boolean last = isDisabled();
 
             clientUpdatePlayerPacket.create(last, false);
