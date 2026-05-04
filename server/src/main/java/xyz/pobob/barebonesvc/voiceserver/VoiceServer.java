@@ -66,8 +66,7 @@ public class VoiceServer {
         console.setDaemon(false);
         console.start();
 
-        MiscNetworkThreads.startSending(this);
-        MiscNetworkThreads.startCheckingConnectionHealth(this);
+        MiscNetworkThreads.startKeepAliveThread(this);
 
         Thread networkThread = new Thread(() -> {
             while (this.isRunning()) {
@@ -147,14 +146,10 @@ public class VoiceServer {
                                 clientHelloPacket.isDisabled()
                         ));
 
-                        ServerUpdatePlayerPacket serverUpdatePlayerPacket = this.localServerUpdatePlayerPacket.get();
-                        for (ClientConnection client : this.connected.values()) {
-                            serverUpdatePlayerPacket.create(client.getUsername(), client.getUUID(), client.isDisabled(), false);
-                            this.send(serverUpdatePlayerPacket.serialize(), clientAddress);
-                        }
+                        MiscNetworkThreads.sendPlayerListWithDelay(this, clientAddress);
 
-                        serverUpdatePlayerPacket.create(clientHelloPacket.getUsername(), clientHelloPacket.getUUID(), clientHelloPacket.isDisabled(), false);
-                        this.announce(clientAddress, serverUpdatePlayerPacket.serialize());
+                        this.localServerUpdatePlayerPacket.get().create(clientHelloPacket.getUsername(), clientHelloPacket.getUUID(), clientHelloPacket.isDisabled(), false);
+                        this.announce(clientAddress, this.localServerUpdatePlayerPacket.get().serialize());
 
                     }
                 });
@@ -168,7 +163,7 @@ public class VoiceServer {
 
     }
 
-    private void announce(SocketAddress src, byte[] data) {
+    public void announce(SocketAddress src, byte[] data) {
         for (SocketAddress address : this.connected.keySet()) {
             if (!Objects.equals(address, src)) {
                 this.send(data, address);

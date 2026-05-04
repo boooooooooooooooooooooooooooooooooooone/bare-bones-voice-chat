@@ -7,17 +7,16 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import xyz.pobob.barebonesvc.BareBonesVCClient;
 import xyz.pobob.barebonesvc.voice.BareBonesVCSession;
 
 public class ManagementScreen extends VoiceChatScreenBase {
-    private static final Identifier TEXTURE = Identifier.of(xyz.pobob.barebonesvc.BareBonesVCClient.MOD_ID, "textures/gui/gui_voicechat_direct_connect.png");
+    private static final Identifier TEXTURE = Identifier.of(BareBonesVCClient.MOD_ID, "textures/gui/gui_voicechat_management.png");
     private static final Text TITLE = Text.of("Bare Bones VC - Management");
     private static final Text DISCONNECT = Text.of("Disconnect");
 
-    private ButtonWidget disconnect;
-
     public ManagementScreen() {
-        super(TITLE, 195, 49);
+        super(TITLE, 195, 93);
     }
 
     @Override
@@ -26,11 +25,11 @@ public class ManagementScreen extends VoiceChatScreenBase {
         this.hoverAreas.clear();
         this.clearChildren();
 
-        this.disconnect = ButtonWidget.builder(DISCONNECT, button -> {
+        ButtonWidget disconnect = ButtonWidget.builder(DISCONNECT, button -> {
             this.disconnect();
             MinecraftClient.getInstance().setScreen(null);
         }).dimensions(this.guiLeft + 6, this.guiTop + this.ySize - 27, this.xSize - 12, 20).build();
-        this.addDrawableChild(this.disconnect);
+        this.addDrawableChild(disconnect);
     }
 
     private void disconnect() {

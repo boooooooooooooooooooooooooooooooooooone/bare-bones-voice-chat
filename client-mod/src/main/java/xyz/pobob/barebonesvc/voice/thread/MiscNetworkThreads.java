@@ -38,7 +38,7 @@ public class MiscNetworkThreads {
         Thread updatePlayerState = new Thread(() -> {
 
             try {
-                Thread.sleep(1250);
+                Thread.sleep(2000);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }

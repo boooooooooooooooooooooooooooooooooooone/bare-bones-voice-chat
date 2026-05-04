@@ -21,7 +21,7 @@ import xyz.pobob.barebonesvc.voice.BareBonesVCSession;
 @Mixin(VoiceChatScreen.class)
 public abstract class VoiceChatScreenMixin extends VoiceChatScreenBase {
     @Unique private static final Text BARE_BONES_VC = Text.of("Bare Bones VC");
-    @Unique private static final Identifier TEXTURE_REPLACEMENT = Identifier.of(xyz.pobob.barebonesvc.BareBonesVCClient.MOD_ID, "textures/gui/gui_voicechat.png");
+    @Unique private static final Identifier TEXTURE_REPLACEMENT = Identifier.of(xyz.pobob.barebonesvc.BareBonesVCClient.MOD_ID, "textures/gui/gui_voicechat_management.png");
 
     protected VoiceChatScreenMixin(Text title, int xSize, int ySize) {
         super(title, xSize, ySize);

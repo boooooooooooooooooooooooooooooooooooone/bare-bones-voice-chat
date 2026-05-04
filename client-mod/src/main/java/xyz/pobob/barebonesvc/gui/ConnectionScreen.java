@@ -14,7 +14,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 public class ConnectionScreen extends VoiceChatScreenBase {
-    private static final Identifier TEXTURE = Identifier.of(xyz.pobob.barebonesvc.BareBonesVCClient.MOD_ID, "textures/gui/gui_voicechat_direct_connect.png");
+    private static final Identifier TEXTURE = Identifier.of(xyz.pobob.barebonesvc.BareBonesVCClient.MOD_ID, "textures/gui/gui_voicechat_connect.png");
     private static final Text TITLE = Text.of("Bare Bones VC - Connect");
     private static final Text HOST = Text.of("Host");
     private static final Text PORT = Text.of("Port");

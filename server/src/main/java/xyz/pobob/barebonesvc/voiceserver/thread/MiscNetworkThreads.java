@@ -2,15 +2,18 @@ package xyz.pobob.barebonesvc.voiceserver.thread;
 
 import xyz.pobob.barebonesvc.BareBonesVCServer;
 import xyz.pobob.barebonesvc.net.ServerKeepAlivePacket;
+import xyz.pobob.barebonesvc.net.ServerUpdatePlayerPacket;
 import xyz.pobob.barebonesvc.voiceserver.ClientConnection;
 import xyz.pobob.barebonesvc.voiceserver.VoiceServer;
 
 import java.net.SocketAddress;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MiscNetworkThreads {
 
-    public static void startSending(VoiceServer server) {
+    public static void startKeepAliveThread(final VoiceServer server) {
         Thread keepAliveSendThread = new Thread(() -> {
             ServerKeepAlivePacket keepAlive = new ServerKeepAlivePacket();
 
@@ -21,24 +24,6 @@ public class MiscNetworkThreads {
                     server.send(keepAlive.serialize(), address);
                 }
 
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    break;
-                }
-
-            }
-        });
-
-        keepAliveSendThread.setDaemon(true);
-        keepAliveSendThread.setName("KeepAliveSendThread");
-        keepAliveSendThread.start();
-    }
-
-    public static void startCheckingConnectionHealth(VoiceServer server) {
-        Thread keepAliveCheckThread = new Thread(() -> {
-            while (server.isRunning()) {
                 for (Map.Entry<SocketAddress, ClientConnection> client : server.connected.entrySet()) {
                     if (System.currentTimeMillis() - client.getValue().getLastKeepAliveSynced() > 30000) {
                         if (server.connected.containsKey(client.getKey())) {
@@ -52,13 +37,33 @@ public class MiscNetworkThreads {
                     Thread.sleep(2000);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
+                    break;
                 }
+
             }
         });
 
-        keepAliveCheckThread.setDaemon(true);
-        keepAliveCheckThread.setName("ClientConnectionHealthThread");
-        keepAliveCheckThread.start();
+        keepAliveSendThread.setDaemon(true);
+        keepAliveSendThread.setName("KeepAliveThread");
+        keepAliveSendThread.start();
     }
 
+    private static final ExecutorService SINGLE_THREAD_POOL = Executors.newSingleThreadExecutor();
+
+    public static void sendPlayerListWithDelay(final VoiceServer server, final SocketAddress clientAddress) {
+        SINGLE_THREAD_POOL.submit(() -> {
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+
+            ServerUpdatePlayerPacket serverUpdatePlayerPacket = new ServerUpdatePlayerPacket();
+
+            for (ClientConnection client : server.connected.values()) {
+                serverUpdatePlayerPacket.create(client.getUsername(), client.getUUID(), client.isDisabled(), false);
+                server.send(serverUpdatePlayerPacket.serialize(), clientAddress);
+            }
+        });
+    }
 }
