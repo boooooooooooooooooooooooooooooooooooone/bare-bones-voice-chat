@@ -3,37 +3,10 @@ package xyz.pobob.barebonesvc.voice.thread;
 import de.maxhenkel.voicechat.voice.client.ClientManager;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
-import xyz.pobob.barebonesvc.net.ClientKeepAlivePacket;
 import xyz.pobob.barebonesvc.net.ClientUpdatePlayerPacket;
 import xyz.pobob.barebonesvc.voice.BareBonesVCSession;
 
 public class MiscNetworkThreads {
-
-    public static void startSendingKeepAlives() {
-        ClientKeepAlivePacket keepAlive = new ClientKeepAlivePacket();
-
-        Thread keepAliveSendThread = new Thread(() -> {
-
-            while (BareBonesVCSession.instance().isRunning()) {
-
-                keepAlive.create();
-                BareBonesVCSession.instance().send(keepAlive.serialize());
-
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    break;
-                }
-
-            }
-
-        });
-
-        keepAliveSendThread.setDaemon(true);
-        keepAliveSendThread.setName("BareBonesVCKeepAliveSendThread");
-        keepAliveSendThread.start();
-    }
 
     public static void startCheckingConnectionHealth() {
         Thread keepAliveCheckThread = new Thread(() -> {
@@ -91,6 +64,7 @@ public class MiscNetworkThreads {
                     Thread.currentThread().interrupt();
                 }
             }
+
         });
 
         updatePlayerState.setDaemon(true);

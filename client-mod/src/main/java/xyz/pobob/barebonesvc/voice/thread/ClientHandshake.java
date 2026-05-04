@@ -6,7 +6,7 @@ import xyz.pobob.barebonesvc.voice.BareBonesVCSession;
 
 public class ClientHandshake extends Thread {
 
-    private static final int MAX_SENDS = 12;
+    private static final int MAX_SENDS = 20;
 
     private final byte[] rawPacket;
 

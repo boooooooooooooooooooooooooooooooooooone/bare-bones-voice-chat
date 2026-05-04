@@ -133,7 +133,6 @@ public class BareBonesVCSession {
                             );
 
                             this.lastKeepAlive = System.currentTimeMillis();
-                            MiscNetworkThreads.startSendingKeepAlives();
                             MiscNetworkThreads.startCheckingConnectionHealth();
                             MiscNetworkThreads.startUpdatingPlayerState();
 
@@ -170,8 +169,7 @@ public class BareBonesVCSession {
 
                                 this.serverKeepAlivePacket.deserialize(data);
                                 this.clientKeepAlivePacket.create(this.serverKeepAlivePacket.getId());
-                                this.send(this.clientKeepAlivePacket.serialize());
-                                // this will make measuring latency possible in the near future
+                                this.send(this.clientKeepAlivePacket.serialize()); // this will make measuring latency possible in the near future
                             }
 
                         } else if (data[2] == Packet.Type.SERVER_UPDATE_PLAYER.id) {

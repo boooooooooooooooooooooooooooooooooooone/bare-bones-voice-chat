@@ -8,7 +8,7 @@ import xyz.pobob.barebonesvc.voiceserver.VoiceServer;
 import java.net.SocketAddress;
 import java.util.Map;
 
-public class ServerKeepAliveThreads {
+public class MiscNetworkThreads {
 
     public static void startSending(VoiceServer server) {
         Thread keepAliveSendThread = new Thread(() -> {
