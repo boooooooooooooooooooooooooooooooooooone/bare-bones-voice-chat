@@ -1,6 +1,7 @@
-package xyz.pobob.barebonesvc;
+package xyz.pobob.barebonesvc.cli;
 
 import xyz.pobob.barebonesvc.voice.Codec;
+import xyz.pobob.barebonesvc.voiceserver.Config;
 
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
@@ -93,39 +94,6 @@ public final class Questionnaire {
         }
 
         while (true) {
-            System.out.println("Enter the MTU size (blank = 1024):");
-
-            String line;
-            try {
-                line = scanner.nextLine();
-            } catch (Exception e) {
-                System.out.println("Input interrupted. Exiting setup.");
-                return;
-            }
-
-            line = line.trim();
-
-            if (!line.isEmpty()) {
-                try {
-                    int val = Integer.parseInt(line);
-                    if (val < 256 || val > 2048) {
-                        System.out.println("MTU must be between 256-2048 bytes");
-                    } else {
-                        config.mtuSize = val;
-                        System.out.println("Set MTU size to " + config.mtuSize + " bytes\n");
-                        break;
-                    }
-                } catch (NumberFormatException e) {
-                    System.out.println("Invalid MTU size");
-                }
-            } else {
-                config.mtuSize = 1024;
-                System.out.println("Set MTU size to " + config.mtuSize + " bytes\n");
-                break;
-            }
-        }
-
-        while (true) {
             System.out.println("Enter the voice distance (blank = 64) (note that this is only an instruction for clients and sound packets will always be sent to every user connected to the server):");
 
             String line;
@@ -159,7 +127,7 @@ public final class Questionnaire {
         }
 
         while (true) {
-            System.out.println("Select a codec, allowed values are VOIP, AUDIO, RESTRICTED_LOWDELAY. (blank = VOIP):");
+            System.out.println("Select a codec, allowed values are VOIP, AUDIO, RESTRICTED_LOWDELAY. (blank = AUDIO):");
 
             String line;
             try {
@@ -180,7 +148,7 @@ public final class Questionnaire {
                     System.out.println("Invalid codec");
                 }
             } else {
-                config.codec = Codec.VOIP;
+                config.codec = Codec.AUDIO;
                 System.out.println("Set codec to " + config.codec + "\n");
                 break;
             }

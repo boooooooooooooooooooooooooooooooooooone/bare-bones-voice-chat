@@ -6,7 +6,7 @@ import xyz.pobob.barebonesvc.voice.BareBonesVCSession;
 
 public class ClientHandshake extends Thread {
 
-    private static final int MAX_SENDS = 20;
+    private static final int MAX_SENDS = 12;
 
     private final byte[] rawPacket;
 
@@ -42,6 +42,9 @@ public class ClientHandshake extends Thread {
         }
         if (count >= MAX_SENDS) {
             BareBonesVCSession.instance().disconnect();
+            if (MinecraftClient.getInstance().player != null) {
+                MinecraftClient.getInstance().player.sendMessage(Text.of("Failed to connect to Bare Bones VC server"), true);
+            }
         }
     }
 }

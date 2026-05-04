@@ -1,5 +1,7 @@
-package xyz.pobob.barebonesvc;
+package xyz.pobob.barebonesvc.voiceserver;
 
+import xyz.pobob.barebonesvc.BareBonesVCServer;
+import xyz.pobob.barebonesvc.cli.Questionnaire;
 import xyz.pobob.barebonesvc.voice.Codec;
 
 import java.net.InetAddress;
@@ -11,7 +13,6 @@ public class Config {
     public InetAddress listenAddress;
     public int port;
     public boolean mojangAuth;
-    public int mtuSize;
     public double voiceDistance;
     public Codec codec;
     public boolean groupsEnabled;
@@ -24,6 +25,7 @@ public class Config {
         } else {
             try {
                 String content = Files.readString(Path.of(path));
+                // TODO add config file parsing
             } catch (Exception e) {
                 BareBonesVCServer.LOGGER.log(Level.WARNING, "Failed to load config");
                 Questionnaire.load(config);

@@ -1,6 +1,7 @@
 package xyz.pobob.barebonesvc;
 
 import xyz.pobob.barebonesvc.cli.logger.PrefixFormatter;
+import xyz.pobob.barebonesvc.voiceserver.Config;
 import xyz.pobob.barebonesvc.voiceserver.VoiceServer;
 
 import java.util.logging.ConsoleHandler;

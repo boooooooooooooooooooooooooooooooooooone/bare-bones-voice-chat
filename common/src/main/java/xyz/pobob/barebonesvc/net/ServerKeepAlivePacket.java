@@ -18,6 +18,10 @@ public class ServerKeepAlivePacket extends Packet {
         this.id = Util.RANDOM.nextInt();
     }
 
+    public void create(int id) {
+        this.id = id;
+    }
+
     @Override
     public byte[] serialize() {
         return Bytes.join(Type.SERVER_KEEP_ALIVE.createHeader(4), Bytes.of(this.id));

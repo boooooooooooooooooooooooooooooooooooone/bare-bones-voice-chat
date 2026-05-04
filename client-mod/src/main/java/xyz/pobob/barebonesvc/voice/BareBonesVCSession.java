@@ -118,9 +118,8 @@ public class BareBonesVCSession {
                             };
 
                             BareBonesVCClient.LOGGER.info(
-                                    "Server config packet received! mojang auth={}, mtu={}, voice distance={}, codec={}, groups enabled={}",
+                                    "Server config packet received! mojang auth={}, voice distance={}, codec={}, groups enabled={}",
                                     this.serverHelloPacket.getMojangAuth(),
-                                    this.serverHelloPacket.getMtuSize(),
                                     this.serverHelloPacket.getVoiceDistance(),
                                     codec,
                                     this.serverHelloPacket.getGroupsEnabled()
@@ -128,7 +127,6 @@ public class BareBonesVCSession {
 
                             this.config = new SessionConfig(
                                     this.serverHelloPacket.getMojangAuth(),
-                                    this.serverHelloPacket.getMtuSize(),
                                     this.serverHelloPacket.getVoiceDistance(),
                                     codec,
                                     this.serverHelloPacket.getGroupsEnabled()
@@ -169,6 +167,11 @@ public class BareBonesVCSession {
 
                             if (this.isConnected()) {
                                 this.lastKeepAlive = System.currentTimeMillis();
+
+                                this.serverKeepAlivePacket.deserialize(data);
+                                this.clientKeepAlivePacket.create(this.serverKeepAlivePacket.getId());
+                                this.send(this.clientKeepAlivePacket.serialize());
+                                // this will make measuring latency possible in the near future
                             }
 
                         } else if (data[2] == Packet.Type.SERVER_UPDATE_PLAYER.id) {
@@ -286,8 +289,10 @@ public class BareBonesVCSession {
             this.send(this.clientUpdatePlayerPacket.serialize());
         }
 
-        this.client.close();
-        this.client = null;
+        if (this.client != null) {
+            this.client.close();
+            this.client = null;
+        }
 
         if (this.micThread != null) {
             this.micThread.close();
@@ -303,6 +308,7 @@ public class BareBonesVCSession {
         }
 
         if (this.socket != null) {
+            this.resolved = false;
             this.socket.close();
             this.socket = null;
         }
@@ -317,8 +323,9 @@ public class BareBonesVCSession {
     }
 
     public static void invalidAddress() {
-        if (MinecraftClient.getInstance().player == null) return;
-        MinecraftClient.getInstance().player.sendMessage(Text.of("Failed to resolve address"), true);
+        if (MinecraftClient.getInstance().player != null) {
+            MinecraftClient.getInstance().player.sendMessage(Text.of("Failed to resolve address"), true);
+        }
     }
 
     public String getReadableAddress() {

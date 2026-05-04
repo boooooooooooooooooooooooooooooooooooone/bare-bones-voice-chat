@@ -4,22 +4,17 @@ import xyz.pobob.barebonesvc.util.Bytes;
 import xyz.pobob.barebonesvc.voice.Codec;
 
 /**
- * [MOJANG AUTH + GROUPS ENABLED + CODEC : 1][MTU SIZE : 4][VOICE DISTANCE : 8]
+ * [MOJANG AUTH + GROUPS ENABLED + CODEC : 1][VOICE DISTANCE : 8]
  */
 public class ServerHelloPacket extends Packet {
 
     private boolean mojangAuth;
-    private int mtuSize;
     private double voiceDistance;
     private Codec codec;
     private boolean groupsEnabled;
 
     public boolean getMojangAuth() {
         return this.mojangAuth;
-    }
-
-    public int getMtuSize() {
-        return this.mtuSize;
     }
 
     public double getVoiceDistance() {
@@ -34,9 +29,8 @@ public class ServerHelloPacket extends Packet {
         return this.groupsEnabled;
     }
 
-    public void create(boolean mojangAuth, int mtuSize, double voiceDistance, Codec codec, boolean groupsEnabled) {
+    public void create(boolean mojangAuth, double voiceDistance, Codec codec, boolean groupsEnabled) {
         this.mojangAuth = mojangAuth;
-        this.mtuSize = mtuSize;
         this.voiceDistance = voiceDistance;
         this.codec = codec;
         this.groupsEnabled = groupsEnabled;
@@ -45,9 +39,8 @@ public class ServerHelloPacket extends Packet {
     @Override
     public byte[] serialize() {
         return Bytes.join(
-                Type.SERVER_HELLO.createHeader(13),
+                Type.SERVER_HELLO.createHeader(9),
                 encodeSmallData(),
-                Bytes.of(this.mtuSize),
                 Bytes.of(Double.doubleToLongBits(this.voiceDistance))
         );
     }
@@ -55,8 +48,7 @@ public class ServerHelloPacket extends Packet {
     @Override
     public void deserialize(byte[] data) {
         this.decodeSmallData(data);
-        this.mtuSize = Bytes.getInt(data, 6);
-        this.voiceDistance = Double.longBitsToDouble(Bytes.getLong(data, 10));
+        this.voiceDistance = Double.longBitsToDouble(Bytes.getLong(data, 6));
     }
 
     private byte[] encodeSmallData() {

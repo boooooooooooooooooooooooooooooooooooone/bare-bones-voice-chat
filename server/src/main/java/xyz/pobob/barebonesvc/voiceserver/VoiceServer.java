@@ -1,7 +1,6 @@
 package xyz.pobob.barebonesvc.voiceserver;
 
 import xyz.pobob.barebonesvc.BareBonesVCServer;
-import xyz.pobob.barebonesvc.Config;
 import xyz.pobob.barebonesvc.cli.command.CommandDispatcher;
 import xyz.pobob.barebonesvc.cli.command.ConsoleListener;
 import xyz.pobob.barebonesvc.cli.command.ListCommand;
@@ -26,6 +25,8 @@ public class VoiceServer {
     private final ThreadLocal<ServerHelloPacket> localServerHelloPacket = ThreadLocal.withInitial(ServerHelloPacket::new);
     private final ThreadLocal<ClientAudioPacket> localClientAudioPacket = ThreadLocal.withInitial(ClientAudioPacket::new);
     private final ThreadLocal<ServerAudioPacket> localServerAudioPacket = ThreadLocal.withInitial(ServerAudioPacket::new);
+    private final ThreadLocal<ClientKeepAlivePacket> localClientKeepAlivePacket = ThreadLocal.withInitial(ClientKeepAlivePacket::new);
+    private final ThreadLocal<ServerKeepAlivePacket> localServerKeepAlivePacket = ThreadLocal.withInitial(ServerKeepAlivePacket::new);
     private final ThreadLocal<ClientUpdatePlayerPacket> localClientUpdatePlayerPacket = ThreadLocal.withInitial(ClientUpdatePlayerPacket::new);
     private final ThreadLocal<ServerUpdatePlayerPacket> localServerUpdatePlayerPacket = ThreadLocal.withInitial(ServerUpdatePlayerPacket::new);
 
@@ -99,6 +100,10 @@ public class VoiceServer {
 
                         if (this.connected.containsKey(clientAddress)) {
                             this.connected.get(clientAddress).setLastKeepAliveResponse(System.currentTimeMillis());
+
+                            this.localClientKeepAlivePacket.get().deserialize(data);
+                            this.localServerKeepAlivePacket.get().create(this.localClientKeepAlivePacket.get().getId());
+                            this.send(this.localServerKeepAlivePacket.get().serialize(), clientAddress);
                         }
 
                     } else if (data[2] == Packet.Type.CLIENT_UPDATE_PLAYER.id) {
@@ -133,7 +138,6 @@ public class VoiceServer {
 
                         this.localServerHelloPacket.get().create(
                                 this.config.mojangAuth,
-                                this.config.mtuSize,
                                 this.config.voiceDistance,
                                 this.config.codec,
                                 this.config.groupsEnabled
