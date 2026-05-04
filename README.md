@@ -6,7 +6,7 @@ This is achieved through the Bare Bones VC server jar that does (almost) everyth
 
 ## Server Setup
 ### Prerequisites
-One person in your group will need to host the voice server, the following is required:
+One person in your group will need to host the voice server, the host will need:
 * A way to open a UDP port
 * A reliable internet connection
 * [Java 21](https://www.oracle.com/java/technologies/javase/jdk21-archive-downloads.html) installed on your system (do `java -version` in Command Prompt/Terminal to check)
