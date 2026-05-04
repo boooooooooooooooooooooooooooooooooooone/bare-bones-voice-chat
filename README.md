@@ -23,7 +23,6 @@ To get `<server file path>` on Windows, you can right-click the jar in File Expl
 3) After answering all the questions, the server will start
 
 4) To make your server accessible to your friends, you will need to access your internet router and forward the server port with UDP.
-
 The process is different for each router. You may need to google "port forwarding" for your router's brand/model.
 
 5) Find your public IPv4 address by typing `curl -4 ifconfig.me` in a new Command Prompt window.
