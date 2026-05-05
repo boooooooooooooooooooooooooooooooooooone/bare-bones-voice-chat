@@ -2,6 +2,7 @@ package xyz.pobob.barebonesvc.cli.command;
 
 import xyz.pobob.barebonesvc.BareBonesVCServer;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -24,6 +25,6 @@ public class CommandDispatcher {
             return;
         }
 
-        command.execute(parts);
+        command.execute(Arrays.copyOfRange(parts, 1, parts.length));
     }
 }

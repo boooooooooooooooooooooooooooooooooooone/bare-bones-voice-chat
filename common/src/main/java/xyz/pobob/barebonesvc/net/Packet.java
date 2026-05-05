@@ -8,7 +8,7 @@ import xyz.pobob.barebonesvc.util.Bytes;
 public abstract class Packet {
 
     public static final byte MAGIC_BYTE = 0x65;
-    public static final byte VERSION = 0x03;
+    public static final byte VERSION = 0x04;
 
     public Type type;
 
@@ -25,15 +25,17 @@ public abstract class Packet {
     }
 
     public enum Type {
-        CLIENT_HELLO((byte) 0x01),
-        SERVER_HELLO((byte) 0x02),
-        CLIENT_KEEP_ALIVE((byte) 0x03),
-        SERVER_KEEP_ALIVE((byte) 0x04),
-        SERVER_CLOSE((byte) 0x05),
-        CLIENT_AUDIO((byte) 0x06),
-        SERVER_AUDIO((byte) 0x07),
-        CLIENT_UPDATE_PLAYER((byte) 0x08),
-        SERVER_UPDATE_PLAYER((byte) 0x09);
+        CLIENT_HELLO((byte) 0x00),
+        SERVER_HELLO((byte) 0x01),
+        CLIENT_KEEP_ALIVE((byte) 0x02),
+        SERVER_KEEP_ALIVE((byte) 0x03),
+        SERVER_CLOSE((byte) 0x04),
+        CLIENT_AUDIO((byte) 0x05),
+        SERVER_AUDIO((byte) 0x06),
+        CLIENT_UPDATE_PLAYER((byte) 0x07),
+        SERVER_UPDATE_PLAYER((byte) 0x08),
+        SERVER_KICK_PLAYER((byte) 0x9),
+        SERVER_UPDATE_VOICE_DISTANCE((byte) 0x10);
 
         public final byte id;
 

@@ -22,10 +22,9 @@ public class ClientPlayerStateManagerMixin {
 
     @Inject(
             method = "isPlayerDisconnected",
-            at = @At(
+            at = @At( // the injection point will only be found if states.get(uuid) == null
                     value = "FIELD",
                     target = "Lde/maxhenkel/voicechat/VoicechatClient;CLIENT_CONFIG:Lde/maxhenkel/voicechat/config/ClientConfig;",
-                    // the injection point will only be found if states.get(uuid) == null
                     opcode = Opcodes.GETSTATIC
             ),
             cancellable = true

@@ -5,16 +5,16 @@ import xyz.pobob.barebonesvc.voiceserver.VoiceServer;
 
 public class StopCommand implements Command {
 
-    private final VoiceServer voiceServer;
+    private final VoiceServer server;
 
-    public StopCommand(VoiceServer voiceServer) {
-        this.voiceServer = voiceServer;
+    public StopCommand(VoiceServer server) {
+        this.server = server;
     }
 
     @Override
     public void execute(String[] args) {
         BareBonesVCServer.LOGGER.info("Stopping Bare Bones VC server");
-        this.voiceServer.close();
+        this.server.close();
         System.exit(0);
     }
 }

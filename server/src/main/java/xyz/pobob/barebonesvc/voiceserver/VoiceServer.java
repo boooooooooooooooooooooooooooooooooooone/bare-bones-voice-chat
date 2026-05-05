@@ -1,10 +1,7 @@
 package xyz.pobob.barebonesvc.voiceserver;
 
 import xyz.pobob.barebonesvc.BareBonesVCServer;
-import xyz.pobob.barebonesvc.cli.command.CommandDispatcher;
-import xyz.pobob.barebonesvc.cli.command.ConsoleListener;
-import xyz.pobob.barebonesvc.cli.command.ListCommand;
-import xyz.pobob.barebonesvc.cli.command.StopCommand;
+import xyz.pobob.barebonesvc.cli.command.*;
 import xyz.pobob.barebonesvc.net.*;
 import xyz.pobob.barebonesvc.voiceserver.thread.MiscNetworkThreads;
 
@@ -59,6 +56,8 @@ public class VoiceServer {
         CommandDispatcher dispatcher = new CommandDispatcher();
         dispatcher.register("stop", new StopCommand(this));
         dispatcher.register("list", new ListCommand(this));
+        dispatcher.register("kick", new KickCommand(this));
+        dispatcher.register("voicedistance", new VoiceDistanceCommand(this));
         Thread console = new Thread(new ConsoleListener(this, dispatcher));
 
         console.setName("ConsoleThread");
@@ -91,7 +90,7 @@ public class VoiceServer {
 
                             for (Map.Entry<SocketAddress, ClientConnection> entry : this.connected.entrySet()) {
                                 if (!Objects.equals(entry.getKey(), clientAddress) && !entry.getValue().isDisabled()) {
-                                    this.send(data, entry.getKey());
+                                    this.send(this.localServerAudioPacket.get().serialize(), entry.getKey());
                                 }
                             }
                         }
@@ -128,7 +127,7 @@ public class VoiceServer {
                                 );
                             }
 
-                            this.announce(clientAddress, this.localServerUpdatePlayerPacket.get().serialize());
+                            this.announceExcluding(this.localServerUpdatePlayerPacket.get().serialize(), clientAddress);
                         }
 
                     } else if (data[2] == Packet.Type.CLIENT_HELLO.id) {
@@ -163,7 +162,7 @@ public class VoiceServer {
                         MiscNetworkThreads.sendPlayerListWithDelay(this, clientAddress);
 
                         this.localServerUpdatePlayerPacket.get().create(clientHelloPacket.getUsername(), clientHelloPacket.getUUID(), clientHelloPacket.isDisabled(), false);
-                        this.announce(clientAddress, this.localServerUpdatePlayerPacket.get().serialize());
+                        this.announceExcluding(this.localServerUpdatePlayerPacket.get().serialize(), clientAddress);
 
                     }
                 });
@@ -177,11 +176,17 @@ public class VoiceServer {
 
     }
 
-    public void announce(SocketAddress src, byte[] data) {
+    public void announceExcluding(byte[] data, SocketAddress src) {
         for (SocketAddress address : this.connected.keySet()) {
             if (!Objects.equals(address, src)) {
                 this.send(data, address);
             }
+        }
+    }
+
+    public void announce(byte[] data) {
+        for (SocketAddress address : this.connected.keySet()) {
+            this.send(data, address);
         }
     }
 

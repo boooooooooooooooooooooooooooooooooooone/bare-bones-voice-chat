@@ -36,6 +36,7 @@ public class BareBonesVCSession {
     private final ServerKeepAlivePacket serverKeepAlivePacket = new ServerKeepAlivePacket();
     private final ClientUpdatePlayerPacket clientUpdatePlayerPacket = new ClientUpdatePlayerPacket();
     private final ServerUpdatePlayerPacket serverUpdatePlayerPacket = new ServerUpdatePlayerPacket();
+    private final ServerUpdateVoiceDistancePacket serverUpdateVoiceDistancePacket = new ServerUpdateVoiceDistancePacket();
 
     private final byte[] recvBuf = new byte[4096];
     private final DatagramPacket recvPacket = new DatagramPacket(recvBuf, recvBuf.length);
@@ -92,7 +93,7 @@ public class BareBonesVCSession {
         this.clientHelloPacket.create(
                 MinecraftClient.getInstance().getGameProfile().name(),
                 MinecraftClient.getInstance().getGameProfile().id(),
-                ClientManager.getPlayerStateManager().isDisabled()
+                VoicechatClient.CLIENT_CONFIG.disabled.get()
         );
         ClientHandshakeThread clientHandshakeThread = new ClientHandshakeThread(this.clientHelloPacket.serialize());
 
@@ -131,7 +132,7 @@ public class BareBonesVCSession {
 
                             this.config = new SessionConfig(
                                     this.serverHelloPacket.getMojangAuth(),
-                                    this.serverHelloPacket.getVoiceDistance(),
+                                    (float) this.serverHelloPacket.getVoiceDistance(),
                                     codec,
                                     this.serverHelloPacket.getGroupsEnabled()
                             );
@@ -150,20 +151,20 @@ public class BareBonesVCSession {
                     } else {
                         if (data[2] == Packet.Type.SERVER_AUDIO.id) {
 
-                            if (this.client == null) return;
-
-                            this.serverAudioPacket.deserialize(data);
-                            this.processSoundPacket(
-                                    new PlayerSoundPacket(
-                                            this.serverAudioPacket.getUUID(),
-                                            this.serverAudioPacket.getUUID(),
-                                            this.serverAudioPacket.getAudio(),
-                                            this.serverAudioPacket.getSequenceNumber(),
-                                            false,
-                                            (float) this.config.voiceDistance(),
-                                            null
-                                    )
-                            );
+                            if (this.client != null) {
+                                this.serverAudioPacket.deserialize(data);
+                                this.processSoundPacket(
+                                        new PlayerSoundPacket(
+                                                this.serverAudioPacket.getUUID(),
+                                                this.serverAudioPacket.getUUID(),
+                                                this.serverAudioPacket.getAudio(),
+                                                this.serverAudioPacket.getSequenceNumber(),
+                                                false,
+                                                this.config.voiceDistance(),
+                                                null
+                                        )
+                                );
+                            }
 
                         } else if (data[2] == Packet.Type.SERVER_KEEP_ALIVE.id) {
 
@@ -178,15 +179,26 @@ public class BareBonesVCSession {
                         } else if (data[2] == Packet.Type.SERVER_UPDATE_PLAYER.id) {
 
                             this.serverUpdatePlayerPacket.deserialize(data);
-                            PlayerState state = new PlayerState(
+                            PlayerStateInjector.updatePlayerState(
                                     this.serverUpdatePlayerPacket.getUUID(),
-                                    this.serverUpdatePlayerPacket.getUsername(),
-                                    this.serverUpdatePlayerPacket.getDisabled(),
-                                    this.serverUpdatePlayerPacket.getDisconnected()
+                                    new PlayerState(
+                                            this.serverUpdatePlayerPacket.getUUID(),
+                                            this.serverUpdatePlayerPacket.getUsername(),
+                                            this.serverUpdatePlayerPacket.getDisabled(),
+                                            this.serverUpdatePlayerPacket.getDisconnected()
+                                    )
                             );
 
-                            PlayerStateInjector.updatePlayerState(state.getUuid(), state);
+                        } else if (data[2] == Packet.Type.SERVER_UPDATE_VOICE_DISTANCE.id) {
 
+                            this.serverUpdateVoiceDistancePacket.deserialize(data);
+                            this.config.setVoiceDistance((float) this.serverUpdateVoiceDistancePacket.getVoiceDistance());
+
+                        } else if (data[2] == Packet.Type.SERVER_KICK_PLAYER.id) {
+                            if (MinecraftClient.getInstance().player != null) {
+                                MinecraftClient.getInstance().player.sendMessage(Text.of("Kicked from Bare Bones VC server"), true);
+                            }
+                            this.disconnect();
                         } else if (data[2] == Packet.Type.SERVER_CLOSE.id) {
 
                             if (MinecraftClient.getInstance().player != null) {
@@ -302,7 +314,7 @@ public class BareBonesVCSession {
 
     private void processSoundPacket(PlayerSoundPacket packet) {
         synchronized (this.client.getAudioChannels()) {
-            if (!ClientManager.getPlayerStateManager().isDisabled()) {
+            if (!VoicechatClient.CLIENT_CONFIG.disabled.get()) {
                 AudioChannel sendTo = this.client.getAudioChannels().get(packet.getChannelId());
                 if (sendTo == null) {
                     try {
