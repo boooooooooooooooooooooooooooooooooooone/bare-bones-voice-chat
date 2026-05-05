@@ -18,6 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 public class VoiceServer {
 
@@ -126,7 +127,11 @@ public class VoiceServer {
 
                         clientHelloPacket.deserialize(data);
 
-                        if (this.connected.containsKey(clientAddress)) return;
+                        if (this.connected.containsKey(clientAddress)
+                                || this.connected.values()
+                                .stream().map(ClientConnection::getUUID)
+                                .collect(Collectors.toSet())
+                                .contains(clientHelloPacket.getUUID())) return;
                         BareBonesVCServer.LOGGER.info("Client connected: " + clientHelloPacket.getUsername() + " (" + clientHelloPacket.getUUID() + ")");
 
                         this.localServerHelloPacket.get().create(
