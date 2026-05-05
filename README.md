@@ -27,12 +27,12 @@ The process is different for each router. You may need to google "port forwardin
 
 5) Find your public IPv4 address by typing `curl -4 ifconfig.me` in a new Command Prompt window.
 
-6) Now you and your friends may open the Simple Voice Chat menu in game and click the Bare Bones VC button, 
+6) Now you and your friends may open the Simple Voice Chat menu in game and click the Bare Bones VC button to open the connection screen, 
 the host will be your public IPv4 address and the port will be whichever port you opened 
 ![](https://i.imgur.com/Min1erw.png) ![](https://i.imgur.com/9atCEph.png)
 
 7) The voice chat connection will continue even after disconnecting from a Minecraft server,
-to disconnect from the voice server use the button in the Simple Voice Chat menu.
+to disconnect from the voice server use the Bare Bones VC button again.
 
 ## Dependencies
 The Bare Bones VC Fabric mod requires both [Fabric API](https://modrinth.com/mod/fabric-api) and [Simple Voice Chat](https://modrinth.com/mod/simple-voice-chat) to function.
