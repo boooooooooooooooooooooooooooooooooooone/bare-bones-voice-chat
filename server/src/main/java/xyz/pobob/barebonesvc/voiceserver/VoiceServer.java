@@ -18,7 +18,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 
 public class VoiceServer {
 
@@ -39,13 +38,12 @@ public class VoiceServer {
     private final ExecutorService pool = Executors.newFixedThreadPool(4);
     private DatagramSocket socket;
 
+    public final Map<SocketAddress, ClientConnection> connected = new ConcurrentHashMap<>();
     public final Config config;
 
     public synchronized boolean isRunning() {
         return socket != null;
     }
-
-    public final Map<SocketAddress, ClientConnection> connected = new ConcurrentHashMap<>();
 
     public VoiceServer(Config config) {
         this.config = config;
@@ -73,7 +71,7 @@ public class VoiceServer {
             while (this.isRunning()) {
                 final byte[] data;
                 try {
-                    data = receive();
+                    data = this.receive();
                     if (data.length < 5) continue;
                 } catch (IOException e) {
                     continue;
@@ -91,7 +89,11 @@ public class VoiceServer {
                             this.localClientAudioPacket.get().deserialize(data);
                             this.localServerAudioPacket.get().create(this.localClientAudioPacket.get(), this.connected.get(clientAddress).getUUID());
 
-                            this.announce(clientAddress, this.localServerAudioPacket.get().serialize());
+                            for (Map.Entry<SocketAddress, ClientConnection> entry : this.connected.entrySet()) {
+                                if (!Objects.equals(entry.getKey(), clientAddress) && !entry.getValue().isDisabled()) {
+                                    this.send(data, entry.getKey());
+                                }
+                            }
                         }
 
                     } else if (data[2] == Packet.Type.CLIENT_KEEP_ALIVE.id) {
@@ -103,19 +105,27 @@ public class VoiceServer {
                     } else if (data[2] == Packet.Type.CLIENT_UPDATE_PLAYER.id) {
 
                         if (this.connected.containsKey(clientAddress)) {
-                            ClientUpdatePlayerPacket clientUpdatePlayerPacket = this.localClientUpdatePlayerPacket.get();
-                            clientUpdatePlayerPacket.deserialize(data);
+                            this.localClientUpdatePlayerPacket.get().deserialize(data);
 
-                            if (clientUpdatePlayerPacket.isDisconnected()) {
+                            if (this.localClientUpdatePlayerPacket.get().isDisconnected()) {
                                 ClientConnection disconnected = this.connected.remove(clientAddress);
+                                this.localServerUpdatePlayerPacket.get().create(
+                                        disconnected.getUsername(),
+                                        disconnected.getUUID(),
+                                        this.localClientUpdatePlayerPacket.get().isDisabled(),
+                                        true
+                                );
+
                                 BareBonesVCServer.LOGGER.info("Client disconnected: " + disconnected.getUsername() + " (" + disconnected.getUUID() + ")");
-
-                                this.localServerUpdatePlayerPacket.get().create(disconnected.getUsername(), disconnected.getUUID(), disconnected.isDisabled(), true);
                             } else {
-                                ClientConnection connection = this.connected.get(clientAddress);
-                                connection.setDisabled(clientUpdatePlayerPacket.isDisabled());
-
-                                this.localServerUpdatePlayerPacket.get().create(connection.getUsername(), connection.getUUID(), clientUpdatePlayerPacket.isDisabled(), false);
+                                ClientConnection client = this.connected.get(clientAddress);
+                                client.setDisabled(this.localClientUpdatePlayerPacket.get().isDisabled());
+                                this.localServerUpdatePlayerPacket.get().create(
+                                        client.getUsername(),
+                                        client.getUUID(),
+                                        this.localClientUpdatePlayerPacket.get().isDisabled(),
+                                        false
+                                );
                             }
 
                             this.announce(clientAddress, this.localServerUpdatePlayerPacket.get().serialize());
@@ -124,13 +134,12 @@ public class VoiceServer {
                     } else if (data[2] == Packet.Type.CLIENT_HELLO.id) {
 
                         ClientHelloPacket clientHelloPacket = this.localClientHelloPacket.get();
-
                         clientHelloPacket.deserialize(data);
 
                         if (this.connected.containsKey(clientAddress)
                                 || this.connected.values()
                                 .stream().map(ClientConnection::getUUID)
-                                .collect(Collectors.toSet())
+                                .toList()
                                 .contains(clientHelloPacket.getUUID())) return;
                         BareBonesVCServer.LOGGER.info("Client connected: " + clientHelloPacket.getUsername() + " (" + clientHelloPacket.getUUID() + ")");
 

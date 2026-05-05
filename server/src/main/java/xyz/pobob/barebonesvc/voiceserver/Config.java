@@ -1,13 +1,9 @@
 package xyz.pobob.barebonesvc.voiceserver;
 
-import xyz.pobob.barebonesvc.BareBonesVCServer;
 import xyz.pobob.barebonesvc.cli.Questionnaire;
 import xyz.pobob.barebonesvc.voice.Codec;
 
 import java.net.InetAddress;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.logging.Level;
 
 public class Config {
     public InetAddress listenAddress;
@@ -23,13 +19,8 @@ public class Config {
         if (path == null) {
             Questionnaire.load(config);
         } else {
-            try {
-                String content = Files.readString(Path.of(path));
-                // TODO add config file parsing
-            } catch (Exception e) {
-                BareBonesVCServer.LOGGER.log(Level.WARNING, "Failed to load config");
-                Questionnaire.load(config);
-            }
+            // TODO add config file parsing
+            Questionnaire.load(config);
         }
 
         return config;

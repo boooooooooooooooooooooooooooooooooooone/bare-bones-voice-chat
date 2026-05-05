@@ -1,6 +1,7 @@
 package xyz.pobob.barebonesvc.voice;
 
 import de.maxhenkel.voicechat.Voicechat;
+import de.maxhenkel.voicechat.VoicechatClient;
 import de.maxhenkel.voicechat.config.ServerConfig;
 import de.maxhenkel.voicechat.debug.CooldownTimer;
 import de.maxhenkel.voicechat.voice.client.AudioChannel;
@@ -13,7 +14,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
 import xyz.pobob.barebonesvc.BareBonesVCClient;
 import xyz.pobob.barebonesvc.net.*;
-import xyz.pobob.barebonesvc.voice.thread.ClientHandshake;
+import xyz.pobob.barebonesvc.voice.thread.ClientHandshakeThread;
 import xyz.pobob.barebonesvc.voice.thread.MicThread;
 import xyz.pobob.barebonesvc.voice.thread.MiscNetworkThreads;
 
@@ -61,6 +62,9 @@ public class BareBonesVCSession {
     public long lastKeepAlive = 0;
 
     public void start(String host, int port) {
+        if (VoicechatClient.CLIENT_CONFIG.muteOnJoin.get()) {
+            ClientManager.getPlayerStateManager().setMuted(true);
+        }
 
         this.client = null;
         this.micThread = null;
@@ -90,9 +94,9 @@ public class BareBonesVCSession {
                 MinecraftClient.getInstance().getGameProfile().id(),
                 ClientManager.getPlayerStateManager().isDisabled()
         );
-        ClientHandshake clientHandshake = new ClientHandshake(this.clientHelloPacket.serialize());
+        ClientHandshakeThread clientHandshakeThread = new ClientHandshakeThread(this.clientHelloPacket.serialize());
 
-        Thread networkThread = new Thread(() -> {
+        Thread networkReceiveThread = new Thread(() -> {
             while (this.isRunning()) {
                 final byte[] data;
                 try {
@@ -134,7 +138,6 @@ public class BareBonesVCSession {
 
                             this.lastKeepAlive = System.currentTimeMillis();
                             MiscNetworkThreads.startCheckingConnectionHealth();
-                            MiscNetworkThreads.startUpdatingPlayerState();
 
                             if (this.serverHelloPacket.getMojangAuth()) {
                                 // TODO add mojang auth
@@ -198,14 +201,12 @@ public class BareBonesVCSession {
 
             this.stopNow();
         });
-        networkThread.setName("BareBonesVCNetworkThread");
+        networkReceiveThread.setName("BareBonesVCNetworkThread");
 
-        clientHandshake.start();
-        networkThread.start();
+        clientHandshakeThread.start();
+        networkReceiveThread.start();
 
         BareBonesVCClient.LOGGER.info("Started connecting to voice server {}", BareBonesVCSession.instance().getReadableAddress());
-
-
     }
 
     private void startVoiceChat() {
@@ -222,29 +223,18 @@ public class BareBonesVCSession {
 
     }
 
-    private void processSoundPacket(PlayerSoundPacket packet) {
-        synchronized (this.client.getAudioChannels()) {
-            if (!ClientManager.getPlayerStateManager().isDisabled()) {
-                AudioChannel sendTo = this.client.getAudioChannels().get(packet.getChannelId());
-                if (sendTo == null) {
-                    try {
-                        AudioChannel ch = new AudioChannel(this.client, null, packet.getChannelId());
-                        ch.addToQueue(packet);
-                        ch.start();
-                        this.client.getAudioChannels().put(packet.getChannelId(), ch);
-                    } catch (Exception e) {
-                        CooldownTimer.run("playback_unavailable", () -> {
-                            Voicechat.LOGGER.error("Failed to create audio channel", e);
-                            ChatUtils.sendModErrorMessage("message.voicechat.playback_unavailable", e);
-                        });
-                    }
-                } else {
-                    sendTo.addToQueue(packet);
-                }
-            }
+    public synchronized boolean send(byte[] data) {
+        if (!this.isRunning()) return false;
 
-            this.client.getAudioChannels().values().stream().filter(AudioChannel::canKill).forEach(AudioChannel::closeAndKill);
-            this.client.getAudioChannels().entrySet().removeIf((entry) -> (entry.getValue()).isClosed());
+        this.sendPacket.setLength(data.length);
+        System.arraycopy(data, 0, this.sendPacket.getData(), 0, data.length);
+
+        try {
+            this.socket.send(this.sendPacket);
+            return true;
+        } catch (IOException e) {
+            BareBonesVCClient.LOGGER.error("An error occurred while sending Datagram packet", e);
+            return false;
         }
     }
 
@@ -264,19 +254,9 @@ public class BareBonesVCSession {
         return data;
     }
 
-    public synchronized boolean send(byte[] data) {
-        if (!this.isRunning()) return false;
-
-        this.sendPacket.setLength(data.length);
-        System.arraycopy(data, 0, this.sendPacket.getData(), 0, data.length);
-
-        try {
-            this.socket.send(this.sendPacket);
-            return true;
-        } catch (IOException e) {
-            BareBonesVCClient.LOGGER.error("An error occurred while sending Datagram packet", e);
-            return false;
-        }
+    public void updateState(boolean disabled) {
+        this.clientUpdatePlayerPacket.create(disabled, false);
+        this.send(this.clientUpdatePlayerPacket.serialize());
     }
 
     public void disconnect() {
@@ -318,6 +298,32 @@ public class BareBonesVCSession {
 
     public boolean isConnected() {
         return this.running && System.currentTimeMillis() - this.lastKeepAlive < 30000;
+    }
+
+    private void processSoundPacket(PlayerSoundPacket packet) {
+        synchronized (this.client.getAudioChannels()) {
+            if (!ClientManager.getPlayerStateManager().isDisabled()) {
+                AudioChannel sendTo = this.client.getAudioChannels().get(packet.getChannelId());
+                if (sendTo == null) {
+                    try {
+                        AudioChannel ch = new AudioChannel(this.client, null, packet.getChannelId());
+                        ch.addToQueue(packet);
+                        ch.start();
+                        this.client.getAudioChannels().put(packet.getChannelId(), ch);
+                    } catch (Exception e) {
+                        CooldownTimer.run("playback_unavailable", () -> {
+                            Voicechat.LOGGER.error("Failed to create audio channel", e);
+                            ChatUtils.sendModErrorMessage("message.voicechat.playback_unavailable", e);
+                        });
+                    }
+                } else {
+                    sendTo.addToQueue(packet);
+                }
+            }
+
+            this.client.getAudioChannels().values().stream().filter(AudioChannel::canKill).forEach(AudioChannel::closeAndKill);
+            this.client.getAudioChannels().entrySet().removeIf((entry) -> (entry.getValue()).isClosed());
+        }
     }
 
     public static void invalidAddress() {

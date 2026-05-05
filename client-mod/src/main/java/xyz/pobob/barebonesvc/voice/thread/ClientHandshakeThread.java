@@ -4,13 +4,13 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
 import xyz.pobob.barebonesvc.voice.BareBonesVCSession;
 
-public class ClientHandshake extends Thread {
+public class ClientHandshakeThread extends Thread {
 
     private static final int MAX_SENDS = 20;
 
     private final byte[] rawPacket;
 
-    public ClientHandshake(byte[] rawPacket) {
+    public ClientHandshakeThread(byte[] rawPacket) {
         this.rawPacket = rawPacket;
 
         this.setName("BareBonesVCHandshakeSendThread");

@@ -12,11 +12,11 @@ import xyz.pobob.barebonesvc.mixin.clientplayerstatemanager.PlayerStatesAccessor
 
 import java.util.UUID;
 
+// copied from SVC's ClientPlayerStateManager
 public class PlayerStateInjector {
 
-    // copied from SVC's ClientPlayerStateManager
     public static synchronized void updatePlayerState(UUID uuid, PlayerState state) {
-        ((PlayerStatesAccessor) ClientManager.getPlayerStateManager()).getPlayerStates().put(uuid, state);
+        ((PlayerStatesAccessor) ClientManager.getPlayerStateManager()).getStates().put(uuid, state);
         Voicechat.LOGGER.debug("Got state for {}: {}", state.getName(), state);
         VoicechatClient.USERNAME_CACHE.updateUsernameAndSave(state.getUuid(), state.getName());
         if (state.isDisconnected()) {
@@ -29,4 +29,13 @@ public class PlayerStateInjector {
         JoinGroupList.update();
         GroupList.update();
     }
+
+    public static synchronized void removePlayerState(UUID uuid) {
+        ((PlayerStatesAccessor) ClientManager.getPlayerStateManager()).getStates().remove(uuid);
+        Voicechat.LOGGER.debug("Removed state {}", uuid);
+        AdjustVolumeList.update();
+        JoinGroupList.update();
+        GroupList.update();
+    }
+
 }

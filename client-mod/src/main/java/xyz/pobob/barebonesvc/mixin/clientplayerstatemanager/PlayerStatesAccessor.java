@@ -11,5 +11,5 @@ import java.util.UUID;
 @Mixin(ClientPlayerStateManager.class)
 public interface PlayerStatesAccessor {
     @Accessor("states")
-    Map<UUID, PlayerState> getPlayerStates();
+    Map<UUID, PlayerState> getStates();
 }

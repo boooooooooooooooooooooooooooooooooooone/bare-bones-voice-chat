@@ -1,9 +1,7 @@
 package xyz.pobob.barebonesvc.voice.thread;
 
-import de.maxhenkel.voicechat.voice.client.ClientManager;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
-import xyz.pobob.barebonesvc.net.ClientUpdatePlayerPacket;
 import xyz.pobob.barebonesvc.voice.BareBonesVCSession;
 
 public class MiscNetworkThreads {
@@ -30,50 +28,6 @@ public class MiscNetworkThreads {
         keepAliveCheckThread.setDaemon(true);
         keepAliveCheckThread.setName("BareBonesVCCheckConnectionThread");
         keepAliveCheckThread.start();
-    }
-
-    public static void startUpdatingPlayerState() {
-        final ClientUpdatePlayerPacket clientUpdatePlayerPacket = new ClientUpdatePlayerPacket();
-
-        Thread updatePlayerState = new Thread(() -> {
-
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-
-            boolean last = isDisabled();
-
-            clientUpdatePlayerPacket.create(last, false);
-            BareBonesVCSession.instance().send(clientUpdatePlayerPacket.serialize());
-
-            while (BareBonesVCSession.instance().isRunning()) {
-                boolean current = isDisabled();
-                if (current != last) {
-
-                    clientUpdatePlayerPacket.create(current, false);
-                    BareBonesVCSession.instance().send(clientUpdatePlayerPacket.serialize());
-                    last = current;
-
-                }
-
-                try {
-                    Thread.sleep(1250);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-            }
-
-        });
-
-        updatePlayerState.setDaemon(true);
-        updatePlayerState.setName("BareBonesVCUpdateStateThread");
-        updatePlayerState.start();
-    }
-
-    private static synchronized boolean isDisabled() {
-        return ClientManager.getPlayerStateManager().isDisabled();
     }
 
 }
