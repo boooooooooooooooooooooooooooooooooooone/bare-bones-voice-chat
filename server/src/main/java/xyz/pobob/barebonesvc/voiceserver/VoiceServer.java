@@ -3,6 +3,7 @@ package xyz.pobob.barebonesvc.voiceserver;
 import xyz.pobob.barebonesvc.BareBonesVCServer;
 import xyz.pobob.barebonesvc.cli.command.*;
 import xyz.pobob.barebonesvc.net.*;
+import xyz.pobob.barebonesvc.voiceserver.thread.LatencyManager;
 import xyz.pobob.barebonesvc.voiceserver.thread.MiscNetworkThreads;
 
 import java.io.IOException;
@@ -24,6 +25,7 @@ public class VoiceServer {
     private final ThreadLocal<ServerAudioPacket> localServerAudioPacket = ThreadLocal.withInitial(ServerAudioPacket::new);
     private final ThreadLocal<ClientUpdatePlayerPacket> localClientUpdatePlayerPacket = ThreadLocal.withInitial(ClientUpdatePlayerPacket::new);
     private final ThreadLocal<ServerUpdatePlayerPacket> localServerUpdatePlayerPacket = ThreadLocal.withInitial(ServerUpdatePlayerPacket::new);
+    private final ThreadLocal<ClientKeepAlivePacket> localClientKeepAlivePacket = ThreadLocal.withInitial(ClientKeepAlivePacket::new);
 
     private final ServerClosePacket serverClosePacket = new ServerClosePacket();
 
@@ -36,6 +38,7 @@ public class VoiceServer {
     private DatagramSocket socket;
 
     public final Map<SocketAddress, ClientConnection> connected = new ConcurrentHashMap<>();
+    public final LatencyManager latencyManager = new LatencyManager(this);
     public final Config config;
 
     public synchronized boolean isRunning() {
@@ -97,8 +100,12 @@ public class VoiceServer {
 
                     } else if (data[2] == Packet.Type.CLIENT_KEEP_ALIVE.id) {
 
-                        if (this.connected.containsKey(clientAddress)) {
-                            this.connected.get(clientAddress).setLastKeepAliveResponse(System.currentTimeMillis());
+                        ClientConnection client = this.connected.get(clientAddress);
+                        if (client != null) {
+                            client.setLastKeepAliveResponse(System.currentTimeMillis());
+
+                            this.localClientKeepAlivePacket.get().deserialize(data);
+                            this.latencyManager.updateClientLatency(client, this.localClientKeepAlivePacket.get().getId());
                         }
 
                     } else if (data[2] == Packet.Type.CLIENT_UPDATE_PLAYER.id) {

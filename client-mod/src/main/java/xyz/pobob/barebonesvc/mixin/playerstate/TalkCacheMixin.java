@@ -1,4 +1,4 @@
-package xyz.pobob.barebonesvc.mixin.render;
+package xyz.pobob.barebonesvc.mixin.playerstate;
 
 import de.maxhenkel.voicechat.voice.client.TalkCache;
 import org.spongepowered.asm.mixin.Mixin;

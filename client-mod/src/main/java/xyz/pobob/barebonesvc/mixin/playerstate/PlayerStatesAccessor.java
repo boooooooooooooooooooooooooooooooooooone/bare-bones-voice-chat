@@ -1,4 +1,4 @@
-package xyz.pobob.barebonesvc.mixin.clientplayerstatemanager;
+package xyz.pobob.barebonesvc.mixin.playerstate;
 
 import de.maxhenkel.voicechat.voice.client.ClientPlayerStateManager;
 import de.maxhenkel.voicechat.voice.common.PlayerState;

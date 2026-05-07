@@ -14,6 +14,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
 import xyz.pobob.barebonesvc.BareBonesVCClient;
 import xyz.pobob.barebonesvc.net.*;
+import xyz.pobob.barebonesvc.util.PlayerStateInjector;
 import xyz.pobob.barebonesvc.voice.thread.ClientHandshakeThread;
 import xyz.pobob.barebonesvc.voice.thread.MicThread;
 import xyz.pobob.barebonesvc.voice.thread.MiscNetworkThreads;
@@ -29,7 +30,6 @@ import java.util.concurrent.Executors;
 public class BareBonesVCSession {
 
     private final ServerAudioPacket serverAudioPacket = new ServerAudioPacket();
-
     private final ClientHelloPacket clientHelloPacket = new ClientHelloPacket();
     private final ServerHelloPacket serverHelloPacket = new ServerHelloPacket();
     private final ClientKeepAlivePacket clientKeepAlivePacket = new ClientKeepAlivePacket();
@@ -37,6 +37,7 @@ public class BareBonesVCSession {
     private final ClientUpdatePlayerPacket clientUpdatePlayerPacket = new ClientUpdatePlayerPacket();
     private final ServerUpdatePlayerPacket serverUpdatePlayerPacket = new ServerUpdatePlayerPacket();
     private final ServerUpdateVoiceDistancePacket serverUpdateVoiceDistancePacket = new ServerUpdateVoiceDistancePacket();
+    private final ServerPlayerLatencyPacket serverPlayerLatencyPacket = new ServerPlayerLatencyPacket();
 
     private final byte[] recvBuf = new byte[4096];
     private final DatagramPacket recvPacket = new DatagramPacket(recvBuf, recvBuf.length);
@@ -48,7 +49,6 @@ public class BareBonesVCSession {
     private DatagramSocket socket;
 
     private static BareBonesVCSession instance;
-
     public static synchronized BareBonesVCSession instance() {
         if (instance == null) instance = new BareBonesVCSession();
         return instance;
@@ -173,7 +173,7 @@ public class BareBonesVCSession {
 
                                 this.serverKeepAlivePacket.deserialize(data);
                                 this.clientKeepAlivePacket.create(this.serverKeepAlivePacket.getId());
-                                this.send(this.clientKeepAlivePacket.serialize()); // this will make measuring latency possible in the near future
+                                this.send(this.clientKeepAlivePacket.serialize());
                             }
 
                         } else if (data[2] == Packet.Type.SERVER_UPDATE_PLAYER.id) {
@@ -187,6 +187,14 @@ public class BareBonesVCSession {
                                             this.serverUpdatePlayerPacket.getDisabled(),
                                             this.serverUpdatePlayerPacket.getDisconnected()
                                     )
+                            );
+
+                        } else if (data[2] == Packet.Type.SERVER_PLAYER_LATENCY.id) {
+
+                            this.serverPlayerLatencyPacket.deserialize(data);
+                            BareBonesVCClient.LATENCIES.put(
+                                    this.serverPlayerLatencyPacket.getUUID(),
+                                    this.serverPlayerLatencyPacket.getLatencyNano() * 1e-6
                             );
 
                         } else if (data[2] == Packet.Type.SERVER_UPDATE_VOICE_DISTANCE.id) {

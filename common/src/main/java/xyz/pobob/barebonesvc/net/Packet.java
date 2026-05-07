@@ -34,8 +34,9 @@ public abstract class Packet {
         SERVER_AUDIO((byte) 0x06),
         CLIENT_UPDATE_PLAYER((byte) 0x07),
         SERVER_UPDATE_PLAYER((byte) 0x08),
-        SERVER_KICK_PLAYER((byte) 0x9),
-        SERVER_UPDATE_VOICE_DISTANCE((byte) 0x10);
+        SERVER_KICK_PLAYER((byte) 0x09),
+        SERVER_UPDATE_VOICE_DISTANCE((byte) 0x10),
+        SERVER_PLAYER_LATENCY((byte) 0x11);
 
         public final byte id;
 

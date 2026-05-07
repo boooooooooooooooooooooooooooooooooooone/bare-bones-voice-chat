@@ -21,6 +21,7 @@ public class MiscNetworkThreads {
 
                 for (SocketAddress address : server.connected.keySet()) {
                     keepAlive.create();
+                    server.latencyManager.registerSentTime(keepAlive.getId());
                     server.send(keepAlive.serialize(), address);
                 }
 

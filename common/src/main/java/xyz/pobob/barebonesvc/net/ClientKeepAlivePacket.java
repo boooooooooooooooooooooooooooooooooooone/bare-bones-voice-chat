@@ -1,7 +1,6 @@
 package xyz.pobob.barebonesvc.net;
 
 import xyz.pobob.barebonesvc.util.Bytes;
-import xyz.pobob.barebonesvc.util.Util;
 
 /**
  * [ID : 4]
@@ -12,10 +11,6 @@ public class ClientKeepAlivePacket extends Packet {
 
     public int getId() {
         return this.id;
-    }
-
-    public void create() {
-        this.id = Util.RANDOM.nextInt();
     }
 
     public void create(int id) {

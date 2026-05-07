@@ -1,4 +1,4 @@
-package xyz.pobob.barebonesvc.voice;
+package xyz.pobob.barebonesvc.util;
 
 import de.maxhenkel.voicechat.Voicechat;
 import de.maxhenkel.voicechat.VoicechatClient;
@@ -8,7 +8,8 @@ import de.maxhenkel.voicechat.gui.volume.AdjustVolumeList;
 import de.maxhenkel.voicechat.voice.client.ClientManager;
 import de.maxhenkel.voicechat.voice.client.ClientVoicechat;
 import de.maxhenkel.voicechat.voice.common.PlayerState;
-import xyz.pobob.barebonesvc.mixin.clientplayerstatemanager.PlayerStatesAccessor;
+import xyz.pobob.barebonesvc.gui.ClientList;
+import xyz.pobob.barebonesvc.mixin.playerstate.PlayerStatesAccessor;
 
 import java.util.UUID;
 
@@ -26,6 +27,7 @@ public class PlayerStateInjector {
             }
         }
         AdjustVolumeList.update();
+        ClientList.update();
         JoinGroupList.update();
         GroupList.update();
     }

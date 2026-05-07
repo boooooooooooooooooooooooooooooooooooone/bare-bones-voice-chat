@@ -8,6 +8,7 @@ public class ClientConnection {
     private final UUID uuid;
     private boolean disabled;
     private long lastKeepAliveResponse;
+    private long latencyNano = -1;
 
     public ClientConnection(String username, UUID uuid, boolean disabled) {
         this.username = username;
@@ -38,6 +39,14 @@ public class ClientConnection {
 
     public void setLastKeepAliveResponse(long lastKeepAliveResponse) {
         this.lastKeepAliveResponse = lastKeepAliveResponse;
+    }
+
+    public long getLatencyNano() {
+        return this.latencyNano;
+    }
+
+    public void setLatencyNano(long latencyNano) {
+        this.latencyNano = latencyNano;
     }
 
 }
