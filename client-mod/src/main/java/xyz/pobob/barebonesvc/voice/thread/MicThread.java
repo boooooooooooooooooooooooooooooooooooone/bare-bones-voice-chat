@@ -37,6 +37,8 @@ public class MicThread extends Thread {
     private final AtomicLong sequenceNumber = new AtomicLong();
     private volatile boolean stopPacketSent = true;
 
+    private final ClientAudioPacket clientAudioPacket = new ClientAudioPacket();
+
     public MicThread(@Nullable ClientVoicechat client, Consumer<MicrophoneException> onError) {
         this.client = client;
         this.onError = onError;
@@ -227,9 +229,8 @@ public class MicThread extends Thread {
     private void sendAudioPacket(short[] audio, boolean whispering) {
         if (BareBonesVCSession.instance().isConnected()) {
             byte[] encoded = this.encoder.encode(audio);
-            ClientAudioPacket packet = new ClientAudioPacket();
-            packet.create(encoded, this.sequenceNumber.getAndIncrement());
-            BareBonesVCSession.instance().send(packet.serialize());
+            this.clientAudioPacket.create(encoded, this.sequenceNumber.getAndIncrement());
+            BareBonesVCSession.instance().send(this.clientAudioPacket.serialize());
             this.stopPacketSent = false;
         }
 
