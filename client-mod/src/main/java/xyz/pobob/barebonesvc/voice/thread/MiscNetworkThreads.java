@@ -5,9 +5,13 @@ import net.minecraft.text.Text;
 import xyz.pobob.barebonesvc.voice.BareBonesVCSession;
 
 public class MiscNetworkThreads {
+    private static Thread keepAliveCheckThread;
 
     public static void startCheckingConnectionHealth() {
-        Thread keepAliveCheckThread = new Thread(() -> {
+        if (keepAliveCheckThread != null) {
+            keepAliveCheckThread.interrupt();
+        }
+        keepAliveCheckThread = new Thread(() -> {
             while (BareBonesVCSession.instance().isRunning()) {
                 if (System.currentTimeMillis() - BareBonesVCSession.instance().lastKeepAlive > 30000) {
                     if (MinecraftClient.getInstance().player != null) {
@@ -21,6 +25,7 @@ public class MiscNetworkThreads {
                     Thread.sleep(2000);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
+                    break;
                 }
             }
         });

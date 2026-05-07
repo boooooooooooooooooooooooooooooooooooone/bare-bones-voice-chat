@@ -12,9 +12,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class MiscNetworkThreads {
+    private static Thread keepAliveSendThread;
 
     public static void startKeepAliveThread(final VoiceServer server) {
-        Thread keepAliveSendThread = new Thread(() -> {
+        if (keepAliveSendThread != null) {
+            keepAliveSendThread.interrupt();
+        }
+        keepAliveSendThread = new Thread(() -> {
             ServerKeepAlivePacket keepAlive = new ServerKeepAlivePacket();
 
             while (server.isRunning()) {

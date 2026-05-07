@@ -2,7 +2,7 @@ plugins {
     id 'java'
 }
 
-version = 'alpha-4'
+version = 'alpha-5'
 group = 'xyz.pobob.barebonesvc'
 
 repositories {

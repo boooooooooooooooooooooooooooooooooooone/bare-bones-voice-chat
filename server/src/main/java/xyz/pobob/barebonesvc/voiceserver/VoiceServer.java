@@ -12,9 +12,7 @@ import java.net.DatagramSocket;
 import java.net.SocketAddress;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 
 public class VoiceServer {
@@ -35,6 +33,7 @@ public class VoiceServer {
     private final DatagramPacket sendPacket = new DatagramPacket(this.sendBuf, 0);
 
     private final ExecutorService pool = Executors.newFixedThreadPool(4);
+    public final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     private DatagramSocket socket;
 
     public final Map<SocketAddress, ClientConnection> connected = new ConcurrentHashMap<>();
@@ -155,10 +154,16 @@ public class VoiceServer {
                                 this.config.codec,
                                 this.config.groupsEnabled
                         );
-                        if (!this.send(this.localServerHelloPacket.get().serialize(), clientAddress)) {
+
+                        final byte[] serverHelloData = this.localServerHelloPacket.get().serialize();
+                        if (!this.send(serverHelloData, clientAddress)) {
                             BareBonesVCServer.LOGGER.severe("An error occurred while sending handshake to " + readableAddress);
                             return;
                         }
+
+                        this.scheduler.schedule(() -> this.send(serverHelloData, clientAddress), 500, TimeUnit.MILLISECONDS);
+                        this.scheduler.schedule(() -> this.send(serverHelloData, clientAddress), 1000, TimeUnit.MILLISECONDS);
+                        this.scheduler.schedule(() -> this.send(serverHelloData, clientAddress), 1500, TimeUnit.MILLISECONDS);
 
                         this.connected.put(clientAddress, new ClientConnection(
                                 clientHelloPacket.getUsername(),
