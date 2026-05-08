@@ -19,9 +19,7 @@ public class BareBonesVCClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         ClientLifecycleEvents.CLIENT_STOPPING.register(minecraftClient -> {
-            if (BareBonesVCSession.instance().isRunning()) {
-                BareBonesVCSession.instance().disconnect();
-            }
+            if (BareBonesVCSession.instance().isRunning()) BareBonesVCSession.instance().disconnect();
         });
     }
 }

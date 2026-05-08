@@ -1,41 +1,24 @@
 package xyz.pobob.barebonesvc.util;
 
-import de.maxhenkel.voicechat.Voicechat;
 import de.maxhenkel.voicechat.VoicechatClient;
 import de.maxhenkel.voicechat.gui.group.GroupList;
 import de.maxhenkel.voicechat.gui.group.JoinGroupList;
 import de.maxhenkel.voicechat.gui.volume.AdjustVolumeList;
 import de.maxhenkel.voicechat.voice.client.ClientManager;
-import de.maxhenkel.voicechat.voice.client.ClientVoicechat;
 import de.maxhenkel.voicechat.voice.common.PlayerState;
 import xyz.pobob.barebonesvc.gui.ClientList;
 import xyz.pobob.barebonesvc.mixin.playerstate.PlayerStatesAccessor;
 
 import java.util.UUID;
 
-// copied from SVC's ClientPlayerStateManager
 public class PlayerStateInjector {
 
     public static synchronized void updatePlayerState(UUID uuid, PlayerState state) {
         ((PlayerStatesAccessor) ClientManager.getPlayerStateManager()).getStates().put(uuid, state);
-        Voicechat.LOGGER.debug("Got state for {}: {}", state.getName(), state);
         VoicechatClient.USERNAME_CACHE.updateUsernameAndSave(state.getUuid(), state.getName());
-        if (state.isDisconnected()) {
-            ClientVoicechat c = ClientManager.getClient();
-            if (c != null) {
-                c.closeAudioChannel(state.getUuid());
-            }
-        }
+        if (state.isDisconnected() && ClientManager.getClient() != null) ClientManager.getClient().closeAudioChannel(state.getUuid());
         AdjustVolumeList.update();
         ClientList.update();
-        JoinGroupList.update();
-        GroupList.update();
-    }
-
-    public static synchronized void removePlayerState(UUID uuid) {
-        ((PlayerStatesAccessor) ClientManager.getPlayerStateManager()).getStates().remove(uuid);
-        Voicechat.LOGGER.debug("Removed state {}", uuid);
-        AdjustVolumeList.update();
         JoinGroupList.update();
         GroupList.update();
     }

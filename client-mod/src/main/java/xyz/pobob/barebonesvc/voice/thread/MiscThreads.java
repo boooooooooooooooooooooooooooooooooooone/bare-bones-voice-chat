@@ -1,10 +1,11 @@
 package xyz.pobob.barebonesvc.voice.thread;
 
+import de.maxhenkel.voicechat.voice.client.AudioChannel;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
 import xyz.pobob.barebonesvc.voice.BareBonesVCSession;
 
-public class MiscNetworkThreads {
+public class MiscThreads {
     private static Thread keepAliveCheckThread;
 
     public static void startCheckingConnectionHealth() {
@@ -19,6 +20,11 @@ public class MiscNetworkThreads {
                     }
 
                     BareBonesVCSession.instance().disconnect();
+                }
+
+                if (BareBonesVCSession.instance().client != null) {
+                    BareBonesVCSession.instance().getAudioChannels().values().stream().filter(AudioChannel::canKill).forEach(AudioChannel::closeAndKill);
+                    BareBonesVCSession.instance().getAudioChannels().entrySet().removeIf(entry -> entry.getValue().isClosed());
                 }
 
                 try {
