@@ -40,4 +40,8 @@ public class PlayerStateInjector {
         GroupList.update();
     }
 
+    public static synchronized void clearStates() {
+        ClientManager.getPlayerStateManager().clearStates();
+    }
+
 }

@@ -290,6 +290,7 @@ public class BareBonesVCSession {
             this.clientUpdatePlayerPacket.create(ClientManager.getPlayerStateManager().isDisabled(), true);
             this.send(this.clientUpdatePlayerPacket.serialize());
         }
+        PlayerStateInjector.clearStates();
 
         if (this.client != null) {
             this.client.close();
