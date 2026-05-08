@@ -32,7 +32,7 @@ the host will be your public IPv4 address and the port will be whichever port yo
 ![](https://i.imgur.com/Min1erw.png) ![](https://i.imgur.com/9atCEph.png)
 
 7) The voice chat connection will continue even after disconnecting from a Minecraft server,
-to disconnect from the voice server use the Bare Bones VC button again.
+to disconnect from the voice server use SVC menu >> Bare Bones VC >> Disconnect.
 
 ## Dependencies
 The Bare Bones VC Fabric mod requires both [Fabric API](https://modrinth.com/mod/fabric-api) and [Simple Voice Chat](https://modrinth.com/mod/simple-voice-chat) to function.
