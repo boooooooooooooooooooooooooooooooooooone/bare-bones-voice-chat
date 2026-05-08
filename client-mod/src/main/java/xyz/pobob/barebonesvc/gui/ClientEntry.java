@@ -53,14 +53,7 @@ public class ClientEntry extends ListScreenEntryBase<ClientEntry> {
     protected void renderScrollingString(DrawContext guiGraphics, Text text) {
         int textX = this.getContentX() + X_OFFSET + SKIN_SIZE + 4 + 2;
         int textY = this.getContentY() + (getContentHeight() - minecraft.textRenderer.fontHeight) / 2 + 2;
-        int textSpace = this.getContentWidth();
-        int textWidth = minecraft.textRenderer.getWidth(text);
-        if (textWidth > textSpace) {
-            guiGraphics.getTextConsumer().text(text, textX, textX + textSpace, textY, textY + 9);
-        } else {
-            guiGraphics.drawText(minecraft.textRenderer, text, textX, textY, 0xFFFFFFFF, false);
-        }
-
+        guiGraphics.drawText(minecraft.textRenderer, text, textX, textY, 0xFFFFFFFF, false);
     }
 
     private static int getLatencyColor(double ping) {
