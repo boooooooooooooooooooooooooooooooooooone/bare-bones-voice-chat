@@ -8,8 +8,6 @@ import xyz.pobob.barebonesvc.voiceserver.VoiceServer;
 
 import java.net.SocketAddress;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class MiscNetworkThreads {
     private static Thread keepAliveSendThread;
@@ -53,22 +51,12 @@ public class MiscNetworkThreads {
         keepAliveSendThread.start();
     }
 
-    private static final ExecutorService SINGLE_THREAD_POOL = Executors.newSingleThreadExecutor();
+    public static void sendPlayerList(VoiceServer server, SocketAddress clientAddress) {
+        ServerUpdatePlayerPacket serverUpdatePlayerPacket = new ServerUpdatePlayerPacket();
 
-    public static void sendPlayerListWithDelay(final VoiceServer server, final SocketAddress clientAddress) {
-        SINGLE_THREAD_POOL.submit(() -> {
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-
-            ServerUpdatePlayerPacket serverUpdatePlayerPacket = new ServerUpdatePlayerPacket();
-
-            for (ClientConnection client : server.connected.values()) {
-                serverUpdatePlayerPacket.create(client.getUsername(), client.getUUID(), client.isDisabled(), false);
-                server.send(serverUpdatePlayerPacket.serialize(), clientAddress);
-            }
-        });
+        for (ClientConnection client : server.connected.values()) {
+            serverUpdatePlayerPacket.create(client.getUsername(), client.getUUID(), client.isDisabled(), false);
+            server.send(serverUpdatePlayerPacket.serialize(), clientAddress);
+        }
     }
 }

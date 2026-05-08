@@ -165,13 +165,16 @@ public class VoiceServer {
                         this.scheduler.schedule(() -> this.send(serverHelloData, clientAddress), 1000, TimeUnit.MILLISECONDS);
                         this.scheduler.schedule(() -> this.send(serverHelloData, clientAddress), 1500, TimeUnit.MILLISECONDS);
 
+                        this.scheduler.schedule(() -> MiscNetworkThreads.sendPlayerList(this, clientAddress), 2000, TimeUnit.MILLISECONDS);
+                        this.scheduler.schedule(() -> MiscNetworkThreads.sendPlayerList(this, clientAddress), 3000, TimeUnit.MILLISECONDS);
+                        this.scheduler.schedule(() -> MiscNetworkThreads.sendPlayerList(this, clientAddress), 4000, TimeUnit.MILLISECONDS);
+                        // this is crude but if I wanted to guarantee delivery I'd need to make ack packets or something which I don't wanna do yet
+
                         this.connected.put(clientAddress, new ClientConnection(
                                 clientHelloPacket.getUsername(),
                                 clientHelloPacket.getUUID(),
                                 clientHelloPacket.isDisabled()
                         ));
-
-                        MiscNetworkThreads.sendPlayerListWithDelay(this, clientAddress);
 
                         this.localServerUpdatePlayerPacket.get().create(clientHelloPacket.getUsername(), clientHelloPacket.getUUID(), clientHelloPacket.isDisabled(), false);
                         this.announceExcluding(this.localServerUpdatePlayerPacket.get().serialize(), clientAddress);

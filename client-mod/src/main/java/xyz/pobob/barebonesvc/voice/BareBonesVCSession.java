@@ -47,6 +47,13 @@ public class BareBonesVCSession {
     private final ExecutorService pool = Executors.newSingleThreadExecutor();
 
     private DatagramSocket socket;
+    private Thread clientHandshakeThread;
+    private Thread networkReceiveThread;
+
+    public ClientVoicechat client;
+    public MicThread micThread;
+    public SessionConfig config;
+    public long lastKeepAlive = 0;
 
     private static BareBonesVCSession instance;
     public static synchronized BareBonesVCSession instance() {
@@ -56,11 +63,6 @@ public class BareBonesVCSession {
 
     private volatile boolean running = false;
     private volatile boolean resolved = false;
-
-    public ClientVoicechat client;
-    public MicThread micThread;
-    public SessionConfig config;
-    public long lastKeepAlive = 0;
 
     public void start(String host, int port) {
         if (VoicechatClient.CLIENT_CONFIG.muteOnJoin.get()) {
@@ -87,7 +89,6 @@ public class BareBonesVCSession {
             BareBonesVCClient.LOGGER.error("An error occurred while starting voice client", e);
             return;
         }
-
         this.running = true;
 
         this.clientHelloPacket.create(
@@ -95,9 +96,12 @@ public class BareBonesVCSession {
                 MinecraftClient.getInstance().getGameProfile().id(),
                 VoicechatClient.CLIENT_CONFIG.disabled.get()
         );
-        ClientHandshakeThread clientHandshakeThread = new ClientHandshakeThread(this.clientHelloPacket.serialize());
 
-        Thread networkReceiveThread = new Thread(() -> {
+        if (this.clientHandshakeThread != null) this.clientHandshakeThread.interrupt();
+        if (this.networkReceiveThread != null) this.networkReceiveThread.interrupt();
+
+        this.clientHandshakeThread = new ClientHandshakeThread(this.clientHelloPacket.serialize());
+        this.networkReceiveThread = new Thread(() -> {
             while (this.isRunning()) {
                 final byte[] data;
                 try {
@@ -221,10 +225,10 @@ public class BareBonesVCSession {
 
             this.stopNow();
         });
-        networkReceiveThread.setName("BareBonesVCNetworkThread");
+        this.networkReceiveThread.setName("BareBonesVCNetworkThread");
 
-        clientHandshakeThread.start();
-        networkReceiveThread.start();
+        this.clientHandshakeThread.start();
+        this.networkReceiveThread.start();
 
         BareBonesVCClient.LOGGER.info("Started connecting to voice server {}", BareBonesVCSession.instance().getReadableAddress());
     }
