@@ -12,6 +12,7 @@ import de.maxhenkel.voicechat.voice.common.PlayerState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
 import xyz.pobob.barebonesvc.BareBonesVCClient;
+import xyz.pobob.barebonesvc.gui.ClientList;
 import xyz.pobob.barebonesvc.mixin.ClientVoicechatAccessor;
 import xyz.pobob.barebonesvc.mixin.playerstate.ClientPlayerStateManagerInvoker;
 import xyz.pobob.barebonesvc.net.*;
@@ -281,6 +282,7 @@ public class BareBonesVCSession {
                         this.serverUpdatePlayerPacket.getDisconnected()
                 ))
         );
+        ClientList.update();
     }
 
     public void disconnect() {

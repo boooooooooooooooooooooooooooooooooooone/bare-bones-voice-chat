@@ -70,7 +70,7 @@ public abstract class VoiceChatScreenMixin extends VoiceChatScreenBase {
             method = "init()V",
             at = @At("TAIL")
     )
-    private void moveHideButton(CallbackInfo ci) {
+    private void moveHideButton(CallbackInfo ci) { // no idea if this was intentionally misaligned but it made my button look misaligned so I moved it
         for (Element element : this.children()) {
             if (element instanceof ButtonWidget widget && widget.getX() == this.guiLeft + this.xSize - 6 - 75 + 1) {
                 widget.setX(widget.getX() - 1);

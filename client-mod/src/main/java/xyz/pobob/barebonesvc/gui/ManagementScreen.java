@@ -19,10 +19,9 @@ public class ManagementScreen extends VoiceChatScreenBase {
     protected ClientList clientList;
     protected int units;
 
-    protected static final int HEADER_SIZE = 18;
-    protected static final int FOOTER_SIZE = 32;
-    protected static final int UNIT_SIZE = 20;
-    protected static final int CELL_HEIGHT = 20;
+    protected static final int TOP_SPACE = 18;
+    protected static final int BOTTOM_SPACE = 32;
+    protected static final int CELL_SIZE = 20;
 
     public ManagementScreen() {
         super(TITLE, 256, 256);
@@ -40,13 +39,13 @@ public class ManagementScreen extends VoiceChatScreenBase {
         }).dimensions(this.guiLeft + 68, this.guiTop + this.ySize - 27, this.xSize - 136, 20).build();
         this.addDrawableChild(disconnect);
 
-        int minUnits = MathHelper.ceil((float) (CELL_HEIGHT + 4) / (float) UNIT_SIZE);
-        this.units = Math.max(minUnits, (height - HEADER_SIZE - FOOTER_SIZE - guiTop * 2) / UNIT_SIZE);
+        int minUnits = MathHelper.ceil((float) (CELL_SIZE + 4) / (float) CELL_SIZE);
+        this.units = Math.max(minUnits, (height - TOP_SPACE - BOTTOM_SPACE - guiTop * 2) / CELL_SIZE);
 
         if (this.clientList != null) {
-            this.clientList.updateSize(width - 10, units * UNIT_SIZE + 6, 0, guiTop + HEADER_SIZE);
+            this.clientList.updateSize(this.width - 10, this.units * CELL_SIZE + 6, 0, this.guiTop + TOP_SPACE);
         } else {
-            this.clientList = new ClientList(width - 10, units * UNIT_SIZE + 6, guiTop + HEADER_SIZE, CELL_HEIGHT, this);
+            this.clientList = new ClientList(this.width - 10, this.units * CELL_SIZE + 6, this.guiTop + TOP_SPACE, CELL_SIZE, this);
         }
 
         this.addSelectableChild(this.clientList);
@@ -59,11 +58,9 @@ public class ManagementScreen extends VoiceChatScreenBase {
 
     @Override
     public void renderForeground(DrawContext guiGraphics, int mouseX, int mouseY, float delta) {
-        guiGraphics.drawText(this.textRenderer, TITLE, this.guiLeft + this.xSize / 2 - this.textRenderer.getWidth(TITLE) / 2, this.guiTop + 7, -12566464, false);
+        guiGraphics.drawText(this.textRenderer, TITLE, this.guiLeft + (this.xSize >> 1) - (this.textRenderer.getWidth(TITLE) >> 1), this.guiTop + 7, -12566464, false);
 
-        if (!this.clientList.children().isEmpty()) {
-            this.clientList.render(guiGraphics, mouseX, mouseY, delta);
-        }
+        this.clientList.render(guiGraphics, mouseX, mouseY, delta);
     }
 
     @Override
