@@ -9,14 +9,11 @@ import de.maxhenkel.voicechat.voice.common.SoundPacket;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import xyz.pobob.barebonesvc.BareBonesVCClient;
 import xyz.pobob.barebonesvc.voice.BareBonesVCSession;
-
-import java.util.UUID;
 
 @Mixin(ClientVoicechat.class)
 public class ClientVoicechatMixin {
@@ -47,20 +44,15 @@ public class ClientVoicechatMixin {
     )
     private void injectProcessSoundPacket(SoundPacket<?> packet, CallbackInfo ci) {
         if (BareBonesVCSession.instance().client != null && !VoicechatClient.CLIENT_CONFIG.disabled.get()) {
-            if (BareBonesVCSession.instance().getAudioChannels().containsKey(packet.getChannelId())) {
-                BareBonesVCSession.instance().getAudioChannels().get(packet.getChannelId()).addToQueue(packet);
-            } else {
-                AudioChannel channel = new AudioChannel(BareBonesVCSession.instance().client, null, packet.getChannelId());
+            AudioChannel channel = BareBonesVCSession.instance().getAudioChannels().get(packet.getChannelId());
+            if (channel == null) {
+                channel = new AudioChannel(BareBonesVCSession.instance().client, null, packet.getChannelId());
                 channel.start();
-                channel.addToQueue(packet);
-                this.addNewAudioChannel(packet.getChannelId(), channel);
+                BareBonesVCSession.instance().getAudioChannels().put(packet.getChannelId(), channel);
             }
+            channel.addToQueue(packet);
+
             ci.cancel();
         }
-    }
-
-    @Unique
-    private synchronized void addNewAudioChannel(UUID uuid, AudioChannel channel) {
-        BareBonesVCSession.instance().client.getAudioChannels().put(uuid, channel);
     }
 }

@@ -9,9 +9,9 @@
     "ClientVoicechatMixin",
     "MicThreadMixin",
     "gui.VoiceChatScreenMixin",
+    "playerstate.ClientPlayerStateManagerInvoker",
     "playerstate.ClientPlayerStateManagerMixin",
     "playerstate.KeyEventsMixin",
-    "playerstate.PlayerStatesAccessor",
     "playerstate.RenderEventsMixin"
   ],
   "client": [

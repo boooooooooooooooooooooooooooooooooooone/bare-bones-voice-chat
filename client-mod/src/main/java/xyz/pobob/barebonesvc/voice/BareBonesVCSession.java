@@ -3,6 +3,7 @@ package xyz.pobob.barebonesvc.voice;
 import de.maxhenkel.voicechat.VoicechatClient;
 import de.maxhenkel.voicechat.config.ServerConfig;
 import de.maxhenkel.voicechat.debug.CooldownTimer;
+import de.maxhenkel.voicechat.net.PlayerStatePacket;
 import de.maxhenkel.voicechat.voice.client.AudioChannel;
 import de.maxhenkel.voicechat.voice.client.ClientManager;
 import de.maxhenkel.voicechat.voice.client.ClientVoicechat;
@@ -12,8 +13,8 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
 import xyz.pobob.barebonesvc.BareBonesVCClient;
 import xyz.pobob.barebonesvc.mixin.ClientVoicechatAccessor;
+import xyz.pobob.barebonesvc.mixin.playerstate.ClientPlayerStateManagerInvoker;
 import xyz.pobob.barebonesvc.net.*;
-import xyz.pobob.barebonesvc.util.PlayerStateInjector;
 import xyz.pobob.barebonesvc.voice.thread.ClientHandshakeThread;
 import xyz.pobob.barebonesvc.voice.thread.MiscThreads;
 
@@ -181,15 +182,7 @@ public class BareBonesVCSession {
                         } else if (data[2] == Packet.Type.SERVER_UPDATE_PLAYER.id) {
 
                             this.serverUpdatePlayerPacket.deserialize(data);
-                            PlayerStateInjector.updatePlayerState(
-                                    this.serverUpdatePlayerPacket.getUUID(),
-                                    new PlayerState(
-                                            this.serverUpdatePlayerPacket.getUUID(),
-                                            this.serverUpdatePlayerPacket.getUsername(),
-                                            this.serverUpdatePlayerPacket.getDisabled(),
-                                            this.serverUpdatePlayerPacket.getDisconnected()
-                                    )
-                            );
+                            this.updatePlayerState();
 
                         } else if (data[2] == Packet.Type.SERVER_PLAYER_LATENCY.id) {
 
@@ -278,6 +271,18 @@ public class BareBonesVCSession {
         this.send(this.clientUpdatePlayerPacket.serialize());
     }
 
+    private synchronized void updatePlayerState() {
+        ((ClientPlayerStateManagerInvoker) ClientManager.getPlayerStateManager()).invokeUpdatePlayerState(
+                null,
+                new PlayerStatePacket(new PlayerState(
+                        this.serverUpdatePlayerPacket.getUUID(),
+                        this.serverUpdatePlayerPacket.getUsername(),
+                        this.serverUpdatePlayerPacket.getDisabled(),
+                        this.serverUpdatePlayerPacket.getDisconnected()
+                ))
+        );
+    }
+
     public void disconnect() {
         BareBonesVCClient.LOGGER.info("Disconnected from {}", this.getReadableAddress());
 
@@ -285,7 +290,7 @@ public class BareBonesVCSession {
             this.clientUpdatePlayerPacket.create(ClientManager.getPlayerStateManager().isDisabled(), true);
             this.send(this.clientUpdatePlayerPacket.serialize());
         }
-        PlayerStateInjector.clearStates();
+        this.clearStates();
 
         if (this.client != null) {
             this.client.closeMicThread();
@@ -318,6 +323,10 @@ public class BareBonesVCSession {
 
     public synchronized Map<UUID, AudioChannel> getAudioChannels() {
         return BareBonesVCSession.instance().client.getAudioChannels();
+    }
+
+    private synchronized void clearStates() {
+        ClientManager.getPlayerStateManager().clearStates();
     }
 
     public static void invalidAddress() {

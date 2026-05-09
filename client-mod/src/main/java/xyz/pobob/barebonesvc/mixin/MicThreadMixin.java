@@ -22,7 +22,6 @@ import java.util.concurrent.atomic.AtomicLong;
 public class MicThreadMixin {
     @Shadow @Final private OpusEncoder encoder;
     @Shadow @Final private AtomicLong sequenceNumber;
-    @Shadow private boolean stopPacketSent;
 
     @Unique private final ClientAudioPacket clientAudioPacket = new ClientAudioPacket();
 
@@ -32,10 +31,8 @@ public class MicThreadMixin {
     )
     private void injectSendAudioPacket(short[] audio, boolean whispering, CallbackInfo ci) {
         if (BareBonesVCSession.instance().isConnected()) {
-            byte[] encoded = this.encoder.encode(audio);
-            this.clientAudioPacket.create(encoded, this.sequenceNumber.getAndIncrement());
+            this.clientAudioPacket.create(this.encoder.encode(audio), this.sequenceNumber.getAndIncrement());
             BareBonesVCSession.instance().send(this.clientAudioPacket.serialize());
-            this.stopPacketSent = false;
         }
     }
 
