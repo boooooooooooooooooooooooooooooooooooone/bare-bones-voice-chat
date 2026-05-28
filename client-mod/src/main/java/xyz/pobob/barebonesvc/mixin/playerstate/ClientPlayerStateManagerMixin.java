@@ -47,6 +47,6 @@ public class ClientPlayerStateManagerMixin {
             at = @At("HEAD")
     )
     private void injectSetDisabled(boolean disabled, CallbackInfo ci) {
-        if (BareBonesVCSession.instance().isConnected()) BareBonesVCSession.instance().updateState(disabled);
+        if (BareBonesVCSession.instance().isConnected()) BareBonesVCSession.instance().declareOwnState(disabled);
     }
 }

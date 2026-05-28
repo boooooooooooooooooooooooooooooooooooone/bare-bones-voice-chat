@@ -37,6 +37,6 @@ public class ClientList extends ListScreenListBase<ClientEntry> {
             }
         }
 
-        this.replaceEntries(entries);
+        this.replaceEntries(this.entries);
     }
 }

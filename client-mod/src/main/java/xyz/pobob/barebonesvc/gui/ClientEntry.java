@@ -15,11 +15,11 @@ import java.awt.*;
 import java.util.Objects;
 
 public class ClientEntry extends ListScreenEntryBase<ClientEntry> {
-    protected final MinecraftClient minecraft = MinecraftClient.getInstance();
+    private final MinecraftClient minecraft = MinecraftClient.getInstance();
 
     private final PlayerState state;
 
-    protected static final int SKIN_SIZE = 16;
+    private static final int SKIN_SIZE = 16;
     private static final int X_OFFSET = 154;
 
     public ClientEntry(PlayerState state) {
@@ -42,18 +42,21 @@ public class ClientEntry extends ListScreenEntryBase<ClientEntry> {
 
         Double latency = BareBonesVCClient.LATENCIES.get(this.state.getUuid());
         if (latency != null) {
-            this.renderScrollingString(guiGraphics, Text.literal(String.format("%.1f", latency) + "ms")
-                    .setStyle(Style.EMPTY.withColor(getLatencyColor(latency))));
+            this.renderLatency(
+                    guiGraphics,
+                    Text.literal(String.format("%.1f", latency) + "ms")
+                            .setStyle(Style.EMPTY.withColor(getLatencyColor(latency)))
+            );
         }
         if (hovered && mouseX > this.getContentX() + X_OFFSET - 2) {
             guiGraphics.drawTooltip(this.minecraft.textRenderer, Text.of(this.state.getName()), mouseX, mouseY);
         }
     }
 
-    protected void renderScrollingString(DrawContext guiGraphics, Text text) {
+    private void renderLatency(DrawContext guiGraphics, Text text) {
         int textX = this.getContentX() + X_OFFSET + SKIN_SIZE + 4 + 2;
-        int textY = this.getContentY() + (getContentHeight() - minecraft.textRenderer.fontHeight) / 2 + 2;
-        guiGraphics.drawText(minecraft.textRenderer, text, textX, textY, 0xFFFFFFFF, false);
+        int textY = this.getContentY() + (getContentHeight() - this.minecraft.textRenderer.fontHeight) / 2 + 2;
+        guiGraphics.drawText(this.minecraft.textRenderer, text, textX, textY, 0xFFFFFFFF, false);
     }
 
     private static int getLatencyColor(double ping) {

@@ -28,6 +28,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class BareBonesVCSession {
 
@@ -47,13 +49,14 @@ public class BareBonesVCSession {
     private final DatagramPacket sendPacket = new DatagramPacket(sendBuf, 0);
 
     private final ExecutorService pool = Executors.newSingleThreadExecutor();
+    public final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     private DatagramSocket socket;
     private Thread clientHandshakeThread;
     private Thread networkReceiveThread;
 
     public ClientVoicechat client;
-    public SessionConfig config;
+    public volatile SessionConfig config;
     public long lastKeepAlive = 0;
 
     private static BareBonesVCSession instance;
@@ -267,9 +270,12 @@ public class BareBonesVCSession {
         return data;
     }
 
-    public void updateState(boolean disabled) {
+    public void declareOwnState(boolean disabled) {
         this.clientUpdatePlayerPacket.create(disabled, false);
-        this.send(this.clientUpdatePlayerPacket.serialize());
+        byte[] serialized = this.clientUpdatePlayerPacket.serialize();
+        this.send(serialized);
+        this.scheduler.schedule(() -> this.send(serialized), 1000, TimeUnit.MILLISECONDS);
+        this.scheduler.schedule(() -> this.send(serialized), 2000, TimeUnit.MILLISECONDS);
     }
 
     private synchronized void updatePlayerState() {

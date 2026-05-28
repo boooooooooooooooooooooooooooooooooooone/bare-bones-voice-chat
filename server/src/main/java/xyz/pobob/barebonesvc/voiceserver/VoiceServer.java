@@ -133,7 +133,10 @@ public class VoiceServer {
                                 );
                             }
 
-                            this.announceExcluding(this.localServerUpdatePlayerPacket.get().serialize(), clientAddress);
+                            byte[] serialized = this.localServerUpdatePlayerPacket.get().serialize();
+                            this.announceExcluding(serialized, clientAddress);
+                            this.scheduler.schedule(() -> this.announceExcluding(serialized, clientAddress), 1000, TimeUnit.MILLISECONDS);
+                            this.scheduler.schedule(() -> this.announceExcluding(serialized, clientAddress), 2000, TimeUnit.MILLISECONDS);
                         }
 
                     } else if (data[2] == Packet.Type.CLIENT_HELLO.id) {
