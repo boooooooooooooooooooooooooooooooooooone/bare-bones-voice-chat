@@ -5,7 +5,7 @@
 
   "name": "Bare Bones Voice Chat",
   "description": "A Simple Voice Chat addon that detaches the voice server from the Minecraft server",
-  "authors": ["Bone", "Nelosi"],
+  "authors": ["Bone"],
   "contact": {},
 
   "license": "All-Rights-Reserved",
