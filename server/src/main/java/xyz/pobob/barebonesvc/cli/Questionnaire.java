@@ -153,31 +153,5 @@ public final class Questionnaire {
                 break;
             }
         }
-
-        while (true) {
-            System.out.println("Allow groups? (T/F):");
-
-            String line;
-            try {
-                line = scanner.nextLine();
-            } catch (Exception e) {
-                System.out.println("Input interrupted. Exiting setup.");
-                return;
-            }
-
-            line = line.trim().toLowerCase(Locale.ROOT);
-
-            if (!line.isEmpty()) {
-                if (line.charAt(0) == 't') {
-                    config.groupsEnabled = true;
-                    System.out.println("Allowed groups\n");
-                    break;
-                } else if (line.charAt(0) == 'f') {
-                    config.groupsEnabled = false;
-                    System.out.println("Disallowed groups\n");
-                    break;
-                }
-            }
-        }
     }
 }

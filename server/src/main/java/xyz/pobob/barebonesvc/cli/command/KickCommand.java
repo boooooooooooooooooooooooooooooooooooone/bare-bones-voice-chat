@@ -1,7 +1,7 @@
 package xyz.pobob.barebonesvc.cli.command;
 
 import xyz.pobob.barebonesvc.BareBonesVCServer;
-import xyz.pobob.barebonesvc.net.ServerKickPlayerPacket;
+import xyz.pobob.barebonesvc.net.ServerKickPacket;
 import xyz.pobob.barebonesvc.net.ServerUpdatePlayerPacket;
 import xyz.pobob.barebonesvc.voiceserver.ClientConnection;
 import xyz.pobob.barebonesvc.voiceserver.VoiceServer;
@@ -12,7 +12,7 @@ import java.util.Map;
 public class KickCommand implements Command {
 
     private final VoiceServer server;
-    private final ServerKickPlayerPacket serverKickPlayerPacket = new ServerKickPlayerPacket();
+    private final ServerKickPacket serverKickPacket = new ServerKickPacket();
     private final ServerUpdatePlayerPacket serverUpdatePlayerPacket = new ServerUpdatePlayerPacket();
 
     public KickCommand(VoiceServer server) {
@@ -34,7 +34,7 @@ public class KickCommand implements Command {
                     || entry.getValue().getUUID().toString().equalsIgnoreCase(target)) {
                 didntKick = false;
 
-                this.server.send(this.serverKickPlayerPacket.serialize(), entry.getKey());
+                this.server.send(this.serverKickPacket.serialize(), entry.getKey());
                 this.serverUpdatePlayerPacket.create(
                         entry.getValue().getUsername(),
                         entry.getValue().getUUID(),

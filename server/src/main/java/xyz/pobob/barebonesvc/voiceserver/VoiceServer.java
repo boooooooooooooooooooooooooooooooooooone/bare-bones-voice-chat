@@ -12,24 +12,19 @@ import java.net.DatagramSocket;
 import java.net.SocketAddress;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.logging.Level;
 
 public class VoiceServer {
 
-    private final ThreadLocal<ClientHelloPacket> localClientHelloPacket = ThreadLocal.withInitial(ClientHelloPacket::new);
-    private final ThreadLocal<ServerHelloPacket> localServerHelloPacket = ThreadLocal.withInitial(ServerHelloPacket::new);
-    private final ThreadLocal<ClientAudioPacket> localClientAudioPacket = ThreadLocal.withInitial(ClientAudioPacket::new);
-    private final ThreadLocal<ServerAudioPacket> localServerAudioPacket = ThreadLocal.withInitial(ServerAudioPacket::new);
-    private final ThreadLocal<ClientUpdatePlayerPacket> localClientUpdatePlayerPacket = ThreadLocal.withInitial(ClientUpdatePlayerPacket::new);
-    private final ThreadLocal<ServerUpdatePlayerPacket> localServerUpdatePlayerPacket = ThreadLocal.withInitial(ServerUpdatePlayerPacket::new);
-    private final ThreadLocal<ClientKeepAlivePacket> localClientKeepAlivePacket = ThreadLocal.withInitial(ClientKeepAlivePacket::new);
-
     private final ServerClosePacket serverClosePacket = new ServerClosePacket();
 
     private final byte[] recvBuf = new byte[4096];
-    private final DatagramPacket recvPacket = new DatagramPacket(this.recvBuf, this.recvBuf.length);
     private final byte[] sendBuf = new byte[4096];
+    private final DatagramPacket recvPacket = new DatagramPacket(this.recvBuf, this.recvBuf.length);
     private final DatagramPacket sendPacket = new DatagramPacket(this.sendBuf, 0);
 
     private final ExecutorService pool = Executors.newFixedThreadPool(4);
@@ -37,11 +32,11 @@ public class VoiceServer {
     private DatagramSocket socket;
 
     public final Map<SocketAddress, ClientConnection> connected = new ConcurrentHashMap<>();
-    public final LatencyManager latencyManager = new LatencyManager(this);
     public final Config config;
+    public final LatencyManager latencyManager = new LatencyManager(this);
 
     public synchronized boolean isRunning() {
-        return socket != null;
+        return this.socket != null;
     }
 
     public VoiceServer(Config config) {
@@ -55,13 +50,19 @@ public class VoiceServer {
             BareBonesVCServer.LOGGER.log(Level.SEVERE, "An error occurred while starting voice server", e);
         }
 
-        CommandDispatcher dispatcher = new CommandDispatcher();
-        dispatcher.register("stop", new StopCommand(this));
-        dispatcher.register("list", new ListCommand(this));
-        dispatcher.register("kick", new KickCommand(this));
-        dispatcher.register("voicedistance", new VoiceDistanceCommand(this));
-        Thread console = new Thread(new ConsoleListener(this, dispatcher));
+        final ClientMessageDispatcher clientMessageDispatcher = new ClientMessageDispatcher();
+        clientMessageDispatcher.register(PacketType.CLIENT_HELLO, new ClientHelloHandler(this));
+        clientMessageDispatcher.register(PacketType.CLIENT_KEEP_ALIVE, new ClientKeepAliveHandler(this));
+        clientMessageDispatcher.register(PacketType.CLIENT_AUDIO, new ClientAudioHandler(this));
+        clientMessageDispatcher.register(PacketType.CLIENT_UPDATE_PLAYER, new ClientUpdatePlayerHandler(this));
 
+        CommandDispatcher commandDispatcher = new CommandDispatcher();
+        commandDispatcher.register("stop", new StopCommand(this));
+        commandDispatcher.register("list", new ListCommand(this));
+        commandDispatcher.register("kick", new KickCommand(this));
+        commandDispatcher.register("voicedistance", new VoiceDistanceCommand(this));
+
+        Thread console = new Thread(new ConsoleListener(this, commandDispatcher));
         console.setName("ConsoleThread");
         console.setDaemon(false);
         console.start();
@@ -79,109 +80,10 @@ public class VoiceServer {
                 }
 
                 final SocketAddress clientAddress = this.recvPacket.getSocketAddress();
-                final String readableAddress = this.getReadableAddress(this.recvPacket);
 
-                pool.submit(() -> {
-                    if (!Packet.checkSignature(data)) return;
-
-                    if (data[2] == Packet.Type.CLIENT_AUDIO.id) {
-
-                        if (this.connected.containsKey(clientAddress)) {
-                            this.localClientAudioPacket.get().deserialize(data);
-                            this.localServerAudioPacket.get().create(this.localClientAudioPacket.get(), this.connected.get(clientAddress).getUUID());
-
-                            for (Map.Entry<SocketAddress, ClientConnection> entry : this.connected.entrySet()) {
-                                if (!Objects.equals(entry.getKey(), clientAddress) && !entry.getValue().isDisabled()) {
-                                    this.send(this.localServerAudioPacket.get().serialize(), entry.getKey());
-                                }
-                            }
-                        }
-
-                    } else if (data[2] == Packet.Type.CLIENT_KEEP_ALIVE.id) {
-
-                        ClientConnection client = this.connected.get(clientAddress);
-                        if (client != null) {
-                            client.setLastKeepAliveResponse(System.currentTimeMillis());
-
-                            this.localClientKeepAlivePacket.get().deserialize(data);
-                            this.latencyManager.updateClientLatency(client, this.localClientKeepAlivePacket.get().getId());
-                        }
-
-                    } else if (data[2] == Packet.Type.CLIENT_UPDATE_PLAYER.id) {
-
-                        if (this.connected.containsKey(clientAddress)) {
-                            this.localClientUpdatePlayerPacket.get().deserialize(data);
-
-                            if (this.localClientUpdatePlayerPacket.get().isDisconnected()) {
-                                ClientConnection disconnected = this.connected.remove(clientAddress);
-                                this.localServerUpdatePlayerPacket.get().create(
-                                        disconnected.getUsername(),
-                                        disconnected.getUUID(),
-                                        this.localClientUpdatePlayerPacket.get().isDisabled(),
-                                        true
-                                );
-
-                                BareBonesVCServer.LOGGER.info("Client disconnected: " + disconnected.getUsername() + " (" + disconnected.getUUID() + ")");
-                            } else {
-                                ClientConnection client = this.connected.get(clientAddress);
-                                client.setDisabled(this.localClientUpdatePlayerPacket.get().isDisabled());
-                                this.localServerUpdatePlayerPacket.get().create(
-                                        client.getUsername(),
-                                        client.getUUID(),
-                                        this.localClientUpdatePlayerPacket.get().isDisabled(),
-                                        false
-                                );
-                            }
-
-                            byte[] serialized = this.localServerUpdatePlayerPacket.get().serialize();
-                            this.announceExcluding(serialized, clientAddress);
-                            this.scheduler.schedule(() -> this.announceExcluding(serialized, clientAddress), 1000, TimeUnit.MILLISECONDS);
-                            this.scheduler.schedule(() -> this.announceExcluding(serialized, clientAddress), 2000, TimeUnit.MILLISECONDS);
-                        }
-
-                    } else if (data[2] == Packet.Type.CLIENT_HELLO.id) {
-
-                        ClientHelloPacket clientHelloPacket = this.localClientHelloPacket.get();
-                        clientHelloPacket.deserialize(data);
-
-                        if (this.connected.containsKey(clientAddress)
-                                || this.connected.values()
-                                .stream().map(ClientConnection::getUUID)
-                                .toList()
-                                .contains(clientHelloPacket.getUUID())) return;
-                        BareBonesVCServer.LOGGER.info("Client connected: " + clientHelloPacket.getUsername() + " (" + clientHelloPacket.getUUID() + ")");
-
-                        this.localServerHelloPacket.get().create(
-                                this.config.mojangAuth,
-                                this.config.voiceDistance,
-                                this.config.codec,
-                                this.config.groupsEnabled
-                        );
-
-                        final byte[] serverHelloData = this.localServerHelloPacket.get().serialize();
-                        if (!this.send(serverHelloData, clientAddress)) {
-                            BareBonesVCServer.LOGGER.severe("An error occurred while sending handshake to " + readableAddress);
-                            return;
-                        }
-
-                        this.scheduler.schedule(() -> this.send(serverHelloData, clientAddress), 500, TimeUnit.MILLISECONDS);
-                        this.scheduler.schedule(() -> this.send(serverHelloData, clientAddress), 1000, TimeUnit.MILLISECONDS);
-                        this.scheduler.schedule(() -> this.send(serverHelloData, clientAddress), 1500, TimeUnit.MILLISECONDS);
-
-                        this.scheduler.schedule(() -> MiscNetworkThreads.sendPlayerList(this, clientAddress), 2000, TimeUnit.MILLISECONDS);
-                        this.scheduler.schedule(() -> MiscNetworkThreads.sendPlayerList(this, clientAddress), 3000, TimeUnit.MILLISECONDS);
-                        this.scheduler.schedule(() -> MiscNetworkThreads.sendPlayerList(this, clientAddress), 4000, TimeUnit.MILLISECONDS);
-                        // this is crude but if I wanted to guarantee delivery I'd need to make ack packets or something which I don't wanna do yet
-
-                        this.connected.put(clientAddress, new ClientConnection(
-                                clientHelloPacket.getUsername(),
-                                clientHelloPacket.getUUID(),
-                                clientHelloPacket.isDisabled()
-                        ));
-
-                        this.localServerUpdatePlayerPacket.get().create(clientHelloPacket.getUsername(), clientHelloPacket.getUUID(), clientHelloPacket.isDisabled(), false);
-                        this.announceExcluding(this.localServerUpdatePlayerPacket.get().serialize(), clientAddress);
-
+                this.pool.submit(() -> {
+                    if (Packet.checkSignature(data)) {
+                        clientMessageDispatcher.dispatch(data, clientAddress);
                     }
                 });
             }

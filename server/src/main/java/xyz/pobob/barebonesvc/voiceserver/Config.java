@@ -11,7 +11,6 @@ public class Config {
     public boolean mojangAuth;
     public double voiceDistance;
     public Codec codec;
-    public boolean groupsEnabled;
 
     public static Config load(String path) {
         Config config = new Config();

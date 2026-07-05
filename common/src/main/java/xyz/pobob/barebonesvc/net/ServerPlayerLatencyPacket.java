@@ -8,7 +8,7 @@ import java.util.UUID;
  * [UUID : 16][LATENCY : 8]
  * this is not a ping packet
  */
-public class ServerPlayerLatencyPacket extends Packet {
+public class ServerPlayerLatencyPacket implements Packet {
 
     private UUID uuid;
     private long latencyNano;
@@ -29,7 +29,7 @@ public class ServerPlayerLatencyPacket extends Packet {
     @Override
     public byte[] serialize() {
         return Bytes.join(
-                Type.SERVER_PLAYER_LATENCY.createHeader(24),
+                this.createHeader(24),
                 Bytes.of(this.uuid.getMostSignificantBits()),
                 Bytes.of(this.uuid.getLeastSignificantBits()),
                 Bytes.of(this.latencyNano)
@@ -45,4 +45,15 @@ public class ServerPlayerLatencyPacket extends Packet {
         this.latencyNano = Bytes.getLong(data, 21);
     }
 
+    @Override
+    public byte[] createHeader(int len) {
+        return Bytes.join(
+                new byte[] {
+                        Packet.MAGIC_BYTE,
+                        Packet.VERSION,
+                        PacketType.SERVER_PLAYER_LATENCY.value
+                },
+                Bytes.of((short) len)
+        );
+    }
 }

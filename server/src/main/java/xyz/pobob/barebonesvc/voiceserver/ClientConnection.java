@@ -1,6 +1,7 @@
 package xyz.pobob.barebonesvc.voiceserver;
 
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class ClientConnection {
 
@@ -9,6 +10,7 @@ public class ClientConnection {
     private boolean disabled;
     private long lastKeepAliveResponse;
     private long latencyNano = -1;
+    private AtomicLong sequenceNumber;
 
     public ClientConnection(String username, UUID uuid, boolean disabled) {
         this.username = username;
@@ -47,6 +49,14 @@ public class ClientConnection {
 
     public void setLatencyNano(long latencyNano) {
         this.latencyNano = latencyNano;
+    }
+
+    public long getSequenceNumber() {
+        return this.sequenceNumber.get();
+    }
+
+    public void incrementSequenceNumber() {
+        this.sequenceNumber.getAndIncrement();
     }
 
 }

@@ -5,7 +5,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import xyz.pobob.barebonesvc.voice.BareBonesVCSession;
+import xyz.pobob.barebonesvc.voice.BareBonesVCClient;
 
 @Mixin(KeyEvents.class)
 public class KeyEventsMixin {
@@ -15,6 +15,6 @@ public class KeyEventsMixin {
             cancellable = true
     )
     private void injectCheckConnected(CallbackInfoReturnable<Boolean> cir) {
-        if (BareBonesVCSession.instance().isConnected()) cir.setReturnValue(true);
+        if (BareBonesVCClient.INSTANCE.isConnected()) cir.setReturnValue(true);
     }
 }

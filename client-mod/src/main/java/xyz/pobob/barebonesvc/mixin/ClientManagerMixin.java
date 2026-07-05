@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import xyz.pobob.barebonesvc.voice.BareBonesVCSession;
+import xyz.pobob.barebonesvc.voice.BareBonesVCClient;
 
 @Mixin(ClientManager.class)
 public class ClientManagerMixin {
@@ -18,7 +18,7 @@ public class ClientManagerMixin {
             cancellable = true
     )
     private static void injectGetClient(CallbackInfoReturnable<ClientVoicechat> cir) {
-        if (BareBonesVCSession.instance().client != null) cir.setReturnValue(BareBonesVCSession.instance().client);
+        if (BareBonesVCClient.INSTANCE.client != null) cir.setReturnValue(BareBonesVCClient.INSTANCE.client);
     }
 
     @Inject(
@@ -31,6 +31,6 @@ public class ClientManagerMixin {
             cancellable = true
     )
     private void injectOnJoinWorld(CallbackInfo ci) {
-        if (BareBonesVCSession.instance().isRunning()) ci.cancel();
+        if (BareBonesVCClient.INSTANCE.isRunning()) ci.cancel();
     }
 }

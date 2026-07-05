@@ -14,7 +14,7 @@
   "environment": "client",
   "entrypoints": {
     "client": [
-      "xyz.pobob.barebonesvc.BareBonesVCClient"
+      "xyz.pobob.barebonesvc.BareBonesVC"
     ]
   },
 

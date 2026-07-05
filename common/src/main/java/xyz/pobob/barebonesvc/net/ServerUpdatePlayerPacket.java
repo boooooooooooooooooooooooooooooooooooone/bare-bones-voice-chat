@@ -7,7 +7,7 @@ import java.util.UUID;
 /**
  * [USERNAME : len-17][UUID : 16][DISABLED + DISCONNECTED : 1]
  */
-public class ServerUpdatePlayerPacket extends Packet {
+public class ServerUpdatePlayerPacket implements Packet {
 
     private String username;
     private UUID uuid;
@@ -31,7 +31,7 @@ public class ServerUpdatePlayerPacket extends Packet {
         byte[] usernameBytes = Bytes.of(this.username);
 
         return Bytes.join(
-                Type.SERVER_UPDATE_PLAYER.createHeader(usernameBytes.length + 16 + 1),
+                this.createHeader(usernameBytes.length + 16 + 1),
                 usernameBytes,
                 Bytes.of(this.uuid.getMostSignificantBits()),
                 Bytes.of(this.uuid.getLeastSignificantBits()),
@@ -49,5 +49,17 @@ public class ServerUpdatePlayerPacket extends Packet {
         );
         this.disabled = (data[5 + len - 1] & 1) == 1;
         this.disconnected = (data[5 + len - 1] & 2) == 2;
+    }
+
+    @Override
+    public byte[] createHeader(int len) {
+        return Bytes.join(
+                new byte[] {
+                        Packet.MAGIC_BYTE,
+                        Packet.VERSION,
+                        PacketType.SERVER_UPDATE_PLAYER.value
+                },
+                Bytes.of((short) len)
+        );
     }
 }

@@ -7,7 +7,7 @@ import java.util.Arrays;
 /**
  * [AUDIO DATA : len - 8][SEQUENCE NUMBER : 8]
  */
-public class ClientAudioPacket extends Packet {
+public class ClientAudioPacket implements Packet {
 
     private byte[] data;
     private long sequenceNumber;
@@ -28,7 +28,7 @@ public class ClientAudioPacket extends Packet {
     @Override
     public byte[] serialize() {
         return Bytes.join(
-                Type.CLIENT_AUDIO.createHeader(this.data.length + 8),
+                this.createHeader(this.data.length + 8),
                 this.data,
                 Bytes.of(this.sequenceNumber)
         );
@@ -39,5 +39,17 @@ public class ClientAudioPacket extends Packet {
         short len = Packet.getPayloadLength(data);
         this.data = Arrays.copyOfRange(data, 5, 5 + len - 8);
         this.sequenceNumber = Bytes.getLong(data, 5 + len - 8);
+    }
+
+    @Override
+    public byte[] createHeader(int len) {
+        return Bytes.join(
+                new byte[] {
+                        Packet.MAGIC_BYTE,
+                        Packet.VERSION,
+                        PacketType.CLIENT_AUDIO.value
+                },
+                Bytes.of((short) len)
+        );
     }
 }

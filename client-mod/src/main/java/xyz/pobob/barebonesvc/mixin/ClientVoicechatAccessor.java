@@ -8,5 +8,5 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 @Mixin(ClientVoicechat.class)
 public interface ClientVoicechatAccessor {
     @Invoker("startMicThread")
-    void callStartMicThread(ClientVoicechatConnection connection);
+    void invokeStartMicThread(ClientVoicechatConnection connection);
 }

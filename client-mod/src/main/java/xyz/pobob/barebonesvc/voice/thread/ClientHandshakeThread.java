@@ -2,7 +2,7 @@ package xyz.pobob.barebonesvc.voice.thread;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
-import xyz.pobob.barebonesvc.voice.BareBonesVCSession;
+import xyz.pobob.barebonesvc.voice.BareBonesVCClient;
 
 public class ClientHandshakeThread extends Thread {
 
@@ -19,11 +19,11 @@ public class ClientHandshakeThread extends Thread {
 
     @Override
     public void run() {
-        if (!BareBonesVCSession.instance().send(this.rawPacket)) {
+        if (!BareBonesVCClient.INSTANCE.send(this.rawPacket)) {
             if (MinecraftClient.getInstance().player != null) {
                 MinecraftClient.getInstance().player.sendMessage(Text.of("A network error occurred. Check logs!"), true);
             }
-            BareBonesVCSession.instance().stopNow();
+            BareBonesVCClient.INSTANCE.stopNow();
             return;
         }
 
@@ -32,8 +32,8 @@ public class ClientHandshakeThread extends Thread {
         } catch (InterruptedException ignored) {}
 
         int count = 0;
-        while (BareBonesVCSession.instance().isRunning() && BareBonesVCSession.instance().config == null && count < MAX_SENDS) {
-            BareBonesVCSession.instance().send(this.rawPacket);
+        while (BareBonesVCClient.INSTANCE.isRunning() && BareBonesVCClient.INSTANCE.config == null && count < MAX_SENDS) {
+            BareBonesVCClient.INSTANCE.send(this.rawPacket);
             try {
                 Thread.sleep(500);
             } catch (InterruptedException ignored) {}
@@ -41,7 +41,7 @@ public class ClientHandshakeThread extends Thread {
             count++;
         }
         if (count >= MAX_SENDS) {
-            BareBonesVCSession.instance().disconnect();
+            BareBonesVCClient.INSTANCE.disconnect();
             if (MinecraftClient.getInstance().player != null) {
                 MinecraftClient.getInstance().player.sendMessage(Text.of("Failed to connect to Bare Bones VC server"), true);
             }

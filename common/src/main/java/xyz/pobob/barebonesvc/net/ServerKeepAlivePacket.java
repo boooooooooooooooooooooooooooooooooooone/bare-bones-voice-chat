@@ -6,7 +6,7 @@ import xyz.pobob.barebonesvc.util.Util;
 /**
  * [ID : 4]
  */
-public class ServerKeepAlivePacket extends Packet {
+public class ServerKeepAlivePacket implements Packet {
 
     private int id;
 
@@ -20,12 +20,24 @@ public class ServerKeepAlivePacket extends Packet {
 
     @Override
     public byte[] serialize() {
-        return Bytes.join(Type.SERVER_KEEP_ALIVE.createHeader(4), Bytes.of(this.id));
+        return Bytes.join(this.createHeader(4), Bytes.of(this.id));
     }
 
     @Override
     public void deserialize(byte[] data) {
         this.id = Bytes.getInt(data, 5);
+    }
+
+    @Override
+    public byte[] createHeader(int len) {
+        return Bytes.join(
+                new byte[] {
+                        Packet.MAGIC_BYTE,
+                        Packet.VERSION,
+                        PacketType.SERVER_KEEP_ALIVE.value
+                },
+                Bytes.of((short) len)
+        );
     }
 
 }

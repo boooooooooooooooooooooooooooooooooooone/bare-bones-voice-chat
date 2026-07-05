@@ -2,29 +2,15 @@ package xyz.pobob.barebonesvc.net;
 
 import xyz.pobob.barebonesvc.util.Bytes;
 
-/**
- * [ID : 4]
- */
-public class ClientKeepAlivePacket implements Packet {
-
-    private int id;
-
-    public int getId() {
-        return this.id;
-    }
-
-    public void create(int id) {
-        this.id = id;
-    }
-
+public class ServerKickPacket implements Packet {
     @Override
     public byte[] serialize() {
-        return Bytes.join(this.createHeader(4), Bytes.of(this.id));
+        return this.createHeader(0);
     }
 
     @Override
     public void deserialize(byte[] data) {
-        this.id = Bytes.getInt(data, 5);
+
     }
 
     @Override
@@ -33,7 +19,7 @@ public class ClientKeepAlivePacket implements Packet {
                 new byte[] {
                         Packet.MAGIC_BYTE,
                         Packet.VERSION,
-                        PacketType.CLIENT_KEEP_ALIVE.value
+                        PacketType.SERVER_KICK.value
                 },
                 Bytes.of((short) len)
         );

@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import xyz.pobob.barebonesvc.voice.BareBonesVCSession;
+import xyz.pobob.barebonesvc.voice.BareBonesVCClient;
 
 @Mixin(ClientPlayerStateManager.class)
 public class ClientPlayerStateManagerMixin {
@@ -17,7 +17,7 @@ public class ClientPlayerStateManagerMixin {
             cancellable = true
     )
     private void injectIsDisconnected(CallbackInfoReturnable<Boolean> cir) {
-        if (BareBonesVCSession.instance().isConnected()) cir.setReturnValue(false);
+        if (BareBonesVCClient.INSTANCE.isConnected()) cir.setReturnValue(false);
     }
 
     @Inject(
@@ -30,7 +30,7 @@ public class ClientPlayerStateManagerMixin {
             cancellable = true
     )
     private void injectIsPlayerDisconnected(CallbackInfoReturnable<Boolean> cir) {
-        if (BareBonesVCSession.instance().isConnected()) cir.setReturnValue(true);
+        if (BareBonesVCClient.INSTANCE.isConnected()) cir.setReturnValue(true);
     }
 
     @Inject(
@@ -39,7 +39,7 @@ public class ClientPlayerStateManagerMixin {
             cancellable = true
     )
     private void injectOnDisconnect(CallbackInfo ci) {
-        if (BareBonesVCSession.instance().isRunning()) ci.cancel();
+        if (BareBonesVCClient.INSTANCE.isRunning()) ci.cancel();
     }
 
     @Inject(
@@ -47,6 +47,6 @@ public class ClientPlayerStateManagerMixin {
             at = @At("HEAD")
     )
     private void injectSetDisabled(boolean disabled, CallbackInfo ci) {
-        if (BareBonesVCSession.instance().isConnected()) BareBonesVCSession.instance().declareOwnState(disabled);
+        if (BareBonesVCClient.INSTANCE.isConnected()) BareBonesVCClient.INSTANCE.declareOwnState(disabled);
     }
 }

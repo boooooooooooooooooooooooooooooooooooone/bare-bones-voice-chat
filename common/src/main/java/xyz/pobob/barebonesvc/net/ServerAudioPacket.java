@@ -8,7 +8,7 @@ import java.util.UUID;
 /**
  * [AUDIO DATA : len - 8 - 16][SEQUENCE NUMBER : 8][UUID : 16]
  */
-public class ServerAudioPacket extends Packet {
+public class ServerAudioPacket implements Packet {
 
     private byte[] audio;
     private long sequenceNumber;
@@ -35,7 +35,7 @@ public class ServerAudioPacket extends Packet {
     @Override
     public byte[] serialize() {
         return Bytes.join(
-                Type.SERVER_AUDIO.createHeader(this.audio.length + 8 + 16),
+                this.createHeader(this.audio.length + 8 + 16),
                 this.audio,
                 Bytes.of(this.sequenceNumber),
                 Bytes.of(this.uuid.getMostSignificantBits()),
@@ -54,4 +54,15 @@ public class ServerAudioPacket extends Packet {
         );
     }
 
+    @Override
+    public byte[] createHeader(int len) {
+        return Bytes.join(
+                new byte[] {
+                        Packet.MAGIC_BYTE,
+                        Packet.VERSION,
+                        PacketType.SERVER_AUDIO.value
+                },
+                Bytes.of((short) len)
+        );
+    }
 }

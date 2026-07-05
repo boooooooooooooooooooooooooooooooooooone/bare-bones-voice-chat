@@ -9,12 +9,12 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.entity.player.SkinTextures;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
-import xyz.pobob.barebonesvc.BareBonesVCClient;
+import xyz.pobob.barebonesvc.BareBonesVC;
 
 import java.awt.*;
 import java.util.Objects;
 
-public class ClientEntry extends ListScreenEntryBase<ClientEntry> {
+public class  ClientEntry extends ListScreenEntryBase<ClientEntry> {
     private final MinecraftClient minecraft = MinecraftClient.getInstance();
 
     private final PlayerState state;
@@ -40,7 +40,7 @@ public class ClientEntry extends ListScreenEntryBase<ClientEntry> {
         guiGraphics.drawTexture(RenderPipelines.GUI_TEXTURED, skin.body().texturePath(), skinX, skinY, 8.0F, 8.0F, SKIN_SIZE, SKIN_SIZE, 8, 8, 64, 64);
         guiGraphics.drawTexture(RenderPipelines.GUI_TEXTURED, skin.body().texturePath(), skinX, skinY, 40.0F, 8.0F, SKIN_SIZE, SKIN_SIZE, 8, 8, 64, 64);
 
-        Double latency = BareBonesVCClient.LATENCIES.get(this.state.getUuid());
+        Double latency = BareBonesVC.LATENCIES.get(this.state.getUuid());
         if (latency != null) {
             this.renderLatency(
                     guiGraphics,
@@ -60,8 +60,8 @@ public class ClientEntry extends ListScreenEntryBase<ClientEntry> {
     }
 
     private static int getLatencyColor(double ping) {
-        float hue = (float) (11.1*Math.exp(2.525*Math.atan((311-ping)/83)-1)-5) / 360;
-        Color color = Color.getHSBColor((hue < 0.0F ? hue + 1 : hue), 0.92F, 1.0F);
+        float hue = (float) (11.1 * Math.exp(2.525 * Math.atan((311 - ping) / 83) - 1) - 5) / 360;
+        Color color = Color.getHSBColor((hue < 0.0F ? hue + 1.0F : hue), 0.92F, 1.0F);
         return color.getRGB();
     }
 }

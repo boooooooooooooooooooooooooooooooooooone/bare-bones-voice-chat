@@ -3,7 +3,7 @@ package xyz.pobob.barebonesvc.voice.thread;
 import de.maxhenkel.voicechat.voice.client.AudioChannel;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
-import xyz.pobob.barebonesvc.voice.BareBonesVCSession;
+import xyz.pobob.barebonesvc.voice.BareBonesVCClient;
 
 public class MiscThreads {
     private static Thread keepAliveCheckThread;
@@ -13,18 +13,18 @@ public class MiscThreads {
             keepAliveCheckThread.interrupt();
         }
         keepAliveCheckThread = new Thread(() -> {
-            while (BareBonesVCSession.instance().isRunning()) {
-                if (System.currentTimeMillis() - BareBonesVCSession.instance().lastKeepAlive > 30000) {
+            while (BareBonesVCClient.INSTANCE.isRunning()) {
+                if (System.currentTimeMillis() - BareBonesVCClient.INSTANCE.lastKeepAlive > 30000) {
                     if (MinecraftClient.getInstance().player != null) {
                         MinecraftClient.getInstance().player.sendMessage(Text.of("Bare Bones VC connection timed out"), true);
                     }
 
-                    BareBonesVCSession.instance().disconnect();
+                    BareBonesVCClient.INSTANCE.disconnect();
                 }
 
-                if (BareBonesVCSession.instance().client != null) {
-                    BareBonesVCSession.instance().getAudioChannels().values().stream().filter(AudioChannel::canKill).forEach(AudioChannel::closeAndKill);
-                    BareBonesVCSession.instance().getAudioChannels().entrySet().removeIf(entry -> entry.getValue().isClosed());
+                if (BareBonesVCClient.INSTANCE.client != null) {
+                    BareBonesVCClient.INSTANCE.getAudioChannels().values().stream().filter(AudioChannel::canKill).forEach(AudioChannel::closeAndKill);
+                    BareBonesVCClient.INSTANCE.getAudioChannels().entrySet().removeIf(entry -> entry.getValue().isClosed());
                 }
 
                 try {

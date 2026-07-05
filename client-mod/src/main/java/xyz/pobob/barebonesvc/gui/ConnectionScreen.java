@@ -8,13 +8,14 @@ import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import xyz.pobob.barebonesvc.voice.BareBonesVCSession;
+import xyz.pobob.barebonesvc.BareBonesVC;
+import xyz.pobob.barebonesvc.voice.BareBonesVCClient;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 
 public class ConnectionScreen extends VoiceChatScreenBase {
-    private static final Identifier TEXTURE = Identifier.of(xyz.pobob.barebonesvc.BareBonesVCClient.MOD_ID, "textures/gui/gui_barebonesvc_connect.png");
+    private static final Identifier TEXTURE = Identifier.of(BareBonesVC.MOD_ID, "textures/gui/gui_barebonesvc_connect.png");
     private static final Text TITLE = Text.of("Bare Bones VC - Connect");
     private static final Text HOST = Text.of("Host");
     private static final Text PORT = Text.of("Port");
@@ -74,11 +75,11 @@ public class ConnectionScreen extends VoiceChatScreenBase {
 
             URI uri = new URI("http", null, host, port, null, null, null);
 
-            BareBonesVCSession.instance().start(uri.getHost(), uri.getPort());
+            BareBonesVCClient.INSTANCE.start(uri.getHost(), uri.getPort());
         } catch (URISyntaxException | NumberFormatException e) {
-            xyz.pobob.barebonesvc.BareBonesVCClient.LOGGER.error("Invalid socket address \"{}:{}\"", host, portText);
+            BareBonesVC.LOGGER.error("Invalid socket address \"{}:{}\"", host, portText);
 
-            BareBonesVCSession.invalidAddress();
+            BareBonesVCClient.invalidAddress();
         }
     }
 

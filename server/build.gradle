@@ -1,8 +1,9 @@
 plugins {
     id 'java'
+    id 'com.gradleup.shadow' version '9.4.3'
 }
 
-version = 'alpha-7'
+version = 'alpha-8'
 group = 'xyz.pobob.barebonesvc'
 
 repositories {
@@ -11,6 +12,7 @@ repositories {
 
 dependencies {
     implementation project(':common')
+    implementation("com.google.guava:guava:33.6.0-jre")
 }
 
 jar {
@@ -21,4 +23,9 @@ jar {
     }
     archiveBaseName.set('barebonesvc-server')
     from(project(":common").sourceSets.main.output)
+}
+
+shadowJar {
+    relocate 'com.google.common', '://shaded.com.google.common'
+    minimize()
 }

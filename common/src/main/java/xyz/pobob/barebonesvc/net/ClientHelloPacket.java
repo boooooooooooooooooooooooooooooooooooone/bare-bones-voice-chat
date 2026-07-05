@@ -7,18 +7,26 @@ import java.util.UUID;
 /**
  * [USERNAME : len-17][UUID : 16][DISABLED : 1]
  */
-public class ClientHelloPacket extends Packet {
+public class ClientHelloPacket implements Packet {
 
     private String username;
     private UUID uuid;
     private boolean disabled;
 
-    public String getUsername() {return this.username;}
-    public UUID getUUID() {return this.uuid;}
-    public boolean isDisabled() {return this.disabled;}
+    public String getUsername() {
+        return this.username;
+    }
+
+    public UUID getUUID() {
+        return this.uuid;
+    }
+
+    public boolean isDisabled() {
+        return this.disabled;
+    }
 
     public void create(String username, UUID playerId, boolean disabled) {
-        this.username = (username.length() <= 16) ? username : username.substring(0,16);
+        this.username = (username.length() <= 16) ? username : username.substring(0, 16);
         this.uuid = playerId;
         this.disabled = disabled;
     }
@@ -28,7 +36,7 @@ public class ClientHelloPacket extends Packet {
         byte[] usernameBytes = Bytes.of(this.username);
 
         return Bytes.join(
-                Type.CLIENT_HELLO.createHeader(usernameBytes.length + 17),
+                this.createHeader(usernameBytes.length + 17),
                 usernameBytes,
                 Bytes.of(this.uuid.getMostSignificantBits()),
                 Bytes.of(this.uuid.getLeastSignificantBits()),
@@ -45,5 +53,17 @@ public class ClientHelloPacket extends Packet {
                 Bytes.getLong(data, 5 + len - 8 - 1)
         );
         this.disabled = (data[5 + len - 1] & 1) == 1;
+    }
+
+    @Override
+    public byte[] createHeader(int len) {
+        return Bytes.join(
+                new byte[] {
+                        Packet.MAGIC_BYTE,
+                        Packet.VERSION,
+                        PacketType.CLIENT_HELLO.value
+                },
+                Bytes.of((short) len)
+        );
     }
 }

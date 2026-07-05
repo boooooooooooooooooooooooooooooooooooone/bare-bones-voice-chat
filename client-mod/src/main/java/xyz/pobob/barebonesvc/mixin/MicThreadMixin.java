@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import xyz.pobob.barebonesvc.net.ClientAudioPacket;
-import xyz.pobob.barebonesvc.voice.BareBonesVCSession;
+import xyz.pobob.barebonesvc.voice.BareBonesVCClient;
 
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -30,9 +30,9 @@ public class MicThreadMixin {
             at = @At("HEAD")
     )
     private void injectSendAudioPacket(short[] audio, boolean whispering, CallbackInfo ci) {
-        if (BareBonesVCSession.instance().isConnected()) {
+        if (BareBonesVCClient.INSTANCE.isConnected()) {
             this.clientAudioPacket.create(this.encoder.encode(audio), this.sequenceNumber.getAndIncrement());
-            BareBonesVCSession.instance().send(this.clientAudioPacket.serialize());
+            BareBonesVCClient.INSTANCE.send(this.clientAudioPacket.serialize());
         }
     }
 
@@ -44,6 +44,6 @@ public class MicThreadMixin {
             )
     )
     private OpusEncoder redirectEncoder(OpusEncoderMode encoder) {
-        return OpusManager.createEncoder(BareBonesVCSession.instance().config == null ? ServerConfig.Codec.AUDIO.getMode() : BareBonesVCSession.instance().config.codec().getMode());
+        return OpusManager.createEncoder(BareBonesVCClient.INSTANCE.config == null ? ServerConfig.Codec.AUDIO.getMode() : BareBonesVCClient.INSTANCE.config.codec().getMode());
     }
 }
