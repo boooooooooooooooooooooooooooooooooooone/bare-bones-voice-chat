@@ -36,7 +36,7 @@ public class ClientHelloPacket implements Packet {
         byte[] usernameBytes = Bytes.of(this.username);
 
         return Bytes.join(
-                this.createHeader(usernameBytes.length + 17),
+                this.createHeader(usernameBytes.length + 17, PacketType.CLIENT_HELLO),
                 usernameBytes,
                 Bytes.of(this.uuid.getMostSignificantBits()),
                 Bytes.of(this.uuid.getLeastSignificantBits()),
@@ -46,24 +46,14 @@ public class ClientHelloPacket implements Packet {
 
     @Override
     public void deserialize(byte[] data) {
+        int start = this.getPayloadIndex();
         short len = Packet.getPayloadLength(data);
-        this.username = Bytes.getString(data, 5, len - 16 - 1);
-        this.uuid = new UUID(
-                Bytes.getLong(data, 5 + len - 16 - 1),
-                Bytes.getLong(data, 5 + len - 8 - 1)
-        );
-        this.disabled = (data[5 + len - 1] & 1) == 1;
-    }
 
-    @Override
-    public byte[] createHeader(int len) {
-        return Bytes.join(
-                new byte[] {
-                        Packet.MAGIC_BYTE,
-                        Packet.VERSION,
-                        PacketType.CLIENT_HELLO.value
-                },
-                Bytes.of((short) len)
+        this.username = Bytes.getString(data, start, len - 16 - 1);
+        this.uuid = new UUID(
+                Bytes.getLong(data, start + len - 16 - 1),
+                Bytes.getLong(data, start + len - 8 - 1)
         );
+        this.disabled = (data[start + len - 1] & 1) == 1;
     }
 }

@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import xyz.pobob.barebonesvc.BareBonesVC;
-import xyz.pobob.barebonesvc.voice.BareBonesVCClient;
+import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
 
 @Mixin(ClientVoicechat.class)
 public class ClientVoicechatMixin {

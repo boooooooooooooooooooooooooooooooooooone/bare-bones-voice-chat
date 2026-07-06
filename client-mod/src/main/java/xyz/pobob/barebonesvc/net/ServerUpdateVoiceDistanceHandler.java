@@ -1,6 +1,6 @@
 package xyz.pobob.barebonesvc.net;
 
-import xyz.pobob.barebonesvc.voice.BareBonesVCClient;
+import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
 
 public class ServerUpdateVoiceDistanceHandler implements ServerPacketHandler {
 

@@ -5,11 +5,13 @@ import xyz.pobob.barebonesvc.util.Bytes;
 /**
  * [VOICE DISTANCE : 8]
  */
-public class ServerUpdateVoiceDistancePacket implements Packet {
+public class ServerUpdateVoiceDistancePacket extends ReliablePacket {
 
     private double voiceDistance;
 
-    public double getVoiceDistance() {return this.voiceDistance;}
+    public double getVoiceDistance() {
+        return this.voiceDistance;
+    }
 
     public void create(double voiceDistance) {
         this.voiceDistance = voiceDistance;
@@ -18,25 +20,13 @@ public class ServerUpdateVoiceDistancePacket implements Packet {
     @Override
     public byte[] serialize() {
         return Bytes.join(
-                this.createHeader(8),
+                this.createHeader(8, PacketType.SERVER_UPDATE_VOICE_DISTANCE),
                 Bytes.of(Double.doubleToLongBits(this.voiceDistance))
         );
     }
 
     @Override
     public void deserialize(byte[] data) {
-        this.voiceDistance = Double.longBitsToDouble(Bytes.getLong(data, 5));
-    }
-
-    @Override
-    public byte[] createHeader(int len) {
-        return Bytes.join(
-                new byte[] {
-                        Packet.MAGIC_BYTE,
-                        Packet.VERSION,
-                        PacketType.SERVER_UPDATE_VOICE_DISTANCE.value
-                },
-                Bytes.of((short) len)
-        );
+        this.voiceDistance = Double.longBitsToDouble(Bytes.getLong(data, this.getPayloadIndex()));
     }
 }

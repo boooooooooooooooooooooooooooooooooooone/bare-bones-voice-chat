@@ -1,9 +1,7 @@
-package xyz.pobob.barebonesvc.voice.thread;
+package xyz.pobob.barebonesvc.voiceclient.thread;
 
 import de.maxhenkel.voicechat.voice.client.AudioChannel;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.Text;
-import xyz.pobob.barebonesvc.voice.BareBonesVCClient;
+import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
 
 public class MiscThreads {
     private static Thread keepAliveCheckThread;
@@ -14,12 +12,8 @@ public class MiscThreads {
         }
         keepAliveCheckThread = new Thread(() -> {
             while (BareBonesVCClient.INSTANCE.isRunning()) {
-                if (System.currentTimeMillis() - BareBonesVCClient.INSTANCE.lastKeepAlive > 30000) {
-                    if (MinecraftClient.getInstance().player != null) {
-                        MinecraftClient.getInstance().player.sendMessage(Text.of("Bare Bones VC connection timed out"), true);
-                    }
-
-                    BareBonesVCClient.INSTANCE.disconnect();
+                if (System.currentTimeMillis() - BareBonesVCClient.INSTANCE.lastKeepAlive > BareBonesVCClient.TIMEOUT_MILLIS) {
+                    BareBonesVCClient.INSTANCE.onTimeout();
                 }
 
                 if (BareBonesVCClient.INSTANCE.client != null) {
@@ -40,5 +34,4 @@ public class MiscThreads {
         keepAliveCheckThread.setName("BareBonesVCCheckConnectionThread");
         keepAliveCheckThread.start();
     }
-
 }

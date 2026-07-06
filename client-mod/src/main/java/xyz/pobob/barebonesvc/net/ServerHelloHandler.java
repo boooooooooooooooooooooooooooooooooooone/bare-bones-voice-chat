@@ -2,9 +2,9 @@ package xyz.pobob.barebonesvc.net;
 
 import de.maxhenkel.voicechat.config.ServerConfig;
 import xyz.pobob.barebonesvc.BareBonesVC;
-import xyz.pobob.barebonesvc.voice.BareBonesVCClient;
-import xyz.pobob.barebonesvc.voice.SessionConfig;
-import xyz.pobob.barebonesvc.voice.thread.MiscThreads;
+import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
+import xyz.pobob.barebonesvc.voiceclient.SessionConfig;
+import xyz.pobob.barebonesvc.voiceclient.thread.MiscThreads;
 
 public class ServerHelloHandler implements ServerPacketHandler {
 

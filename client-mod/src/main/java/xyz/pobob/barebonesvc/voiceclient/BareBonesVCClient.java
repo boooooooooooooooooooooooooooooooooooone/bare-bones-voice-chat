@@ -1,4 +1,4 @@
-package xyz.pobob.barebonesvc.voice;
+package xyz.pobob.barebonesvc.voiceclient;
 
 import de.maxhenkel.voicechat.VoicechatClient;
 import de.maxhenkel.voicechat.debug.CooldownTimer;
@@ -10,7 +10,8 @@ import net.minecraft.text.Text;
 import xyz.pobob.barebonesvc.BareBonesVC;
 import xyz.pobob.barebonesvc.mixin.ClientVoicechatAccessor;
 import xyz.pobob.barebonesvc.net.*;
-import xyz.pobob.barebonesvc.voice.thread.ClientHandshakeThread;
+import xyz.pobob.barebonesvc.voiceclient.retransmission.ReliablePacketManager;
+import xyz.pobob.barebonesvc.voiceclient.thread.ClientHandshakeThread;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -22,11 +23,12 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 public class BareBonesVCClient {
 
-    private final ClientHelloPacket clientHelloPacket = new ClientHelloPacket();
+    public static final BareBonesVCClient INSTANCE = new BareBonesVCClient();
+    public static final int TIMEOUT_MILLIS = 20000;
+
     private final ClientUpdatePlayerPacket clientUpdatePlayerPacket = new ClientUpdatePlayerPacket();
 
     private final byte[] recvBuf = new byte[4096];
@@ -34,18 +36,18 @@ public class BareBonesVCClient {
     private final byte[] sendBuf = new byte[4096];
     private final DatagramPacket sendPacket = new DatagramPacket(sendBuf, 0);
 
-    private final ExecutorService pool = Executors.newSingleThreadExecutor();
     public final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-
+    private final ExecutorService pool = Executors.newSingleThreadExecutor();
     private DatagramSocket socket;
+
+    public ReliablePacketManager reliablePacketManager;
     private Thread clientHandshakeThread;
     private Thread networkReceiveThread;
 
     public ClientVoicechat client;
+    public final ServerMessageDispatcher serverMessageDispatcher = new ServerMessageDispatcher();
     public volatile SessionConfig config;
     public long lastKeepAlive = 0;
-
-    public static final BareBonesVCClient INSTANCE = new BareBonesVCClient();
 
     private volatile boolean running = false;
     private volatile boolean resolved = false;
@@ -73,26 +75,20 @@ public class BareBonesVCClient {
         }
         this.running = true;
 
-        final ServerMessageDispatcher serverMessageDispatcher = new ServerMessageDispatcher();
-        serverMessageDispatcher.register(PacketType.SERVER_HELLO, new ServerHelloHandler());
-        serverMessageDispatcher.register(PacketType.SERVER_KEEP_ALIVE, new ServerKeepAliveHandler());
-        serverMessageDispatcher.register(PacketType.SERVER_AUDIO, new ServerAudioHandler());
-        serverMessageDispatcher.register(PacketType.SERVER_UPDATE_PLAYER, new ServerUpdatePlayerHandler());
-        serverMessageDispatcher.register(PacketType.SERVER_CLOSE, new ServerCloseHandler());
-        serverMessageDispatcher.register(PacketType.SERVER_KICK, new ServerKickHandler());
-        serverMessageDispatcher.register(PacketType.SERVER_UPDATE_VOICE_DISTANCE, new ServerUpdateVoiceDistanceHandler());
-        serverMessageDispatcher.register(PacketType.SERVER_PLAYER_LATENCY, new ServerPlayerLatencyHandler());
-
-        this.clientHelloPacket.create(
-                MinecraftClient.getInstance().getGameProfile().name(),
-                MinecraftClient.getInstance().getGameProfile().id(),
-                VoicechatClient.CLIENT_CONFIG.disabled.get()
-        );
+        this.serverMessageDispatcher.register(PacketType.SERVER_HELLO, new ServerHelloHandler());
+        this.serverMessageDispatcher.register(PacketType.SERVER_KEEP_ALIVE, new ServerKeepAliveHandler());
+        this.serverMessageDispatcher.register(PacketType.SERVER_AUDIO, new ServerAudioHandler());
+        this.serverMessageDispatcher.register(PacketType.SERVER_UPDATE_PLAYER, new ServerUpdatePlayerHandler());
+        this.serverMessageDispatcher.register(PacketType.SERVER_CLOSE, new ServerCloseHandler());
+        this.serverMessageDispatcher.register(PacketType.SERVER_KICK, new ServerKickHandler());
+        this.serverMessageDispatcher.register(PacketType.SERVER_UPDATE_VOICE_DISTANCE, new ServerUpdateVoiceDistanceHandler());
+        this.serverMessageDispatcher.register(PacketType.SERVER_PLAYER_LATENCY, new ServerPlayerLatencyHandler());
 
         if (this.clientHandshakeThread != null) this.clientHandshakeThread.interrupt();
         if (this.networkReceiveThread != null) this.networkReceiveThread.interrupt();
 
-        this.clientHandshakeThread = new ClientHandshakeThread(this.clientHelloPacket.serialize());
+        this.reliablePacketManager = new ReliablePacketManager();
+        this.clientHandshakeThread = new ClientHandshakeThread();
         this.networkReceiveThread = new Thread(() -> {
             while (this.isRunning()) {
                 final byte[] data;
@@ -105,22 +101,27 @@ public class BareBonesVCClient {
 
                 pool.submit(() -> {
                     if (Packet.checkSignature(data)) {
-                        serverMessageDispatcher.dispatch(data);
+                        if (Packet.isReliable(data)) {
+                            this.reliablePacketManager.receive(data);
+                        } else {
+                            this.serverMessageDispatcher.dispatch(data);
+                        }
                     }
                 });
             }
 
             this.stopNow();
         });
-        this.clientHandshakeThread.start();
         this.networkReceiveThread.setName("BareBonesVCNetworkThread");
+
+        this.reliablePacketManager.start();
+        this.clientHandshakeThread.start();
         this.networkReceiveThread.start();
 
-        BareBonesVC.LOGGER.info("Started connecting to voice server {}", BareBonesVCClient.INSTANCE.getReadableAddress());
+        BareBonesVC.LOGGER.info("Started connecting to voice server {}", this.getReadableAddress());
     }
 
     public void startVoiceChat() {
-
         if (VoicechatClient.CLIENT_CONFIG.muteOnJoin.get()) {
             ClientManager.getPlayerStateManager().setMuted(true);
         }
@@ -131,21 +132,24 @@ public class BareBonesVCClient {
         }
         ((ClientVoicechatAccessor) this.client).invokeStartMicThread(null);
         BareBonesVC.LOGGER.info("Starting microphone thread");
-
     }
 
-    public synchronized boolean send(byte[] data) {
-        if (!this.isRunning()) return false;
+    public synchronized void send(Packet packet) {
+        if (this.isRunning()) {
+            if (packet instanceof ReliablePacket rp) {
+                this.reliablePacketManager.registerSequence(rp);
+            }
 
-        this.sendPacket.setLength(data.length);
-        System.arraycopy(data, 0, this.sendPacket.getData(), 0, data.length);
+            byte[] data = packet.serialize();
 
-        try {
-            this.socket.send(this.sendPacket);
-            return true;
-        } catch (IOException e) {
-            BareBonesVC.LOGGER.error("An error occurred while sending Datagram packet", e);
-            return false;
+            this.sendPacket.setLength(data.length);
+            System.arraycopy(data, 0, this.sendPacket.getData(), 0, data.length);
+
+            try {
+                this.socket.send(this.sendPacket);
+            } catch (IOException e) {
+                BareBonesVC.LOGGER.error("An error occurred while sending Datagram packet", e);
+            }
         }
     }
 
@@ -165,22 +169,14 @@ public class BareBonesVCClient {
         return data;
     }
 
-    public void declareOwnState(boolean disabled) {
-        this.clientUpdatePlayerPacket.create(disabled, false);
-        byte[] serialized = this.clientUpdatePlayerPacket.serialize();
-        this.send(serialized);
-        this.scheduler.schedule(() -> this.send(serialized), 1000, TimeUnit.MILLISECONDS);
-        this.scheduler.schedule(() -> this.send(serialized), 2000, TimeUnit.MILLISECONDS);
-    }
-
-    public void disconnect() {
+    public void onDisconnect() {
         BareBonesVC.LOGGER.info("Disconnected from {}", this.getReadableAddress());
 
         if (this.isRunning()) {
             this.clientUpdatePlayerPacket.create(ClientManager.getPlayerStateManager().isDisabled(), true);
-            this.send(this.clientUpdatePlayerPacket.serialize());
+            this.send(this.clientUpdatePlayerPacket);
         }
-        this.clearStates();
+        MinecraftClient.getInstance().execute(() -> ClientManager.getPlayerStateManager().clearStates());
 
         if (this.client != null) {
             this.client.closeMicThread();
@@ -191,7 +187,22 @@ public class BareBonesVCClient {
         this.stopNow();
     }
 
+    public void onTimeout() {
+        if (MinecraftClient.getInstance().player != null) {
+            MinecraftClient.getInstance().player.sendMessage(Text.of("Bare Bones VC connection timed out"), true);
+        }
+        this.onDisconnect();
+    }
+
     public void stopNow() {
+        if (this.reliablePacketManager != null) {
+            if (this.reliablePacketManager.checkPendingPackets != null) {
+                this.reliablePacketManager.checkPendingPackets.cancel(false);
+            }
+
+            this.reliablePacketManager.clear();
+        }
+
         if (this.isRunning()) {
             this.running = false;
         }
@@ -208,15 +219,11 @@ public class BareBonesVCClient {
     }
 
     public boolean isConnected() {
-        return this.running && System.currentTimeMillis() - this.lastKeepAlive < 30000;
+        return this.running && System.currentTimeMillis() - this.lastKeepAlive < TIMEOUT_MILLIS;
     }
 
     public synchronized Map<UUID, AudioChannel> getAudioChannels() {
-        return BareBonesVCClient.INSTANCE.client.getAudioChannels();
-    }
-
-    private synchronized void clearStates() {
-        ClientManager.getPlayerStateManager().clearStates();
+        return this.client.getAudioChannels();
     }
 
     public static void invalidAddress() {

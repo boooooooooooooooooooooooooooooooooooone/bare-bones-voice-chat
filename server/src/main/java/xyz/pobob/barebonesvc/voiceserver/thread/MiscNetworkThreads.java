@@ -1,8 +1,6 @@
 package xyz.pobob.barebonesvc.voiceserver.thread;
 
-import xyz.pobob.barebonesvc.BareBonesVCServer;
 import xyz.pobob.barebonesvc.net.ServerKeepAlivePacket;
-import xyz.pobob.barebonesvc.net.ServerUpdatePlayerPacket;
 import xyz.pobob.barebonesvc.voiceserver.ClientConnection;
 import xyz.pobob.barebonesvc.voiceserver.VoiceServer;
 
@@ -10,34 +8,29 @@ import java.net.SocketAddress;
 import java.util.Map;
 
 public class MiscNetworkThreads {
-    private static Thread keepAliveSendThread;
+    private static final int TIMEOUT_MILLIS = 20000;
 
     public static void startKeepAliveThread(final VoiceServer server) {
-        if (keepAliveSendThread != null) {
-            keepAliveSendThread.interrupt();
-        }
-        keepAliveSendThread = new Thread(() -> {
+        Thread keepAliveSendThread = new Thread(() -> {
             ServerKeepAlivePacket keepAlive = new ServerKeepAlivePacket();
 
             while (server.isRunning()) {
 
                 for (SocketAddress address : server.connected.keySet()) {
                     keepAlive.create();
+                    server.send(keepAlive, address);
+
                     server.latencyManager.registerSentTime(keepAlive.getId());
-                    server.send(keepAlive.serialize(), address);
                 }
 
                 for (Map.Entry<SocketAddress, ClientConnection> client : server.connected.entrySet()) {
-                    if (System.currentTimeMillis() - client.getValue().getLastKeepAliveSynced() > 30000) {
-                        if (server.connected.containsKey(client.getKey())) {
-                            BareBonesVCServer.LOGGER.info(server.connected.remove(client.getKey()).getUsername()
-                                    + " timed out");
-                        }
+                    if (System.currentTimeMillis() - client.getValue().getLastKeepAliveSynced() > TIMEOUT_MILLIS) {
+                        server.onTimeout(client.getKey());
                     }
                 }
 
                 try {
-                    Thread.sleep(2000);
+                    Thread.sleep(750);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     break;
@@ -47,16 +40,7 @@ public class MiscNetworkThreads {
         });
 
         keepAliveSendThread.setDaemon(true);
-        keepAliveSendThread.setName("KeepAliveThread");
+        keepAliveSendThread.setName("ConnectionHealthThread");
         keepAliveSendThread.start();
-    }
-
-    public static void sendPlayerList(VoiceServer server, SocketAddress clientAddress) {
-        ServerUpdatePlayerPacket serverUpdatePlayerPacket = new ServerUpdatePlayerPacket();
-
-        for (ClientConnection client : server.connected.values()) {
-            serverUpdatePlayerPacket.create(client.getUsername(), client.getUUID(), client.isDisabled(), false);
-            server.send(serverUpdatePlayerPacket.serialize(), clientAddress);
-        }
     }
 }

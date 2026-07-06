@@ -4,17 +4,13 @@ import xyz.pobob.barebonesvc.BareBonesVCServer;
 import xyz.pobob.barebonesvc.voiceserver.ClientConnection;
 import xyz.pobob.barebonesvc.voiceserver.Config;
 import xyz.pobob.barebonesvc.voiceserver.VoiceServer;
-import xyz.pobob.barebonesvc.voiceserver.thread.MiscNetworkThreads;
 
 import java.net.SocketAddress;
-import java.util.concurrent.TimeUnit;
 
-public class ClientHelloHandler implements ClientPacketHandler {
-
-    private final VoiceServer server;
+public class ClientHelloHandler extends ClientPacketHandler {
 
     public ClientHelloHandler(VoiceServer server) {
-        this.server = server;
+        super(server);
     }
 
     private final ThreadLocal<ClientHelloPacket> localClientHelloPacket = ThreadLocal.withInitial(ClientHelloPacket::new);
@@ -31,7 +27,15 @@ public class ClientHelloHandler implements ClientPacketHandler {
                 .stream().map(ClientConnection::getUUID)
                 .toList()
                 .contains(clientHelloPacket.getUUID())) return;
+
         BareBonesVCServer.LOGGER.info("Client connected: " + clientHelloPacket.getUsername() + " (" + clientHelloPacket.getUUID() + ")");
+
+        this.server.connected.put(clientAddress, new ClientConnection(
+                clientHelloPacket.getUsername(),
+                clientHelloPacket.getUUID(),
+                clientHelloPacket.isDisabled()
+        ));
+
 
         Config config = this.server.config;
         this.localServerHelloPacket.get().create(
@@ -40,27 +44,21 @@ public class ClientHelloHandler implements ClientPacketHandler {
                 config.codec
         );
 
-        final byte[] serverHelloData = this.localServerHelloPacket.get().serialize();
-        if (!this.server.send(serverHelloData, clientAddress)) {
-            BareBonesVCServer.LOGGER.severe("An error occurred while sending handshake to " + clientAddress);
-            return;
+        this.server.send(this.localServerHelloPacket.get(), clientAddress);
+
+        ServerUpdatePlayerPacket serverUpdatePlayerPacket = new ServerUpdatePlayerPacket();
+
+        for (ClientConnection client : this.server.connected.values()) {
+            serverUpdatePlayerPacket.create(client.getUsername(), client.getUUID(), client.isDisabled(), false);
+            this.server.send(serverUpdatePlayerPacket, clientAddress);
         }
 
-        this.server.scheduler.schedule(() -> this.server.send(serverHelloData, clientAddress), 500, TimeUnit.MILLISECONDS);
-        this.server.scheduler.schedule(() -> this.server.send(serverHelloData, clientAddress), 1000, TimeUnit.MILLISECONDS);
-        this.server.scheduler.schedule(() -> this.server.send(serverHelloData, clientAddress), 1500, TimeUnit.MILLISECONDS);
-
-        this.server.scheduler.schedule(() -> MiscNetworkThreads.sendPlayerList(this.server, clientAddress), 2000, TimeUnit.MILLISECONDS);
-        this.server.scheduler.schedule(() -> MiscNetworkThreads.sendPlayerList(this.server, clientAddress), 3000, TimeUnit.MILLISECONDS);
-        this.server.scheduler.schedule(() -> MiscNetworkThreads.sendPlayerList(this.server, clientAddress), 4000, TimeUnit.MILLISECONDS);
-
-        this.server.connected.put(clientAddress, new ClientConnection(
+        this.localServerUpdatePlayerPacket.get().create(
                 clientHelloPacket.getUsername(),
                 clientHelloPacket.getUUID(),
-                clientHelloPacket.isDisabled()
-        ));
-
-        this.localServerUpdatePlayerPacket.get().create(clientHelloPacket.getUsername(), clientHelloPacket.getUUID(), clientHelloPacket.isDisabled(), false);
-        this.server.announceExcluding(this.localServerUpdatePlayerPacket.get().serialize(), clientAddress);
+                clientHelloPacket.isDisabled(),
+                false
+        );
+        this.server.announceExcluding(this.localServerUpdatePlayerPacket.get(), clientAddress);
     }
 }

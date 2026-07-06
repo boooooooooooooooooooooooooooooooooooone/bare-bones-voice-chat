@@ -30,7 +30,7 @@ public class LatencyManager {
             long latencyNano = System.nanoTime() - sentTime;
             client.setLatencyNano(latencyNano);
             this.serverPlayerLatencyPacket.create(client.getUUID(), latencyNano);
-            this.server.announce(this.serverPlayerLatencyPacket.serialize());
+            this.server.announce(this.serverPlayerLatencyPacket);
         }
     }
 }

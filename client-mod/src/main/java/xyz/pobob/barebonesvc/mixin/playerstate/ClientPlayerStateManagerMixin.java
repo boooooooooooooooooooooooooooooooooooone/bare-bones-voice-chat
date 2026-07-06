@@ -3,11 +3,13 @@ package xyz.pobob.barebonesvc.mixin.playerstate;
 import de.maxhenkel.voicechat.voice.client.ClientPlayerStateManager;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import xyz.pobob.barebonesvc.voice.BareBonesVCClient;
+import xyz.pobob.barebonesvc.net.ClientUpdatePlayerPacket;
+import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
 
 @Mixin(ClientPlayerStateManager.class)
 public class ClientPlayerStateManagerMixin {
@@ -42,11 +44,17 @@ public class ClientPlayerStateManagerMixin {
         if (BareBonesVCClient.INSTANCE.isRunning()) ci.cancel();
     }
 
+    @Unique
+    private final ClientUpdatePlayerPacket clientUpdatePlayerPacket = new ClientUpdatePlayerPacket();
+
     @Inject(
             method = "setDisabled",
             at = @At("HEAD")
     )
     private void injectSetDisabled(boolean disabled, CallbackInfo ci) {
-        if (BareBonesVCClient.INSTANCE.isConnected()) BareBonesVCClient.INSTANCE.declareOwnState(disabled);
+        if (BareBonesVCClient.INSTANCE.isConnected()) {
+            this.clientUpdatePlayerPacket.create(disabled, false);
+            BareBonesVCClient.INSTANCE.send(this.clientUpdatePlayerPacket);
+        }
     }
 }

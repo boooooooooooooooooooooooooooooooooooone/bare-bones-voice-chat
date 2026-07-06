@@ -40,7 +40,7 @@ public final class Bytes {
 
     public static short getShort(byte[] data, int startIndex) {
         return (short) (((data[startIndex] & 0xff) << 8)
-                | (data[startIndex+1] & 0xff));
+                | (data[startIndex + 1] & 0xff));
     }
 
     public static byte[] of(int i) {
@@ -54,9 +54,9 @@ public final class Bytes {
 
     public static int getInt(byte[] data, int startIndex) {
         return ((data[startIndex] & 0xff) << 24)
-                | ((data[startIndex+1] & 0xff) << 16)
-                | ((data[startIndex+2] & 0xff) << 8)
-                | (data[startIndex+3] & 0xff);
+                | ((data[startIndex + 1] & 0xff) << 16)
+                | ((data[startIndex + 2] & 0xff) << 8)
+                | (data[startIndex + 3] & 0xff);
     }
 
     public static byte[] of(long l) {
@@ -74,12 +74,12 @@ public final class Bytes {
 
     public static long getLong(byte[] data, int startIndex) {
         return ((long) (data[startIndex] & 0xff) << 56)
-                | ((long) (data[startIndex+1] & 0xff) << 48)
-                | ((long) (data[startIndex+2] & 0xff) << 40)
-                | ((long) (data[startIndex+3] & 0xff) << 32)
-                | ((long) (data[startIndex+4] & 0xff) << 24)
-                | ((data[startIndex+5] & 0xff) << 16)
-                | ((data[startIndex+6] & 0xff) << 8)
-                | (data[startIndex+7] & 0xff);
+                | ((long) (data[startIndex + 1] & 0xff) << 48)
+                | ((long) (data[startIndex + 2] & 0xff) << 40)
+                | ((long) (data[startIndex + 3] & 0xff) << 32)
+                | ((long) (data[startIndex + 4] & 0xff) << 24)
+                | ((data[startIndex + 5] & 0xff) << 16)
+                | ((data[startIndex + 6] & 0xff) << 8)
+                | (data[startIndex + 7] & 0xff);
     }
 }

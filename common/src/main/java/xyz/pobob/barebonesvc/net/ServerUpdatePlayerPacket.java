@@ -7,7 +7,7 @@ import java.util.UUID;
 /**
  * [USERNAME : len-17][UUID : 16][DISABLED + DISCONNECTED : 1]
  */
-public class ServerUpdatePlayerPacket implements Packet {
+public class ServerUpdatePlayerPacket extends ReliablePacket {
 
     private String username;
     private UUID uuid;
@@ -31,7 +31,7 @@ public class ServerUpdatePlayerPacket implements Packet {
         byte[] usernameBytes = Bytes.of(this.username);
 
         return Bytes.join(
-                this.createHeader(usernameBytes.length + 16 + 1),
+                this.createHeader(usernameBytes.length + 16 + 1, PacketType.SERVER_UPDATE_PLAYER),
                 usernameBytes,
                 Bytes.of(this.uuid.getMostSignificantBits()),
                 Bytes.of(this.uuid.getLeastSignificantBits()),
@@ -41,25 +41,15 @@ public class ServerUpdatePlayerPacket implements Packet {
 
     @Override
     public void deserialize(byte[] data) {
+        int start = this.getPayloadIndex();
         short len = Packet.getPayloadLength(data);
-        this.username = Bytes.getString(data, 5, len - 16 - 1);
-        this.uuid = new UUID(
-                Bytes.getLong(data, 5 + len - 16 - 1),
-                Bytes.getLong(data, 5 + len - 8 - 1)
-        );
-        this.disabled = (data[5 + len - 1] & 1) == 1;
-        this.disconnected = (data[5 + len - 1] & 2) == 2;
-    }
 
-    @Override
-    public byte[] createHeader(int len) {
-        return Bytes.join(
-                new byte[] {
-                        Packet.MAGIC_BYTE,
-                        Packet.VERSION,
-                        PacketType.SERVER_UPDATE_PLAYER.value
-                },
-                Bytes.of((short) len)
+        this.username = Bytes.getString(data, start, len - 16 - 1);
+        this.uuid = new UUID(
+                Bytes.getLong(data, start + len - 16 - 1),
+                Bytes.getLong(data, start + len - 8 - 1)
         );
+        this.disabled = (data[start + len - 1] & 1) == 1;
+        this.disconnected = (data[start + len - 1] & 2) == 2;
     }
 }

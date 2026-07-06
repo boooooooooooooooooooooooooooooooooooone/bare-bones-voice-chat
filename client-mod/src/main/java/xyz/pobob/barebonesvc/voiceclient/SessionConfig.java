@@ -1,4 +1,4 @@
-package xyz.pobob.barebonesvc.voice;
+package xyz.pobob.barebonesvc.voiceclient;
 
 import de.maxhenkel.voicechat.config.ServerConfig;
 

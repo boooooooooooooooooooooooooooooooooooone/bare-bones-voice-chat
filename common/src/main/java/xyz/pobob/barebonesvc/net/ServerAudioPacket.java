@@ -27,7 +27,7 @@ public class ServerAudioPacket implements Packet {
     }
 
     public void create(ClientAudioPacket packet, UUID uuid) {
-        this.audio = packet.getData();
+        this.audio = packet.getAudio();
         this.sequenceNumber = packet.getSequenceNumber();
         this.uuid = uuid;
     }
@@ -35,7 +35,7 @@ public class ServerAudioPacket implements Packet {
     @Override
     public byte[] serialize() {
         return Bytes.join(
-                this.createHeader(this.audio.length + 8 + 16),
+                this.createHeader(this.audio.length + 8 + 16, PacketType.SERVER_AUDIO),
                 this.audio,
                 Bytes.of(this.sequenceNumber),
                 Bytes.of(this.uuid.getMostSignificantBits()),
@@ -45,24 +45,14 @@ public class ServerAudioPacket implements Packet {
 
     @Override
     public void deserialize(byte[] data) {
+        int start = this.getPayloadIndex();
         short len = Packet.getPayloadLength(data);
-        this.audio = Arrays.copyOfRange(data, 5, 5 + len - 8 - 16);
-        this.sequenceNumber = Bytes.getLong(data, 5 + len - 8 - 16);
-        this.uuid = new UUID(
-                Bytes.getLong(data, 5 + len - 16),
-                Bytes.getLong(data, 5 + len - 8)
-        );
-    }
 
-    @Override
-    public byte[] createHeader(int len) {
-        return Bytes.join(
-                new byte[] {
-                        Packet.MAGIC_BYTE,
-                        Packet.VERSION,
-                        PacketType.SERVER_AUDIO.value
-                },
-                Bytes.of((short) len)
+        this.audio = Arrays.copyOfRange(data, start, start + len - 8 - 16);
+        this.sequenceNumber = Bytes.getLong(data, start + len - 8 - 16);
+        this.uuid = new UUID(
+                Bytes.getLong(data, start + len - 16),
+                Bytes.getLong(data, start + len - 8)
         );
     }
 }

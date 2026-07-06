@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import xyz.pobob.barebonesvc.net.ClientAudioPacket;
-import xyz.pobob.barebonesvc.voice.BareBonesVCClient;
+import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
 
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -32,7 +32,7 @@ public class MicThreadMixin {
     private void injectSendAudioPacket(short[] audio, boolean whispering, CallbackInfo ci) {
         if (BareBonesVCClient.INSTANCE.isConnected()) {
             this.clientAudioPacket.create(this.encoder.encode(audio), this.sequenceNumber.getAndIncrement());
-            BareBonesVCClient.INSTANCE.send(this.clientAudioPacket.serialize());
+            BareBonesVCClient.INSTANCE.send(this.clientAudioPacket);
         }
     }
 

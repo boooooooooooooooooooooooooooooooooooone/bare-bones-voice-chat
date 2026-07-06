@@ -34,14 +34,14 @@ public class KickCommand implements Command {
                     || entry.getValue().getUUID().toString().equalsIgnoreCase(target)) {
                 didntKick = false;
 
-                this.server.send(this.serverKickPacket.serialize(), entry.getKey());
+                this.server.send(this.serverKickPacket, entry.getKey());
                 this.serverUpdatePlayerPacket.create(
                         entry.getValue().getUsername(),
                         entry.getValue().getUUID(),
                         entry.getValue().isDisabled(),
                         true
                 );
-                this.server.announceExcluding(this.serverUpdatePlayerPacket.serialize(), entry.getKey());
+                this.server.announceExcluding(this.serverUpdatePlayerPacket, entry.getKey());
                 this.server.connected.remove(entry.getKey());
 
                 BareBonesVCServer.LOGGER.info("Client kicked: " + entry.getValue().getUsername() + " (" + entry.getValue().getUUID() + ")");

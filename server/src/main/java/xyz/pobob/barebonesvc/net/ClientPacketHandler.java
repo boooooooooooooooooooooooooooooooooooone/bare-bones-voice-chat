@@ -1,8 +1,17 @@
 package xyz.pobob.barebonesvc.net;
 
+import xyz.pobob.barebonesvc.voiceserver.VoiceServer;
+
 import java.net.SocketAddress;
 
-@FunctionalInterface
-public interface ClientPacketHandler {
-    void handle(byte[] data, SocketAddress clientAddress);
+
+public abstract class ClientPacketHandler {
+
+    protected final VoiceServer server;
+
+    public ClientPacketHandler(VoiceServer server) {
+        this.server = server;
+    }
+
+    abstract void handle(byte[] data, SocketAddress clientAddress);
 }

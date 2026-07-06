@@ -29,7 +29,7 @@ public class ServerPlayerLatencyPacket implements Packet {
     @Override
     public byte[] serialize() {
         return Bytes.join(
-                this.createHeader(24),
+                this.createHeader(24, PacketType.SERVER_PLAYER_LATENCY),
                 Bytes.of(this.uuid.getMostSignificantBits()),
                 Bytes.of(this.uuid.getLeastSignificantBits()),
                 Bytes.of(this.latencyNano)
@@ -38,22 +38,12 @@ public class ServerPlayerLatencyPacket implements Packet {
 
     @Override
     public void deserialize(byte[] data) {
-        this.uuid = new UUID(
-                Bytes.getLong(data, 5),
-                Bytes.getLong(data, 13)
-        );
-        this.latencyNano = Bytes.getLong(data, 21);
-    }
+        int start = this.getPayloadIndex();
 
-    @Override
-    public byte[] createHeader(int len) {
-        return Bytes.join(
-                new byte[] {
-                        Packet.MAGIC_BYTE,
-                        Packet.VERSION,
-                        PacketType.SERVER_PLAYER_LATENCY.value
-                },
-                Bytes.of((short) len)
+        this.uuid = new UUID(
+                Bytes.getLong(data, start),
+                Bytes.getLong(data, start + 8)
         );
+        this.latencyNano = Bytes.getLong(data, start + 16);
     }
 }

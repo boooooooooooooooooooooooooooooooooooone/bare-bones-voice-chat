@@ -2,7 +2,7 @@ package xyz.pobob.barebonesvc.net;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
-import xyz.pobob.barebonesvc.voice.BareBonesVCClient;
+import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
 
 public class ServerKickHandler implements ServerPacketHandler {
     @Override
@@ -10,6 +10,6 @@ public class ServerKickHandler implements ServerPacketHandler {
         if (MinecraftClient.getInstance().player != null) {
             MinecraftClient.getInstance().player.sendMessage(Text.of("Kicked from Bare Bones VC server"), true);
         }
-        BareBonesVCClient.INSTANCE.disconnect();
+        BareBonesVCClient.INSTANCE.onDisconnect();
     }
 }

@@ -7,12 +7,10 @@ import java.net.SocketAddress;
 import java.util.Map;
 import java.util.Objects;
 
-public class ClientAudioHandler implements ClientPacketHandler {
-
-    private final VoiceServer server;
+public class ClientAudioHandler extends ClientPacketHandler {
 
     public ClientAudioHandler(VoiceServer server) {
-        this.server = server;
+        super(server);
     }
 
     private final ThreadLocal<ClientAudioPacket> localClientAudioPacket = ThreadLocal.withInitial(ClientAudioPacket::new);
@@ -25,7 +23,7 @@ public class ClientAudioHandler implements ClientPacketHandler {
 
         for (Map.Entry<SocketAddress, ClientConnection> entry : this.server.connected.entrySet()) {
             if (!Objects.equals(entry.getKey(), clientAddress) && !entry.getValue().isDisabled()) {
-                this.server.send(this.localServerAudioPacket.get().serialize(), entry.getKey());
+                this.server.send(this.localServerAudioPacket.get(), entry.getKey());
             }
         }
     }

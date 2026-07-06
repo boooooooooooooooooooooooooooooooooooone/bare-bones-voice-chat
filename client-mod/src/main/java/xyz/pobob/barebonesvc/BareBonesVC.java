@@ -4,7 +4,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import xyz.pobob.barebonesvc.voice.BareBonesVCClient;
+import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
 
 import java.util.Map;
 import java.util.UUID;
@@ -19,7 +19,7 @@ public class BareBonesVC implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         ClientLifecycleEvents.CLIENT_STOPPING.register(minecraftClient -> {
-            if (BareBonesVCClient.INSTANCE.isRunning()) BareBonesVCClient.INSTANCE.disconnect();
+            if (BareBonesVCClient.INSTANCE.isRunning()) BareBonesVCClient.INSTANCE.onDisconnect();
         });
     }
 }

@@ -1,7 +1,13 @@
 package xyz.pobob.barebonesvc.voiceserver;
 
+import xyz.pobob.barebonesvc.voiceserver.retransmission.PendingPacket;
+
+import java.util.Collection;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ClientConnection {
 
@@ -10,7 +16,6 @@ public class ClientConnection {
     private boolean disabled;
     private long lastKeepAliveResponse;
     private long latencyNano = -1;
-    private AtomicLong sequenceNumber;
 
     public ClientConnection(String username, UUID uuid, boolean disabled) {
         this.username = username;
@@ -51,12 +56,43 @@ public class ClientConnection {
         this.latencyNano = latencyNano;
     }
 
-    public long getSequenceNumber() {
-        return this.sequenceNumber.get();
+
+
+    private final AtomicInteger nextSendSequence = new AtomicInteger();
+    private final Map<Integer, PendingPacket> pendingOutgoing = new ConcurrentHashMap<>();
+
+    private final AtomicInteger expectedReceiveSequence = new AtomicInteger();
+    private final TreeMap<Integer, byte[]> queuedReceived = new TreeMap<>();
+
+    public int getAndIncrementNextSendSequence() {
+        return nextSendSequence.getAndIncrement();
     }
 
-    public void incrementSequenceNumber() {
-        this.sequenceNumber.getAndIncrement();
+    public void setPendingOutgoing(int sequence, PendingPacket pending) {
+        this.pendingOutgoing.put(sequence, pending);
     }
 
+    public void removePendingOutgoing(int sequence) {
+        this.pendingOutgoing.remove(sequence);
+    }
+
+    public Collection<PendingPacket> getPendingOutgoingPackets() {
+        return this.pendingOutgoing.values();
+    }
+
+    public int getExpectedReceiveSequence() {
+        return this.expectedReceiveSequence.get();
+    }
+
+    public int getAndIncrementExpectedReceiveSequence() {
+        return this.expectedReceiveSequence.getAndIncrement();
+    }
+
+    public void setQueuedReceived(int sequence, byte[] data) {
+        this.queuedReceived.put(sequence, data);
+    }
+
+    public byte[] getAndRemoveQueuedReceived(int sequence) {
+        return this.queuedReceived.remove(sequence);
+    }
 }

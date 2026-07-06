@@ -1,0 +1,106 @@
+package xyz.pobob.barebonesvc.voiceclient.retransmission;
+
+import xyz.pobob.barebonesvc.net.ClientAckPacket;
+import xyz.pobob.barebonesvc.net.ReliablePacket;
+import xyz.pobob.barebonesvc.util.Bytes;
+import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
+
+import java.util.Iterator;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+
+public final class ReliablePacketManager {
+
+    private static final long RETRANSMIT_TIMEOUT = 1000;
+    private static final int MAX_RETRIES = 10;
+
+    private final AtomicInteger nextSendSequence = new AtomicInteger();
+    private final Map<Integer, PendingPacket> pendingOutgoing = new ConcurrentHashMap<>();
+
+    private final AtomicInteger expectedReceiveSequence = new AtomicInteger();
+    private final TreeMap<Integer, byte[]> queuedReceived = new TreeMap<>();
+
+    public ScheduledFuture<?> checkPendingPackets;
+
+    public void registerSequence(ReliablePacket packet) {
+        packet.setSequenceNumber(this.nextSendSequence.getAndIncrement());
+        this.pendingOutgoing.put(packet.getSequenceNumber(), new PendingPacket(packet, System.currentTimeMillis()));
+    }
+
+    public void onServerAcknowledge(final int sequence) {
+        this.pendingOutgoing.remove(sequence);
+    }
+
+    public void start() {
+        this.checkPendingPackets = BareBonesVCClient.INSTANCE.scheduler.scheduleAtFixedRate(this::checkPendingPackets, 0L, 100L, TimeUnit.MILLISECONDS);
+    }
+
+    private void checkPendingPackets() {
+        long now = System.currentTimeMillis();
+
+        Iterator<PendingPacket> iterator = this.pendingOutgoing.values().iterator();
+
+        for (PendingPacket pending = iterator.next(); iterator.hasNext(); ) {
+
+            if (now - pending.lastSent < RETRANSMIT_TIMEOUT) {
+                continue;
+            }
+
+            if (pending.retries >= MAX_RETRIES) {
+                BareBonesVCClient.INSTANCE.onTimeout();
+                continue;
+            }
+
+            BareBonesVCClient.INSTANCE.send(pending.packet);
+
+            pending.lastSent = now;
+            pending.retries++;
+        }
+    }
+
+    public void receive(byte[] data) {
+        int sequence = Bytes.getInt(data, ReliablePacket.SEQUENCE_INDEX);
+
+        if (sequence < this.expectedReceiveSequence.get()) {
+            this.sendAck(sequence);
+            return;
+        }
+
+        if (sequence > this.expectedReceiveSequence.get()) {
+            this.queuedReceived.put(sequence, data);
+            return;
+        }
+
+        this.processSequential(data);
+    }
+
+    private void processSequential(byte[] data) {
+
+        byte[] current = data;
+
+        while (current != null) {
+
+            BareBonesVCClient.INSTANCE.serverMessageDispatcher.dispatch(data);
+
+            this.sendAck(Bytes.getInt(data, ReliablePacket.SEQUENCE_INDEX));
+
+            current = this.queuedReceived.remove(this.expectedReceiveSequence.getAndIncrement());
+        }
+    }
+
+    private final ClientAckPacket clientAckPacket = new ClientAckPacket();
+
+    private void sendAck(int sequence) {
+        this.clientAckPacket.create(sequence);
+        BareBonesVCClient.INSTANCE.send(this.clientAckPacket);
+    }
+
+    public void clear() {
+        this.pendingOutgoing.clear();
+        this.queuedReceived.clear();
+    }
+}

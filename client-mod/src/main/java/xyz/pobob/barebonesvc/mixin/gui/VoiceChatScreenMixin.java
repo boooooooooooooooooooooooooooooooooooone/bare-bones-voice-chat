@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import xyz.pobob.barebonesvc.BareBonesVC;
 import xyz.pobob.barebonesvc.gui.ConnectionScreen;
 import xyz.pobob.barebonesvc.gui.ManagementScreen;
-import xyz.pobob.barebonesvc.voice.BareBonesVCClient;
+import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
 
 @Mixin(VoiceChatScreen.class)
 public abstract class VoiceChatScreenMixin extends VoiceChatScreenBase {

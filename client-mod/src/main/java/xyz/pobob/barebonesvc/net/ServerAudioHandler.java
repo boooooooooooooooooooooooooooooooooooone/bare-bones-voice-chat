@@ -1,7 +1,7 @@
 package xyz.pobob.barebonesvc.net;
 
 import de.maxhenkel.voicechat.voice.common.PlayerSoundPacket;
-import xyz.pobob.barebonesvc.voice.BareBonesVCClient;
+import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
 
 public class ServerAudioHandler implements ServerPacketHandler {
 

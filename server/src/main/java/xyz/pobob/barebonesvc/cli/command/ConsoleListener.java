@@ -25,7 +25,7 @@ public class ConsoleListener implements Runnable {
                 line = scanner.nextLine().trim();
             } catch (Exception e) {
                 BareBonesVCServer.LOGGER.info("Input interrupted. Stopping server.");
-                this.server.stopNow();
+                this.server.close();
                 return;
             }
 

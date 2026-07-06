@@ -5,7 +5,7 @@ import xyz.pobob.barebonesvc.util.Bytes;
 /**
  * [DISABLED + DISCONNECTED : 1]
  */
-public class ClientUpdatePlayerPacket implements Packet {
+public class ClientUpdatePlayerPacket extends ReliablePacket {
 
     private boolean disabled;
     private boolean disconnected;
@@ -26,26 +26,16 @@ public class ClientUpdatePlayerPacket implements Packet {
     @Override
     public byte[] serialize() {
         return Bytes.join(
-                this.createHeader(1),
+                this.createHeader(1, PacketType.CLIENT_UPDATE_PLAYER),
                 new byte[] {(byte) ((this.disabled ? 1 : 0) + (this.disconnected ? 2 : 0))}
         );
     }
 
     @Override
     public void deserialize(byte[] data) {
-        this.disabled = (data[5] & 1) == 1;
-        this.disconnected = (data[5] & 2) == 2;
-    }
+        int start = this.getPayloadIndex();
 
-    @Override
-    public byte[] createHeader(int len) {
-        return Bytes.join(
-                new byte[] {
-                        Packet.MAGIC_BYTE,
-                        Packet.VERSION,
-                        PacketType.CLIENT_UPDATE_PLAYER.value
-                },
-                Bytes.of((short) len)
-        );
+        this.disabled = (data[start] & 1) == 1;
+        this.disconnected = (data[start] & 2) == 2;
     }
 }

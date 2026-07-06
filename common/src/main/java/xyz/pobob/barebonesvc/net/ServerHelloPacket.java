@@ -33,7 +33,7 @@ public class ServerHelloPacket extends ReliablePacket {
     @Override
     public byte[] serialize() {
         return Bytes.join(
-                this.createHeader(9),
+                this.createHeader(9, PacketType.SERVER_HELLO),
                 encodeSmallData(),
                 Bytes.of(Double.doubleToLongBits(this.voiceDistance))
         );
@@ -41,13 +41,15 @@ public class ServerHelloPacket extends ReliablePacket {
 
     @Override
     public void deserialize(byte[] data) {
-        this.mojangAuth = (data[5] & 1) == 1;
-        this.codec = switch (data[5] & 6) {
+        int start = this.getPayloadIndex();
+
+        this.mojangAuth = (data[start] & 1) == 1;
+        this.codec = switch (data[start] & 6) {
             case 0 -> Codec.VOIP;
             case 2 -> Codec.AUDIO;
             default -> Codec.RESTRICTED_LOWDELAY;
         };
-        this.voiceDistance = Double.longBitsToDouble(Bytes.getLong(data, 6));
+        this.voiceDistance = Double.longBitsToDouble(Bytes.getLong(data, start + 1));
     }
 
     private byte[] encodeSmallData() {
@@ -59,17 +61,5 @@ public class ServerHelloPacket extends ReliablePacket {
                     case RESTRICTED_LOWDELAY -> 4;
                 })
         };
-    }
-
-    @Override
-    public byte[] createHeader(int len) {
-        return Bytes.join(
-                new byte[] {
-                        Packet.MAGIC_BYTE,
-                        Packet.VERSION,
-                        PacketType.SERVER_HELLO.value
-                },
-                Bytes.of((short) len)
-        );
     }
 }

@@ -3,6 +3,7 @@ package xyz.pobob.barebonesvc.voiceserver;
 import xyz.pobob.barebonesvc.BareBonesVCServer;
 import xyz.pobob.barebonesvc.cli.command.*;
 import xyz.pobob.barebonesvc.net.*;
+import xyz.pobob.barebonesvc.voiceserver.retransmission.ReliablePacketManager;
 import xyz.pobob.barebonesvc.voiceserver.thread.LatencyManager;
 import xyz.pobob.barebonesvc.voiceserver.thread.MiscNetworkThreads;
 
@@ -20,6 +21,7 @@ import java.util.logging.Level;
 
 public class VoiceServer {
 
+    private final ThreadLocal<ServerUpdatePlayerPacket> localServerUpdatePlayerPacket = ThreadLocal.withInitial(ServerUpdatePlayerPacket::new);
     private final ServerClosePacket serverClosePacket = new ServerClosePacket();
 
     private final byte[] recvBuf = new byte[4096];
@@ -27,13 +29,15 @@ public class VoiceServer {
     private final DatagramPacket recvPacket = new DatagramPacket(this.recvBuf, this.recvBuf.length);
     private final DatagramPacket sendPacket = new DatagramPacket(this.sendBuf, 0);
 
-    private final ExecutorService pool = Executors.newFixedThreadPool(4);
     public final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private final ExecutorService pool = Executors.newFixedThreadPool(4);
     private DatagramSocket socket;
 
     public final Map<SocketAddress, ClientConnection> connected = new ConcurrentHashMap<>();
     public final Config config;
+    public final ClientMessageDispatcher clientMessageDispatcher = new ClientMessageDispatcher();
     public final LatencyManager latencyManager = new LatencyManager(this);
+    public final ReliablePacketManager reliablePacketManager = new ReliablePacketManager(this);
 
     public synchronized boolean isRunning() {
         return this.socket != null;
@@ -50,11 +54,11 @@ public class VoiceServer {
             BareBonesVCServer.LOGGER.log(Level.SEVERE, "An error occurred while starting voice server", e);
         }
 
-        final ClientMessageDispatcher clientMessageDispatcher = new ClientMessageDispatcher();
-        clientMessageDispatcher.register(PacketType.CLIENT_HELLO, new ClientHelloHandler(this));
-        clientMessageDispatcher.register(PacketType.CLIENT_KEEP_ALIVE, new ClientKeepAliveHandler(this));
-        clientMessageDispatcher.register(PacketType.CLIENT_AUDIO, new ClientAudioHandler(this));
-        clientMessageDispatcher.register(PacketType.CLIENT_UPDATE_PLAYER, new ClientUpdatePlayerHandler(this));
+        this.clientMessageDispatcher.register(PacketType.CLIENT_HELLO, new ClientHelloHandler(this));
+        this.clientMessageDispatcher.register(PacketType.CLIENT_KEEP_ALIVE, new ClientKeepAliveHandler(this));
+        this.clientMessageDispatcher.register(PacketType.CLIENT_AUDIO, new ClientAudioHandler(this));
+        this.clientMessageDispatcher.register(PacketType.CLIENT_ACK, new ClientAckHandler(this));
+        this.clientMessageDispatcher.register(PacketType.CLIENT_UPDATE_PLAYER, new ClientUpdatePlayerHandler(this));
 
         CommandDispatcher commandDispatcher = new CommandDispatcher();
         commandDispatcher.register("stop", new StopCommand(this));
@@ -67,6 +71,7 @@ public class VoiceServer {
         console.setDaemon(false);
         console.start();
 
+        this.reliablePacketManager.start();
         MiscNetworkThreads.startKeepAliveThread(this);
 
         Thread networkThread = new Thread(() -> {
@@ -83,7 +88,11 @@ public class VoiceServer {
 
                 this.pool.submit(() -> {
                     if (Packet.checkSignature(data)) {
-                        clientMessageDispatcher.dispatch(data, clientAddress);
+                        if (Packet.isReliable(data)) {
+                            this.reliablePacketManager.receive(data, clientAddress);
+                        } else {
+                            this.clientMessageDispatcher.dispatch(data, clientAddress);
+                        }
                     }
                 });
             }
@@ -91,44 +100,44 @@ public class VoiceServer {
         });
 
         networkThread.setDaemon(true);
-        networkThread.setName("BareBonesNetworkThread");
+        networkThread.setName("BareBonesVCNetworkThread");
         networkThread.start();
-
     }
 
-    public void announceExcluding(byte[] data, SocketAddress src) {
+    public void announceExcluding(Packet packet, SocketAddress src) {
         for (SocketAddress address : this.connected.keySet()) {
             if (!Objects.equals(address, src)) {
-                this.send(data, address);
+                this.send(packet, address);
             }
         }
     }
 
-    public void announce(byte[] data) {
+    public void announce(Packet packet) {
         for (SocketAddress address : this.connected.keySet()) {
-            this.send(data, address);
+            this.send(packet, address);
         }
     }
 
-    public synchronized boolean send(byte[] data, SocketAddress address) {
+    public synchronized void send(Packet packet, SocketAddress clientAddress) {
         if (this.isRunning()) {
+            if (packet instanceof ReliablePacket rp) {
+                this.reliablePacketManager.registerSequence(rp, clientAddress);
+            }
+
+            byte[] data = packet.serialize();
 
             this.sendPacket.setLength(data.length);
             System.arraycopy(data, 0, this.sendPacket.getData(), 0, data.length);
-            this.sendPacket.setSocketAddress(address);
+            this.sendPacket.setSocketAddress(clientAddress);
+
             try {
                 this.socket.send(this.sendPacket);
-                return true;
             } catch (IOException e) {
                 BareBonesVCServer.LOGGER.log(Level.SEVERE, "An error occurred while sending Datagram packet", e);
-                return false;
             }
-
         } else {
-            BareBonesVCServer.LOGGER.warning("Unable to send packet to " + this.sendPacket.getSocketAddress() + " because server is not running");
-            return false;
+            BareBonesVCServer.LOGGER.warning("Unable to send packet to " + this.sendPacket.getSocketAddress() + " because socket is not open yet");
         }
-
     }
 
     public byte[] receive() throws IOException {
@@ -144,9 +153,30 @@ public class VoiceServer {
         return data;
     }
 
+    public void onDisconnect(SocketAddress clientAddress) {
+        ClientConnection disconnected = this.connected.remove(clientAddress);
+        if (disconnected != null) {
+            this.localServerUpdatePlayerPacket.get().create(
+                    disconnected.getUsername(),
+                    disconnected.getUUID(),
+                    false,
+                    true
+            );
+            BareBonesVCServer.LOGGER.info("Client disconnected: " + disconnected.getUsername() + " (" + disconnected.getUUID() + ")");
+        }
+    }
+
+    public void onTimeout(SocketAddress clientAddress) {
+        ClientConnection connection = this.connected.get(clientAddress);
+        if (connection != null) {
+            BareBonesVCServer.LOGGER.info(connection.getUsername() + " timed out!");
+            this.onDisconnect(clientAddress);
+        }
+    }
+
     public void close() {
         for (SocketAddress address : this.connected.keySet()) {
-            this.send(this.serverClosePacket.serialize(), address);
+            this.send(this.serverClosePacket, address);
         }
         this.stopNow();
     }
@@ -155,9 +185,5 @@ public class VoiceServer {
         if (this.isRunning()) {
             this.socket.close();
         }
-    }
-
-    public String getReadableAddress(DatagramPacket packet) {
-        return ((packet.getAddress() == null) ? "null" : packet.getAddress().getHostAddress()) + ":" + packet.getPort();
     }
 }

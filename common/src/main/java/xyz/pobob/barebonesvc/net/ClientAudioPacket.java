@@ -9,11 +9,11 @@ import java.util.Arrays;
  */
 public class ClientAudioPacket implements Packet {
 
-    private byte[] data;
+    private byte[] audio;
     private long sequenceNumber;
 
-    public byte[] getData() {
-        return this.data;
+    public byte[] getAudio() {
+        return this.audio;
     }
 
     public long getSequenceNumber() {
@@ -21,35 +21,25 @@ public class ClientAudioPacket implements Packet {
     }
 
     public void create(byte[] data, long sequenceNumber) {
-        this.data = data;
+        this.audio = data;
         this.sequenceNumber = sequenceNumber;
     }
 
     @Override
     public byte[] serialize() {
         return Bytes.join(
-                this.createHeader(this.data.length + 8),
-                this.data,
+                this.createHeader(this.audio.length + 8, PacketType.CLIENT_AUDIO),
+                this.audio,
                 Bytes.of(this.sequenceNumber)
         );
     }
 
     @Override
     public void deserialize(byte[] data) {
+        int start = this.getPayloadIndex();
         short len = Packet.getPayloadLength(data);
-        this.data = Arrays.copyOfRange(data, 5, 5 + len - 8);
-        this.sequenceNumber = Bytes.getLong(data, 5 + len - 8);
-    }
 
-    @Override
-    public byte[] createHeader(int len) {
-        return Bytes.join(
-                new byte[] {
-                        Packet.MAGIC_BYTE,
-                        Packet.VERSION,
-                        PacketType.CLIENT_AUDIO.value
-                },
-                Bytes.of((short) len)
-        );
+        this.audio = Arrays.copyOfRange(data, start, start + len - 8);
+        this.sequenceNumber = Bytes.getLong(data, start + len - 8);
     }
 }

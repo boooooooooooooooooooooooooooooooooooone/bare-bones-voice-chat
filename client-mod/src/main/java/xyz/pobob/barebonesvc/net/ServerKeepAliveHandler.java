@@ -1,6 +1,6 @@
 package xyz.pobob.barebonesvc.net;
 
-import xyz.pobob.barebonesvc.voice.BareBonesVCClient;
+import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
 
 public class ServerKeepAliveHandler implements ServerPacketHandler {
 
@@ -14,7 +14,7 @@ public class ServerKeepAliveHandler implements ServerPacketHandler {
 
             this.serverKeepAlivePacket.deserialize(data);
             this.clientKeepAlivePacket.create(this.serverKeepAlivePacket.getId());
-            BareBonesVCClient.INSTANCE.send(this.clientKeepAlivePacket.serialize());
+            BareBonesVCClient.INSTANCE.send(this.clientKeepAlivePacket);
         }
     }
 }

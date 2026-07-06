@@ -5,12 +5,10 @@ import xyz.pobob.barebonesvc.voiceserver.VoiceServer;
 
 import java.net.SocketAddress;
 
-public class ClientKeepAliveHandler implements ClientPacketHandler {
-
-    private final VoiceServer server;
+public class ClientKeepAliveHandler extends ClientPacketHandler {
 
     public ClientKeepAliveHandler(VoiceServer server) {
-        this.server = server;
+        super(server);
     }
 
     private final ThreadLocal<ClientKeepAlivePacket> localClientKeepAlivePacket = ThreadLocal.withInitial(ClientKeepAlivePacket::new);

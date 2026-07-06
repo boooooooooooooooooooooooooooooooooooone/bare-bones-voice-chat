@@ -19,23 +19,11 @@ public class ClientKeepAlivePacket implements Packet {
 
     @Override
     public byte[] serialize() {
-        return Bytes.join(this.createHeader(4), Bytes.of(this.id));
+        return Bytes.join(this.createHeader(4, PacketType.CLIENT_KEEP_ALIVE), Bytes.of(this.id));
     }
 
     @Override
     public void deserialize(byte[] data) {
-        this.id = Bytes.getInt(data, 5);
-    }
-
-    @Override
-    public byte[] createHeader(int len) {
-        return Bytes.join(
-                new byte[] {
-                        Packet.MAGIC_BYTE,
-                        Packet.VERSION,
-                        PacketType.CLIENT_KEEP_ALIVE.value
-                },
-                Bytes.of((short) len)
-        );
+        this.id = Bytes.getInt(data, this.getPayloadIndex());
     }
 }
