@@ -59,25 +59,25 @@ public class ClientConnection {
 
 
     private final AtomicInteger nextSendSequence = new AtomicInteger();
-    private final Map<Integer, PendingPacket> pendingOutgoing = new ConcurrentHashMap<>();
+    private final Map<Integer, PendingPacket> sentPendingPackets = new ConcurrentHashMap<>();
 
     private final AtomicInteger expectedReceiveSequence = new AtomicInteger();
-    private final TreeMap<Integer, byte[]> queuedReceived = new TreeMap<>();
+    private final TreeMap<Integer, byte[]> receivedQueue = new TreeMap<>();
 
     public int getAndIncrementNextSendSequence() {
         return nextSendSequence.getAndIncrement();
     }
 
-    public void setPendingOutgoing(int sequence, PendingPacket pending) {
-        this.pendingOutgoing.put(sequence, pending);
+    public void setSentPendingPacket(int sequence, PendingPacket pending) {
+        this.sentPendingPackets.put(sequence, pending);
     }
 
-    public void removePendingOutgoing(int sequence) {
-        this.pendingOutgoing.remove(sequence);
+    public void removeSentPendingPacket(int sequence) {
+        this.sentPendingPackets.remove(sequence);
     }
 
-    public Collection<PendingPacket> getPendingOutgoingPackets() {
-        return this.pendingOutgoing.values();
+    public Collection<PendingPacket> getSentPendingPackets() {
+        return this.sentPendingPackets.values();
     }
 
     public int getExpectedReceiveSequence() {
@@ -88,11 +88,11 @@ public class ClientConnection {
         return this.expectedReceiveSequence.getAndIncrement();
     }
 
-    public void setQueuedReceived(int sequence, byte[] data) {
-        this.queuedReceived.put(sequence, data);
+    public void addToReceivedQueue(int sequence, byte[] data) {
+        this.receivedQueue.put(sequence, data);
     }
 
-    public byte[] getAndRemoveQueuedReceived(int sequence) {
-        return this.queuedReceived.remove(sequence);
+    public byte[] pollReceivedQueue(int sequence) {
+        return this.receivedQueue.remove(sequence);
     }
 }

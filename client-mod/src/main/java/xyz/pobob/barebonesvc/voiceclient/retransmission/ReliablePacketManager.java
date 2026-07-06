@@ -19,20 +19,20 @@ public final class ReliablePacketManager {
     private static final int MAX_RETRIES = 10;
 
     private final AtomicInteger nextSendSequence = new AtomicInteger();
-    private final Map<Integer, PendingPacket> pendingOutgoing = new ConcurrentHashMap<>();
+    private final Map<Integer, PendingPacket> sentPendingPackets = new ConcurrentHashMap<>();
 
     private final AtomicInteger expectedReceiveSequence = new AtomicInteger();
-    private final TreeMap<Integer, byte[]> queuedReceived = new TreeMap<>();
+    private final TreeMap<Integer, byte[]> receivedQueue = new TreeMap<>();
 
     public ScheduledFuture<?> checkPendingPackets;
 
     public void registerSequence(ReliablePacket packet) {
         packet.setSequenceNumber(this.nextSendSequence.getAndIncrement());
-        this.pendingOutgoing.put(packet.getSequenceNumber(), new PendingPacket(packet, System.currentTimeMillis()));
+        this.sentPendingPackets.put(packet.getSequenceNumber(), new PendingPacket(packet, System.currentTimeMillis()));
     }
 
     public void onServerAcknowledge(final int sequence) {
-        this.pendingOutgoing.remove(sequence);
+        this.sentPendingPackets.remove(sequence);
     }
 
     public void start() {
@@ -42,7 +42,7 @@ public final class ReliablePacketManager {
     private void checkPendingPackets() {
         long now = System.currentTimeMillis();
 
-        Iterator<PendingPacket> iterator = this.pendingOutgoing.values().iterator();
+        Iterator<PendingPacket> iterator = this.sentPendingPackets.values().iterator();
 
         for (PendingPacket pending = iterator.next(); iterator.hasNext(); ) {
 
@@ -71,7 +71,7 @@ public final class ReliablePacketManager {
         }
 
         if (sequence > this.expectedReceiveSequence.get()) {
-            this.queuedReceived.put(sequence, data);
+            this.receivedQueue.put(sequence, data);
             return;
         }
 
@@ -79,7 +79,6 @@ public final class ReliablePacketManager {
     }
 
     private void processSequential(byte[] data) {
-
         byte[] current = data;
 
         while (current != null) {
@@ -88,7 +87,7 @@ public final class ReliablePacketManager {
 
             this.sendAck(Bytes.getInt(data, ReliablePacket.SEQUENCE_INDEX));
 
-            current = this.queuedReceived.remove(this.expectedReceiveSequence.getAndIncrement());
+            current = this.receivedQueue.remove(this.expectedReceiveSequence.getAndIncrement());
         }
     }
 
@@ -100,7 +99,7 @@ public final class ReliablePacketManager {
     }
 
     public void clear() {
-        this.pendingOutgoing.clear();
-        this.queuedReceived.clear();
+        this.sentPendingPackets.clear();
+        this.receivedQueue.clear();
     }
 }

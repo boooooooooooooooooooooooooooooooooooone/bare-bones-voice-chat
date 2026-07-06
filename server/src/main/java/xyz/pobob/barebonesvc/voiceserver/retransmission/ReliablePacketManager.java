@@ -26,14 +26,14 @@ public final class ReliablePacketManager {
         ClientConnection conn = this.server.connected.get(clientAddress);
         if (conn != null) {
             packet.setSequenceNumber(conn.getAndIncrementNextSendSequence());
-            conn.setPendingOutgoing(packet.getSequenceNumber(), new PendingPacket(packet, clientAddress, System.currentTimeMillis()));
+            conn.setSentPendingPacket(packet.getSequenceNumber(), new PendingPacket(packet, clientAddress, System.currentTimeMillis()));
         }
     }
 
     public void onClientAcknowledge(final int sequence, SocketAddress clientAddress) {
         ClientConnection conn = this.server.connected.get(clientAddress);
         if (conn != null) {
-            conn.removePendingOutgoing(sequence);
+            conn.removeSentPendingPacket(sequence);
         }
     }
 
@@ -45,7 +45,7 @@ public final class ReliablePacketManager {
         long now = System.currentTimeMillis();
 
         for (Map.Entry<SocketAddress, ClientConnection> client : this.server.connected.entrySet()) {
-            Iterator<PendingPacket> iterator = client.getValue().getPendingOutgoingPackets().iterator();
+            Iterator<PendingPacket> iterator = client.getValue().getSentPendingPackets().iterator();
 
             for (PendingPacket pending = iterator.next(); iterator.hasNext(); ) {
 
@@ -71,14 +71,12 @@ public final class ReliablePacketManager {
         ClientConnection conn = this.server.connected.get(clientAddress);
 
         int sequence = Bytes.getInt(data, ReliablePacket.SEQUENCE_INDEX);
+        this.sendAck(sequence, clientAddress);
 
-        if (sequence < conn.getExpectedReceiveSequence()) {
-            this.sendAck(sequence, clientAddress);
-            return;
-        }
+        if (sequence < conn.getExpectedReceiveSequence()) return;
 
         if (sequence > conn.getExpectedReceiveSequence()) {
-            conn.setQueuedReceived(sequence, data);
+            conn.addToReceivedQueue(sequence, data);
             return;
         }
 
@@ -86,16 +84,13 @@ public final class ReliablePacketManager {
     }
 
     private void processSequential(byte[] data, SocketAddress clientAddress, ClientConnection connection) {
-
         byte[] current = data;
 
         while (current != null) {
 
             this.server.clientMessageDispatcher.dispatch(data, clientAddress);
 
-            this.sendAck(Bytes.getInt(data, ReliablePacket.SEQUENCE_INDEX), clientAddress);
-
-            current = connection.getAndRemoveQueuedReceived(connection.getAndIncrementExpectedReceiveSequence());
+            current = connection.pollReceivedQueue(connection.getAndIncrementExpectedReceiveSequence());
         }
     }
 
