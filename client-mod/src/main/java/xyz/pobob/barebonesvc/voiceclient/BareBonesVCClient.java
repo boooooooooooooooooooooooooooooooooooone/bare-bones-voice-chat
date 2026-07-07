@@ -38,7 +38,7 @@ public class BareBonesVCClient {
     private final byte[] sendBuf = new byte[4096];
     private final DatagramPacket sendPacket = new DatagramPacket(sendBuf, 0);
 
-    public ScheduledExecutorService scheduler;
+    public ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     private final ExecutorService pool = Executors.newSingleThreadExecutor();
     private DatagramSocket socket;
 
@@ -52,8 +52,6 @@ public class BareBonesVCClient {
     private boolean resolved = false;
 
     public void start(String host, int port) {
-        this.scheduler = Executors.newSingleThreadScheduledExecutor();
-
         this.client = null;
         this.config = null;
 
