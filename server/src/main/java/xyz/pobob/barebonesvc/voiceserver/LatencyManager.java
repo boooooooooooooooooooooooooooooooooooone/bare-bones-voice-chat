@@ -1,8 +1,6 @@
-package xyz.pobob.barebonesvc.voiceserver.thread;
+package xyz.pobob.barebonesvc.voiceserver;
 
 import xyz.pobob.barebonesvc.packet.ServerPlayerLatencyPacket;
-import xyz.pobob.barebonesvc.voiceserver.BareBonesVCServer;
-import xyz.pobob.barebonesvc.voiceserver.ClientConnection;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

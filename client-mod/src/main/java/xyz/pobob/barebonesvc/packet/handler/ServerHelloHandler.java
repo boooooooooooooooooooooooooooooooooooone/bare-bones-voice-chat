@@ -4,8 +4,8 @@ import de.maxhenkel.voicechat.config.ServerConfig;
 import xyz.pobob.barebonesvc.BareBonesVC;
 import xyz.pobob.barebonesvc.packet.ServerHelloPacket;
 import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
+import xyz.pobob.barebonesvc.voiceclient.MiscTasks;
 import xyz.pobob.barebonesvc.voiceclient.SessionConfig;
-import xyz.pobob.barebonesvc.voiceclient.thread.MiscThreads;
 
 public class ServerHelloHandler implements ServerPacketHandler {
 
@@ -36,7 +36,7 @@ public class ServerHelloHandler implements ServerPacketHandler {
             );
 
             BareBonesVCClient.INSTANCE.lastKeepAlive = System.currentTimeMillis();
-            MiscThreads.startCheckingConnectionHealth();
+            MiscTasks.startKeepAliveTask();
 
             if (this.serverHelloPacket.getMojangAuth()) {
                 // TODO add mojang auth

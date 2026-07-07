@@ -1,5 +1,7 @@
 package xyz.pobob.barebonesvc.cli.command;
 
+import xyz.pobob.barebonesvc.voiceserver.BareBonesVCServer;
+
 public interface Command {
-    void execute(String[] args);
+    void execute(String[] args, BareBonesVCServer server);
 }

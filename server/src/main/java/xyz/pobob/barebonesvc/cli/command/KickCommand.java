@@ -11,16 +11,11 @@ import java.util.Map;
 
 public class KickCommand implements Command {
 
-    private final BareBonesVCServer server;
     private final ServerKickPacket serverKickPacket = new ServerKickPacket();
     private final ServerUpdatePlayerPacket serverUpdatePlayerPacket = new ServerUpdatePlayerPacket();
 
-    public KickCommand(BareBonesVCServer server) {
-        this.server = server;
-    }
-
     @Override
-    public void execute(String[] args) {
+    public void execute(String[] args, BareBonesVCServer server) {
         if (args.length == 0) {
             BareBonesVC.LOGGER.warning("No client specified");
             return;
@@ -29,20 +24,20 @@ public class KickCommand implements Command {
         String target = args[0];
 
         boolean didntKick = true;
-        for (Map.Entry<SocketAddress, ClientConnection> entry : this.server.connected.entrySet()) {
+        for (Map.Entry<SocketAddress, ClientConnection> entry : server.connected.entrySet()) {
             if (entry.getValue().getUsername().equalsIgnoreCase(target)
                     || entry.getValue().getUUID().toString().equalsIgnoreCase(target)) {
                 didntKick = false;
 
-                this.server.send(this.serverKickPacket, entry.getKey());
+                server.send(this.serverKickPacket, entry.getKey());
                 this.serverUpdatePlayerPacket.create(
                         entry.getValue().getUsername(),
                         entry.getValue().getUUID(),
                         entry.getValue().isDisabled(),
                         true
                 );
-                this.server.announceExcluding(this.serverUpdatePlayerPacket, entry.getKey());
-                this.server.connected.remove(entry.getKey());
+                server.announceExcluding(this.serverUpdatePlayerPacket, entry.getKey());
+                server.connected.remove(entry.getKey());
 
                 BareBonesVC.LOGGER.info("Client kicked: " + entry.getValue().getUsername() + " (" + entry.getValue().getUUID() + ")");
             }

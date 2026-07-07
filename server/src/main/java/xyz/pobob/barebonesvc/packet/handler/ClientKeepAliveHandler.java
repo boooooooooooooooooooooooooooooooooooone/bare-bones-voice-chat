@@ -20,7 +20,7 @@ public class ClientKeepAliveHandler implements ClientPacketHandler {
     public void handle(byte[] data, SocketAddress clientAddress) {
         ClientConnection client = this.server.connected.get(clientAddress);
         if (client != null) {
-            client.setLastKeepAliveResponse(System.currentTimeMillis());
+            client.setLastKeepAlive(System.currentTimeMillis());
 
             this.localClientKeepAlivePacket.get().deserialize(data);
             this.server.latencyManager.updateClientLatency(client, this.localClientKeepAlivePacket.get().getId());

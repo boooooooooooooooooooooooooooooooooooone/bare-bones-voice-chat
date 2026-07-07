@@ -38,34 +38,33 @@ public final class ReliablePacketManager {
         }
     }
 
-    public void start() {
-        this.server.scheduler.scheduleAtFixedRate(this::checkPendingPackets, 0L, 100L, TimeUnit.MILLISECONDS);
-    }
+    public void startCheckingPendingPackets() {
+        this.server.scheduler.scheduleAtFixedRate(() -> {
+            long now = System.currentTimeMillis();
 
-    private void checkPendingPackets() {
-        long now = System.currentTimeMillis();
+            for (Map.Entry<SocketAddress, ClientConnection> client : this.server.connected.entrySet()) {
+                Iterator<PendingPacket> iterator = client.getValue().getSentPendingPackets().iterator();
 
-        for (Map.Entry<SocketAddress, ClientConnection> client : this.server.connected.entrySet()) {
-            Iterator<PendingPacket> iterator = client.getValue().getSentPendingPackets().iterator();
+                while (iterator.hasNext()) {
+                    PendingPacket pending = iterator.next();
 
-            for (PendingPacket pending = iterator.next(); iterator.hasNext(); ) {
+                    if (now - pending.lastSent < RETRANSMIT_TIMEOUT) {
+                        continue;
+                    }
 
-                if (now - pending.lastSent < RETRANSMIT_TIMEOUT) {
-                    continue;
+                    if (pending.retries >= MAX_RETRIES) {
+                        iterator.remove();
+                        this.server.onTimeout(client.getKey());
+                        continue;
+                    }
+
+                    this.server.send(pending.packet, pending.address);
+
+                    pending.lastSent = now;
+                    pending.retries++;
                 }
-
-                if (pending.retries >= MAX_RETRIES) {
-                    iterator.remove();
-                    this.server.onTimeout(client.getKey());
-                    continue;
-                }
-
-                this.server.send(pending.packet, pending.address);
-
-                pending.lastSent = now;
-                pending.retries++;
             }
-        }
+        }, 0L, 100L, TimeUnit.MILLISECONDS);
     }
 
     public void receive(byte[] data, SocketAddress clientAddress) {

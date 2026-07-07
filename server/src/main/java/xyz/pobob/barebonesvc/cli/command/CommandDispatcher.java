@@ -1,6 +1,7 @@
 package xyz.pobob.barebonesvc.cli.command;
 
 import xyz.pobob.barebonesvc.BareBonesVC;
+import xyz.pobob.barebonesvc.voiceserver.BareBonesVCServer;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -8,6 +9,17 @@ import java.util.Locale;
 import java.util.Map;
 
 public class CommandDispatcher {
+
+    private final BareBonesVCServer server;
+
+    public CommandDispatcher(BareBonesVCServer server) {
+        this.server = server;
+
+        this.register("stop", new StopCommand());
+        this.register("list", new ListCommand());
+        this.register("kick", new KickCommand());
+        this.register("voicedistance", new VoiceDistanceCommand());
+    }
 
     private final Map<String, Command> commands = new HashMap<>();
 
@@ -25,6 +37,6 @@ public class CommandDispatcher {
             return;
         }
 
-        command.execute(Arrays.copyOfRange(parts, 1, parts.length));
+        command.execute(Arrays.copyOfRange(parts, 1, parts.length), this.server);
     }
 }

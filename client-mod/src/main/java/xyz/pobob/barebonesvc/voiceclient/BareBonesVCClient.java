@@ -14,7 +14,6 @@ import xyz.pobob.barebonesvc.packet.Packet;
 import xyz.pobob.barebonesvc.packet.ReliablePacket;
 import xyz.pobob.barebonesvc.packet.registry.PacketRegistry;
 import xyz.pobob.barebonesvc.packet.retransmission.ReliablePacketManager;
-import xyz.pobob.barebonesvc.voiceclient.thread.ClientHandshakeThread;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -39,22 +38,22 @@ public class BareBonesVCClient {
     private final byte[] sendBuf = new byte[4096];
     private final DatagramPacket sendPacket = new DatagramPacket(sendBuf, 0);
 
-    public final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    public ScheduledExecutorService scheduler;
     private final ExecutorService pool = Executors.newSingleThreadExecutor();
     private DatagramSocket socket;
 
     public ReliablePacketManager reliablePacketManager;
-    private Thread clientHandshakeThread;
-    private Thread networkReceiveThread;
 
     public ClientVoicechat client;
-    public volatile SessionConfig config;
+    public SessionConfig config;
     public long lastKeepAlive = 0;
 
-    private volatile boolean running = false;
-    private volatile boolean resolved = false;
+    private boolean running = false;
+    private boolean resolved = false;
 
     public void start(String host, int port) {
+        this.scheduler = Executors.newSingleThreadScheduledExecutor();
+
         this.client = null;
         this.config = null;
 
@@ -77,12 +76,7 @@ public class BareBonesVCClient {
         }
         this.running = true;
 
-        if (this.clientHandshakeThread != null) this.clientHandshakeThread.interrupt();
-        if (this.networkReceiveThread != null) this.networkReceiveThread.interrupt();
-
-        this.reliablePacketManager = new ReliablePacketManager();
-        this.clientHandshakeThread = new ClientHandshakeThread();
-        this.networkReceiveThread = new Thread(() -> {
+        Thread networkReceiveThread = new Thread(null, () -> {
             while (this.isRunning()) {
                 final byte[] data;
                 try {
@@ -104,12 +98,14 @@ public class BareBonesVCClient {
             }
 
             this.stopNow();
-        });
-        this.networkReceiveThread.setName("BareBonesVCNetworkThread");
+        }, "BareBonesVCNetworkThread");
+        networkReceiveThread.setDaemon(false);
+        networkReceiveThread.start();
 
+        MiscTasks.startHandshake();
+
+        this.reliablePacketManager = new ReliablePacketManager();
         this.reliablePacketManager.start();
-        this.clientHandshakeThread.start();
-        this.networkReceiveThread.start();
 
         BareBonesVC.LOGGER.info("Started connecting to voice server {}", this.getReadableAddress());
     }
@@ -188,20 +184,18 @@ public class BareBonesVCClient {
     }
 
     public void stopNow() {
-        if (this.reliablePacketManager != null) {
-            if (this.reliablePacketManager.checkPendingPackets != null) {
-                this.reliablePacketManager.checkPendingPackets.cancel(false);
-            }
+        this.scheduler.shutdown();
 
+        if (this.reliablePacketManager != null) {
             this.reliablePacketManager.clear();
         }
 
         if (this.isRunning()) {
             this.running = false;
+            this.resolved = false;
         }
 
         if (this.socket != null) {
-            this.resolved = false;
             this.socket.close();
             this.socket = null;
         }

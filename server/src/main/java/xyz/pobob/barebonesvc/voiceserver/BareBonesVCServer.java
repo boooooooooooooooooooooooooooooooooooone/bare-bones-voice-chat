@@ -1,15 +1,14 @@
 package xyz.pobob.barebonesvc.voiceserver;
 
 import xyz.pobob.barebonesvc.BareBonesVC;
-import xyz.pobob.barebonesvc.cli.command.*;
+import xyz.pobob.barebonesvc.cli.command.CommandDispatcher;
+import xyz.pobob.barebonesvc.cli.command.ConsoleListener;
 import xyz.pobob.barebonesvc.packet.Packet;
 import xyz.pobob.barebonesvc.packet.ReliablePacket;
 import xyz.pobob.barebonesvc.packet.ServerClosePacket;
 import xyz.pobob.barebonesvc.packet.ServerUpdatePlayerPacket;
 import xyz.pobob.barebonesvc.packet.registry.PacketRegistry;
 import xyz.pobob.barebonesvc.packet.retransmission.ReliablePacketManager;
-import xyz.pobob.barebonesvc.voiceserver.thread.LatencyManager;
-import xyz.pobob.barebonesvc.voiceserver.thread.MiscNetworkThreads;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -57,21 +56,15 @@ public class BareBonesVCServer {
             BareBonesVC.LOGGER.log(Level.SEVERE, "An error occurred while starting voice server", e);
         }
 
-        CommandDispatcher commandDispatcher = new CommandDispatcher();
-        commandDispatcher.register("stop", new StopCommand(this));
-        commandDispatcher.register("list", new ListCommand(this));
-        commandDispatcher.register("kick", new KickCommand(this));
-        commandDispatcher.register("voicedistance", new VoiceDistanceCommand(this));
+        Thread consoleThread = new Thread(
+                null,
+                new ConsoleListener(this, new CommandDispatcher(this)),
+                "ConsoleThread"
+        );
+        consoleThread.setDaemon(false);
+        consoleThread.start();
 
-        Thread console = new Thread(new ConsoleListener(this, commandDispatcher));
-        console.setName("ConsoleThread");
-        console.setDaemon(false);
-        console.start();
-
-        this.reliablePacketManager.start();
-        MiscNetworkThreads.startKeepAliveThread(this);
-
-        Thread networkThread = new Thread(() -> {
+        Thread networkReceiveThread = new Thread(null, () -> {
             while (this.isRunning()) {
                 final byte[] data;
                 try {
@@ -94,11 +87,13 @@ public class BareBonesVCServer {
                 });
             }
             this.close();
-        });
+        }, "BareBonesVCNetworkThread");
+        networkReceiveThread.setDaemon(false);
+        networkReceiveThread.start();
 
-        networkThread.setDaemon(true);
-        networkThread.setName("BareBonesVCNetworkThread");
-        networkThread.start();
+        MiscTasks.startKeepAliveTask(this);
+
+        this.reliablePacketManager.startCheckingPendingPackets();
     }
 
     public void announceExcluding(Packet packet, SocketAddress src) {
@@ -182,5 +177,7 @@ public class BareBonesVCServer {
         if (this.isRunning()) {
             this.socket.close();
         }
+        this.pool.shutdown();
+        this.scheduler.shutdown();
     }
 }

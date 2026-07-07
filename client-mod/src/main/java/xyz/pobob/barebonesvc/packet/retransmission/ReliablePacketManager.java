@@ -6,7 +6,6 @@ import xyz.pobob.barebonesvc.packet.registry.PacketRegistry;
 import xyz.pobob.barebonesvc.util.Bytes;
 import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
 
-import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
@@ -37,30 +36,25 @@ public final class ReliablePacketManager {
     }
 
     public void start() {
-        this.checkPendingPackets = BareBonesVCClient.INSTANCE.scheduler.scheduleAtFixedRate(this::checkPendingPackets, 0L, 100L, TimeUnit.MILLISECONDS);
-    }
+        this.checkPendingPackets = BareBonesVCClient.INSTANCE.scheduler.scheduleAtFixedRate(() -> {
+            long now = System.currentTimeMillis();
 
-    private void checkPendingPackets() {
-        long now = System.currentTimeMillis();
+            for (PendingPacket pending : this.sentPendingPackets.values()) {
+                if (now - pending.lastSent < RETRANSMIT_TIMEOUT) {
+                    continue;
+                }
 
-        Iterator<PendingPacket> iterator = this.sentPendingPackets.values().iterator();
+                if (pending.retries >= MAX_RETRIES) {
+                    BareBonesVCClient.INSTANCE.onTimeout();
+                    continue;
+                }
 
-        for (PendingPacket pending = iterator.next(); iterator.hasNext(); ) {
+                BareBonesVCClient.INSTANCE.send(pending.packet);
 
-            if (now - pending.lastSent < RETRANSMIT_TIMEOUT) {
-                continue;
+                pending.lastSent = now;
+                pending.retries++;
             }
-
-            if (pending.retries >= MAX_RETRIES) {
-                BareBonesVCClient.INSTANCE.onTimeout();
-                continue;
-            }
-
-            BareBonesVCClient.INSTANCE.send(pending.packet);
-
-            pending.lastSent = now;
-            pending.retries++;
-        }
+        }, 0L, 100L, TimeUnit.MILLISECONDS);
     }
 
     public void receive(byte[] data) {

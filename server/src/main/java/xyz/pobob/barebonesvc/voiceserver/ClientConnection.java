@@ -40,11 +40,11 @@ public class ClientConnection {
         this.disabled = val;
     }
 
-    public synchronized long getLastKeepAliveSynced() {
+    public synchronized long getLastKeepAlive() {
         return lastKeepAliveResponse;
     }
 
-    public void setLastKeepAliveResponse(long lastKeepAliveResponse) {
+    public synchronized void setLastKeepAlive(long lastKeepAliveResponse) {
         this.lastKeepAliveResponse = lastKeepAliveResponse;
     }
 
