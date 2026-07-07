@@ -4,7 +4,7 @@
   "version": "${version}",
 
   "name": "Bare Bones Voice Chat",
-  "description": "A Simple Voice Chat addon that detaches the voice server from the Minecraft server",
+  "description": "A Simple Voice Chat addon that enables use of the Bare Bones VC server",
   "authors": ["Bone"],
   "contact": {},
 
