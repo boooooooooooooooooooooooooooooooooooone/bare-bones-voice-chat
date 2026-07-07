@@ -13,6 +13,7 @@ import java.util.logging.Logger;
 public class BareBonesVC {
 
     public static final Logger LOGGER = Logger.getAnonymousLogger();
+
     static {
         ConsoleHandler handler = new ConsoleHandler();
         handler.setFormatter(new PrefixFormatter());
@@ -52,8 +53,11 @@ public class BareBonesVC {
             }
         }
 
-        BareBonesVCServer server = new BareBonesVCServer(Config.load(configPath));
-        registerPackets(server);
-        server.start();
+        Config config = Config.load(configPath);
+        if (config != null) {
+            BareBonesVCServer server = new BareBonesVCServer(config);
+            registerPackets(server);
+            server.start();
+        }
     }
 }

@@ -1,11 +1,11 @@
 package xyz.pobob.barebonesvc.voiceserver;
 
-import xyz.pobob.barebonesvc.cli.Questionnaire;
 import xyz.pobob.barebonesvc.voice.Codec;
 
 import java.net.InetAddress;
 
 public class Config {
+
     public InetAddress listenAddress;
     public int port;
     public boolean mojangAuth;
@@ -13,13 +13,14 @@ public class Config {
     public Codec codec;
 
     public static Config load(String path) {
-        Config config = new Config();
+        Config config = null;
 
-        if (path == null) {
-            Questionnaire.load(config);
-        } else {
-            // TODO add config file parsing
-            Questionnaire.load(config);
+        if (path != null) {
+            config = ConfigParser.loadFromPath(path);
+        }
+
+        if (config == null) {
+            config = ConfigParser.createQuestionnaire();
         }
 
         return config;

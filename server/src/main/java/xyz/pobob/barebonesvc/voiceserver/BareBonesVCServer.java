@@ -94,6 +94,8 @@ public class BareBonesVCServer {
         MiscTasks.startKeepAliveTask(this);
 
         this.reliablePacketManager.startCheckingPendingPackets();
+
+        BareBonesVC.LOGGER.info("Bare Bones Voice Chat server started");
     }
 
     public void announceExcluding(Packet packet, SocketAddress src) {
