@@ -6,7 +6,7 @@ import xyz.pobob.barebonesvc.voice.Codec;
 /**
  * [MOJANG AUTH + CODEC : 1][VOICE DISTANCE : 8]
  */
-public class ServerHelloPacket extends ReliablePacket implements Packet {
+public class ServerHelloPacket extends ReliablePacket {
 
     private boolean mojangAuth;
     private double voiceDistance;

@@ -5,7 +5,7 @@ import xyz.pobob.barebonesvc.util.Bytes;
 /**
  * [DISABLED + DISCONNECTED : 1]
  */
-public class ClientUpdatePlayerPacket extends ReliablePacket implements Packet {
+public class ClientUpdatePlayerPacket extends ReliablePacket {
 
     private boolean disabled;
     private boolean disconnected;

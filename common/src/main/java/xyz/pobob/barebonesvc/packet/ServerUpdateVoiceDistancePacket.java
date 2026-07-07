@@ -5,7 +5,7 @@ import xyz.pobob.barebonesvc.util.Bytes;
 /**
  * [VOICE DISTANCE : 8]
  */
-public class ServerUpdateVoiceDistancePacket extends ReliablePacket implements Packet {
+public class ServerUpdateVoiceDistancePacket extends ReliablePacket {
 
     private double voiceDistance;
 

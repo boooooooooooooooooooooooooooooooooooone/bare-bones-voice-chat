@@ -7,7 +7,7 @@ import java.util.UUID;
 /**
  * [USERNAME : len-17][UUID : 16][DISABLED + DISCONNECTED : 1]
  */
-public class ServerUpdatePlayerPacket extends ReliablePacket implements Packet {
+public class ServerUpdatePlayerPacket extends ReliablePacket {
 
     private String username;
     private UUID uuid;
