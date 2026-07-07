@@ -1,31 +1,31 @@
 package xyz.pobob.barebonesvc.cli.command;
 
-import xyz.pobob.barebonesvc.BareBonesVCServer;
-import xyz.pobob.barebonesvc.net.ServerUpdateVoiceDistancePacket;
-import xyz.pobob.barebonesvc.voiceserver.VoiceServer;
+import xyz.pobob.barebonesvc.BareBonesVC;
+import xyz.pobob.barebonesvc.packet.ServerUpdateVoiceDistancePacket;
+import xyz.pobob.barebonesvc.voiceserver.BareBonesVCServer;
 
 public class VoiceDistanceCommand implements Command {
 
-    private final VoiceServer server;
+    private final BareBonesVCServer server;
     private final ServerUpdateVoiceDistancePacket serverUpdateVoiceDistancePacket = new ServerUpdateVoiceDistancePacket();
 
-    public VoiceDistanceCommand(VoiceServer server) {
+    public VoiceDistanceCommand(BareBonesVCServer server) {
         this.server = server;
     }
 
     @Override
     public void execute(String[] args) {
         if (args.length == 0) {
-            BareBonesVCServer.LOGGER.warning("No voice distance specified");
+            BareBonesVC.LOGGER.warning("No voice distance specified");
             return;
         }
 
         try {
             double voiceDistance = Double.parseDouble(args[0]);
             if (voiceDistance < 1d || voiceDistance > 1_000_000d) {
-                BareBonesVCServer.LOGGER.warning("Voice distance must be between 1-1000000");
+                BareBonesVC.LOGGER.warning("Voice distance must be between 1-1000000");
             } else {
-                BareBonesVCServer.LOGGER.info("Set voice distance to " + voiceDistance);
+                BareBonesVC.LOGGER.info("Set voice distance to " + voiceDistance);
 
                 this.server.config.voiceDistance = voiceDistance;
 
@@ -33,7 +33,7 @@ public class VoiceDistanceCommand implements Command {
                 this.server.announce(this.serverUpdateVoiceDistancePacket);
             }
         } catch (NumberFormatException e) {
-            BareBonesVCServer.LOGGER.warning("Invalid voice distance");
+            BareBonesVC.LOGGER.warning("Invalid voice distance");
         }
     }
 }

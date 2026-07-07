@@ -16,7 +16,7 @@ dependencies {
 jar {
     manifest {
         attributes(
-                'Main-Class': 'xyz.pobob.barebonesvc.BareBonesVCServer'
+                'Main-Class': 'xyz.pobob.barebonesvc.BareBonesVC'
         )
     }
     archiveBaseName.set('barebonesvc-server')

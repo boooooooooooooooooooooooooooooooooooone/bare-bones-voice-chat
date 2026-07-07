@@ -1,16 +1,16 @@
 package xyz.pobob.barebonesvc.cli.command;
 
-import xyz.pobob.barebonesvc.BareBonesVCServer;
-import xyz.pobob.barebonesvc.voiceserver.VoiceServer;
+import xyz.pobob.barebonesvc.BareBonesVC;
+import xyz.pobob.barebonesvc.voiceserver.BareBonesVCServer;
 
 import java.util.Scanner;
 
 public class ConsoleListener implements Runnable {
 
-    private final VoiceServer server;
+    private final BareBonesVCServer server;
     private final CommandDispatcher dispatcher;
 
-    public ConsoleListener(VoiceServer server, CommandDispatcher dispatcher) {
+    public ConsoleListener(BareBonesVCServer server, CommandDispatcher dispatcher) {
         this.server = server;
         this.dispatcher = dispatcher;
     }
@@ -24,7 +24,7 @@ public class ConsoleListener implements Runnable {
             try {
                 line = scanner.nextLine().trim();
             } catch (Exception e) {
-                BareBonesVCServer.LOGGER.info("Input interrupted. Stopping server.");
+                BareBonesVC.LOGGER.info("Input interrupted. Stopping server.");
                 this.server.close();
                 return;
             }

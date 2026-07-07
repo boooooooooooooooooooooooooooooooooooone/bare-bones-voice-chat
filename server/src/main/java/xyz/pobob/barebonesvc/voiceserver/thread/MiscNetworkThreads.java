@@ -1,8 +1,8 @@
 package xyz.pobob.barebonesvc.voiceserver.thread;
 
-import xyz.pobob.barebonesvc.net.ServerKeepAlivePacket;
+import xyz.pobob.barebonesvc.packet.ServerKeepAlivePacket;
+import xyz.pobob.barebonesvc.voiceserver.BareBonesVCServer;
 import xyz.pobob.barebonesvc.voiceserver.ClientConnection;
-import xyz.pobob.barebonesvc.voiceserver.VoiceServer;
 
 import java.net.SocketAddress;
 import java.util.Map;
@@ -10,12 +10,11 @@ import java.util.Map;
 public class MiscNetworkThreads {
     private static final int TIMEOUT_MILLIS = 20000;
 
-    public static void startKeepAliveThread(final VoiceServer server) {
+    public static void startKeepAliveThread(final BareBonesVCServer server) {
         Thread keepAliveSendThread = new Thread(() -> {
             ServerKeepAlivePacket keepAlive = new ServerKeepAlivePacket();
 
             while (server.isRunning()) {
-
                 for (SocketAddress address : server.connected.keySet()) {
                     keepAlive.create();
                     server.send(keepAlive, address);
@@ -35,7 +34,6 @@ public class MiscNetworkThreads {
                     Thread.currentThread().interrupt();
                     break;
                 }
-
             }
         });
 

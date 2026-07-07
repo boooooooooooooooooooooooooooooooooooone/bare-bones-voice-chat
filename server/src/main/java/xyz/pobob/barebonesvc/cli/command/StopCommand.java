@@ -1,19 +1,19 @@
 package xyz.pobob.barebonesvc.cli.command;
 
-import xyz.pobob.barebonesvc.BareBonesVCServer;
-import xyz.pobob.barebonesvc.voiceserver.VoiceServer;
+import xyz.pobob.barebonesvc.BareBonesVC;
+import xyz.pobob.barebonesvc.voiceserver.BareBonesVCServer;
 
 public class StopCommand implements Command {
 
-    private final VoiceServer server;
+    private final BareBonesVCServer server;
 
-    public StopCommand(VoiceServer server) {
+    public StopCommand(BareBonesVCServer server) {
         this.server = server;
     }
 
     @Override
     public void execute(String[] args) {
-        BareBonesVCServer.LOGGER.info("Stopping Bare Bones VC server");
+        BareBonesVC.LOGGER.info("Stopping Bare Bones VC server");
         this.server.close();
         System.exit(0);
     }

@@ -3,7 +3,7 @@ package xyz.pobob.barebonesvc.voiceclient.thread;
 import de.maxhenkel.voicechat.VoicechatClient;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
-import xyz.pobob.barebonesvc.net.ClientHelloPacket;
+import xyz.pobob.barebonesvc.packet.ClientHelloPacket;
 import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
 
 public class ClientHandshakeThread extends Thread {

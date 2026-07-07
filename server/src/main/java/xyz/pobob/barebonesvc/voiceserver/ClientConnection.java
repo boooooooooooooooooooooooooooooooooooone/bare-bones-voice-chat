@@ -1,6 +1,6 @@
 package xyz.pobob.barebonesvc.voiceserver;
 
-import xyz.pobob.barebonesvc.voiceserver.retransmission.PendingPacket;
+import xyz.pobob.barebonesvc.packet.retransmission.PendingPacket;
 
 import java.util.Collection;
 import java.util.Map;

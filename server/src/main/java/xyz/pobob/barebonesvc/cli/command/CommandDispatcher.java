@@ -1,6 +1,6 @@
 package xyz.pobob.barebonesvc.cli.command;
 
-import xyz.pobob.barebonesvc.BareBonesVCServer;
+import xyz.pobob.barebonesvc.BareBonesVC;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -21,7 +21,7 @@ public class CommandDispatcher {
         Command command = commands.get(parts[0].toLowerCase(Locale.ROOT));
 
         if (command == null) {
-            BareBonesVCServer.LOGGER.warning("Unknown command");
+            BareBonesVC.LOGGER.warning("Unknown command");
             return;
         }
 

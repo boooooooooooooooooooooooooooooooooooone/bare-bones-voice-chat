@@ -1,8 +1,8 @@
 package xyz.pobob.barebonesvc.voiceserver.thread;
 
-import xyz.pobob.barebonesvc.net.ServerPlayerLatencyPacket;
+import xyz.pobob.barebonesvc.packet.ServerPlayerLatencyPacket;
+import xyz.pobob.barebonesvc.voiceserver.BareBonesVCServer;
 import xyz.pobob.barebonesvc.voiceserver.ClientConnection;
-import xyz.pobob.barebonesvc.voiceserver.VoiceServer;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -10,12 +10,12 @@ import java.util.concurrent.TimeUnit;
 
 public class LatencyManager {
 
-    private final VoiceServer server;
+    private final BareBonesVCServer server;
     private final ServerPlayerLatencyPacket serverPlayerLatencyPacket = new ServerPlayerLatencyPacket();
 
     private final Map<Integer, Long> sentTimes = new ConcurrentHashMap<>();
 
-    public LatencyManager(VoiceServer server) {
+    public LatencyManager(BareBonesVCServer server) {
         this.server = server;
     }
 

@@ -9,8 +9,11 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
 import xyz.pobob.barebonesvc.BareBonesVC;
 import xyz.pobob.barebonesvc.mixin.ClientVoicechatAccessor;
-import xyz.pobob.barebonesvc.net.*;
-import xyz.pobob.barebonesvc.voiceclient.retransmission.ReliablePacketManager;
+import xyz.pobob.barebonesvc.packet.ClientUpdatePlayerPacket;
+import xyz.pobob.barebonesvc.packet.Packet;
+import xyz.pobob.barebonesvc.packet.ReliablePacket;
+import xyz.pobob.barebonesvc.packet.registry.PacketRegistry;
+import xyz.pobob.barebonesvc.packet.retransmission.ReliablePacketManager;
 import xyz.pobob.barebonesvc.voiceclient.thread.ClientHandshakeThread;
 
 import java.io.IOException;
@@ -45,7 +48,6 @@ public class BareBonesVCClient {
     private Thread networkReceiveThread;
 
     public ClientVoicechat client;
-    public final ServerMessageDispatcher serverMessageDispatcher = new ServerMessageDispatcher();
     public volatile SessionConfig config;
     public long lastKeepAlive = 0;
 
@@ -75,15 +77,6 @@ public class BareBonesVCClient {
         }
         this.running = true;
 
-        this.serverMessageDispatcher.register(PacketType.SERVER_HELLO, new ServerHelloHandler());
-        this.serverMessageDispatcher.register(PacketType.SERVER_KEEP_ALIVE, new ServerKeepAliveHandler());
-        this.serverMessageDispatcher.register(PacketType.SERVER_AUDIO, new ServerAudioHandler());
-        this.serverMessageDispatcher.register(PacketType.SERVER_UPDATE_PLAYER, new ServerUpdatePlayerHandler());
-        this.serverMessageDispatcher.register(PacketType.SERVER_CLOSE, new ServerCloseHandler());
-        this.serverMessageDispatcher.register(PacketType.SERVER_KICK, new ServerKickHandler());
-        this.serverMessageDispatcher.register(PacketType.SERVER_UPDATE_VOICE_DISTANCE, new ServerUpdateVoiceDistanceHandler());
-        this.serverMessageDispatcher.register(PacketType.SERVER_PLAYER_LATENCY, new ServerPlayerLatencyHandler());
-
         if (this.clientHandshakeThread != null) this.clientHandshakeThread.interrupt();
         if (this.networkReceiveThread != null) this.networkReceiveThread.interrupt();
 
@@ -104,7 +97,7 @@ public class BareBonesVCClient {
                         if (Packet.isReliable(data)) {
                             this.reliablePacketManager.receive(data);
                         } else {
-                            this.serverMessageDispatcher.dispatch(data);
+                            PacketRegistry.dispatchServerPacket(data);
                         }
                     }
                 });
