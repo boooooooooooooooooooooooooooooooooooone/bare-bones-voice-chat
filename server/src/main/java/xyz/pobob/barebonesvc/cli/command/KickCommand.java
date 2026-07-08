@@ -2,7 +2,6 @@ package xyz.pobob.barebonesvc.cli.command;
 
 import xyz.pobob.barebonesvc.BareBonesVC;
 import xyz.pobob.barebonesvc.packet.ServerKickPacket;
-import xyz.pobob.barebonesvc.packet.ServerUpdatePlayerPacket;
 import xyz.pobob.barebonesvc.voiceserver.BareBonesVCServer;
 import xyz.pobob.barebonesvc.voiceserver.ClientConnection;
 
@@ -12,7 +11,6 @@ import java.util.Map;
 public class KickCommand implements Command {
 
     private final ServerKickPacket serverKickPacket = new ServerKickPacket();
-    private final ServerUpdatePlayerPacket serverUpdatePlayerPacket = new ServerUpdatePlayerPacket();
 
     @Override
     public void execute(String[] args, BareBonesVCServer server) {
@@ -24,22 +22,15 @@ public class KickCommand implements Command {
         String target = args[0];
 
         boolean didntKick = true;
-        for (Map.Entry<SocketAddress, ClientConnection> entry : server.connected.entrySet()) {
+        for (Map.Entry<SocketAddress, ClientConnection> entry : server.getAuthenticatedEntries()) {
             if (entry.getValue().getUsername().equalsIgnoreCase(target)
                     || entry.getValue().getUUID().toString().equalsIgnoreCase(target)) {
                 didntKick = false;
 
                 server.send(this.serverKickPacket, entry.getKey());
-                this.serverUpdatePlayerPacket.create(
-                        entry.getValue().getUsername(),
-                        entry.getValue().getUUID(),
-                        entry.getValue().isDisabled(),
-                        true
-                );
-                server.announceExcluding(this.serverUpdatePlayerPacket, entry.getKey());
-                server.connected.remove(entry.getKey());
+                server.onDisconnect(entry.getKey());
 
-                BareBonesVC.LOGGER.info("Client kicked: " + entry.getValue().getUsername() + " (" + entry.getValue().getUUID() + ")");
+                BareBonesVC.LOGGER.info("Kicked " + entry.getValue().getUsername());
             }
         }
 

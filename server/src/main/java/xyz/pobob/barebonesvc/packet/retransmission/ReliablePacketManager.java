@@ -21,10 +21,10 @@ public final class ReliablePacketManager {
     }
 
     private static final long RETRANSMIT_TIMEOUT = 1000;
-    private static final int MAX_RETRIES = 10;
+    private static final int MAX_RETRIES = 15;
 
     public void registerSequence(ReliablePacket packet, SocketAddress clientAddress) {
-        ClientConnection conn = this.server.connected.get(clientAddress);
+        ClientConnection conn = this.server.getClient(clientAddress);
         if (conn != null) {
             packet.setSequenceNumber(conn.getAndIncrementNextSendSequence());
             conn.setSentPendingPacket(packet.getSequenceNumber(), new PendingPacket(packet, clientAddress, System.currentTimeMillis()));
@@ -32,7 +32,7 @@ public final class ReliablePacketManager {
     }
 
     public void onClientAcknowledge(final int sequence, SocketAddress clientAddress) {
-        ClientConnection conn = this.server.connected.get(clientAddress);
+        ClientConnection conn = this.server.getClient(clientAddress);
         if (conn != null) {
             conn.removeSentPendingPacket(sequence);
         }
@@ -42,7 +42,7 @@ public final class ReliablePacketManager {
         this.server.scheduler.scheduleAtFixedRate(() -> {
             long now = System.currentTimeMillis();
 
-            for (Map.Entry<SocketAddress, ClientConnection> client : this.server.connected.entrySet()) {
+            for (Map.Entry<SocketAddress, ClientConnection> client : this.server.getAuthenticatedEntries()) {
                 Iterator<PendingPacket> iterator = client.getValue().getSentPendingPackets().iterator();
 
                 while (iterator.hasNext()) {
@@ -68,19 +68,21 @@ public final class ReliablePacketManager {
     }
 
     public void receive(byte[] data, SocketAddress clientAddress) {
-        ClientConnection conn = this.server.connected.get(clientAddress);
+        ClientConnection conn = this.server.getClient(clientAddress);
 
-        int sequence = Bytes.getInt(data, ReliablePacket.SEQUENCE_INDEX);
-        this.sendAck(sequence, clientAddress);
+        if (conn != null) {
+            int sequence = Bytes.getInt(data, ReliablePacket.SEQUENCE_INDEX);
+            this.sendAck(sequence, clientAddress);
 
-        if (sequence < conn.getExpectedReceiveSequence()) return;
+            if (sequence < conn.getExpectedReceiveSequence()) return;
 
-        if (sequence > conn.getExpectedReceiveSequence()) {
-            conn.addToReceivedQueue(sequence, data);
-            return;
+            if (sequence > conn.getExpectedReceiveSequence()) {
+                conn.addToReceivedQueue(sequence, data);
+                return;
+            }
+
+            this.processSequential(data, clientAddress, conn);
         }
-
-        this.processSequential(data, clientAddress, conn);
     }
 
     private void processSequential(byte[] data, SocketAddress clientAddress, ClientConnection connection) {

@@ -79,7 +79,7 @@ public class ConnectionScreen extends VoiceChatScreenBase {
         } catch (URISyntaxException | NumberFormatException e) {
             BareBonesVC.LOGGER.error("Invalid socket address \"{}:{}\"", host, portText);
 
-            BareBonesVCClient.invalidAddress();
+            BareBonesVCClient.sendMessageSafe(Text.of("Invalid address"), true);
         }
     }
 

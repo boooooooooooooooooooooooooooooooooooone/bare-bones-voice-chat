@@ -46,9 +46,7 @@ public class MiscTasks {
             }
             if (count >= MAX_SENDS) {
                 BareBonesVCClient.INSTANCE.onDisconnect();
-                if (MinecraftClient.getInstance().player != null) {
-                    MinecraftClient.getInstance().player.sendMessage(Text.of("Failed to connect to Bare Bones VC server"), true);
-                }
+                BareBonesVCClient.sendMessageSafe(Text.of("Failed to connect to Bare Bones VC server"), true);
             }
         }, "BareBonesVCHandshakeThread");
         thread.setDaemon(true);

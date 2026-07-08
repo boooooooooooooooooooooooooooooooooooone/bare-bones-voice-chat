@@ -27,6 +27,6 @@ public class ServerUpdateVoiceDistancePacket extends ReliablePacket {
 
     @Override
     public void deserialize(byte[] data) {
-        this.voiceDistance = Double.longBitsToDouble(Bytes.getLong(data, this.getPayloadIndex()));
+        this.voiceDistance = Double.longBitsToDouble(Bytes.getLong(data, this.getPayloadStart()));
     }
 }

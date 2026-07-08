@@ -56,6 +56,10 @@ public class BareBonesVC implements ClientModInitializer {
                 PacketType.SERVER_UPDATE_VOICE_DISTANCE,
                 new ServerUpdateVoiceDistanceHandler()
         );
+        PacketRegistry.registerHandler(
+                PacketType.SERVER_AUTHENTICATED,
+                new ServerAuthenticatedHandler()
+        );
     }
 
     @Override

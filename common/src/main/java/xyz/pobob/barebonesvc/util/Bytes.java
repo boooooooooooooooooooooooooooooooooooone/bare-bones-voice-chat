@@ -5,17 +5,20 @@ import java.nio.charset.StandardCharsets;
 public final class Bytes {
     public static byte[] join(byte[]... bytesList) {
         int size = 0;
-
         for (byte[] bytes : bytesList) {
-            size += bytes.length;
+            if (bytes != null) {
+                size += bytes.length;
+            }
         }
-
         byte[] data = new byte[size];
 
         int offset = 0;
+
         for (byte[] bytes : bytesList) {
-            System.arraycopy(bytes, 0, data, offset, bytes.length);
-            offset += bytes.length;
+            if (bytes != null) {
+                System.arraycopy(bytes, 0, data, offset, bytes.length);
+                offset += bytes.length;
+            }
         }
 
         return data;

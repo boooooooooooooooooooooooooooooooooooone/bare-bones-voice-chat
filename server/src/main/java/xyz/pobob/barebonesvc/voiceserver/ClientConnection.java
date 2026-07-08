@@ -14,13 +14,15 @@ public class ClientConnection {
     private final String username;
     private final UUID uuid;
     private boolean disabled;
+    private boolean authenticated;
     private long lastKeepAliveResponse;
     private long latencyNano = -1;
 
-    public ClientConnection(String username, UUID uuid, boolean disabled) {
+    public ClientConnection(String username, UUID uuid, boolean disabled, boolean authenticated) {
         this.username = username;
         this.uuid = uuid;
         this.disabled = disabled;
+        this.authenticated = authenticated;
         this.lastKeepAliveResponse = System.currentTimeMillis();
     }
 
@@ -38,6 +40,14 @@ public class ClientConnection {
 
     public void setDisabled(boolean val) {
         this.disabled = val;
+    }
+
+    public boolean isAuthenticated() {
+        return this.authenticated;
+    }
+
+    public void setAuthenticated(boolean val) {
+        this.authenticated = val;
     }
 
     public synchronized long getLastKeepAlive() {
@@ -58,10 +68,10 @@ public class ClientConnection {
 
 
 
-    private final AtomicInteger nextSendSequence = new AtomicInteger();
+    private final AtomicInteger nextSendSequence = new AtomicInteger(0);
     private final Map<Integer, PendingPacket> sentPendingPackets = new ConcurrentHashMap<>();
 
-    private final AtomicInteger expectedReceiveSequence = new AtomicInteger();
+    private final AtomicInteger expectedReceiveSequence = new AtomicInteger(0);
     private final TreeMap<Integer, byte[]> receivedQueue = new TreeMap<>();
 
     public int getAndIncrementNextSendSequence() {

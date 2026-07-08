@@ -13,14 +13,14 @@ public class MiscTasks {
         final ServerKeepAlivePacket keepAlive = new ServerKeepAlivePacket();
 
         server.scheduler.scheduleAtFixedRate(() -> {
-            for (SocketAddress address : server.connected.keySet()) {
+            for (SocketAddress address : server.getAuthenticatedSockets()) {
                 keepAlive.create();
                 server.send(keepAlive, address);
 
                 server.latencyManager.registerSentTime(keepAlive.getId());
             }
 
-            for (Map.Entry<SocketAddress, ClientConnection> client : server.connected.entrySet()) {
+            for (Map.Entry<SocketAddress, ClientConnection> client : server.getAuthenticatedEntries()) {
                 if (System.currentTimeMillis() - client.getValue().getLastKeepAlive() > TIMEOUT_MILLIS) {
                     server.onTimeout(client.getKey());
                 }

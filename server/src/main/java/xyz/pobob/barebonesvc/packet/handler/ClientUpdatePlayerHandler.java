@@ -20,17 +20,20 @@ public class ClientUpdatePlayerHandler implements ClientPacketHandler {
 
     @Override
     public void handle(byte[] data, SocketAddress clientAddress) {
-        if (this.server.connected.containsKey(clientAddress)) {
+
+        ClientConnection conn = this.server.getAuthenticatedClient(clientAddress);
+        if (conn != null) {
+
             this.localClientUpdatePlayerPacket.get().deserialize(data);
 
             if (this.localClientUpdatePlayerPacket.get().isDisconnected()) {
                 this.server.onDisconnect(clientAddress);
             } else {
-                ClientConnection client = this.server.connected.get(clientAddress);
-                client.setDisabled(this.localClientUpdatePlayerPacket.get().isDisabled());
+
+                conn.setDisabled(this.localClientUpdatePlayerPacket.get().isDisabled());
                 this.localServerUpdatePlayerPacket.get().create(
-                        client.getUsername(),
-                        client.getUUID(),
+                        conn.getUsername(),
+                        conn.getUUID(),
                         this.localClientUpdatePlayerPacket.get().isDisabled(),
                         false
                 );

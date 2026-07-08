@@ -18,7 +18,7 @@ public class ClientKeepAliveHandler implements ClientPacketHandler {
 
     @Override
     public void handle(byte[] data, SocketAddress clientAddress) {
-        ClientConnection client = this.server.connected.get(clientAddress);
+        ClientConnection client = this.server.getClient(clientAddress);
         if (client != null) {
             client.setLastKeepAlive(System.currentTimeMillis());
 

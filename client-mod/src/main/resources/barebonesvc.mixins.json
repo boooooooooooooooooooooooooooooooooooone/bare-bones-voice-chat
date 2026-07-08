@@ -4,12 +4,13 @@
   "package": "xyz.pobob.barebonesvc.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "ClientLoginNetworkHandlerAccessor",
     "ClientManagerMixin",
     "ClientVoicechatAccessor",
     "ClientVoicechatMixin",
     "MicThreadMixin",
     "gui.VoiceChatScreenMixin",
-    "playerstate.ClientPlayerStateManagerInvoker",
+    "playerstate.ClientPlayerStateManagerAccessor",
     "playerstate.ClientPlayerStateManagerMixin",
     "playerstate.KeyEventsMixin",
     "playerstate.RenderEventsMixin"

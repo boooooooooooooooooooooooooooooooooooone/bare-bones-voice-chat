@@ -14,6 +14,10 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketAddress;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -34,14 +38,62 @@ public class BareBonesVCServer {
 
     public final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     private final ExecutorService pool = Executors.newFixedThreadPool(4);
+    public final ExecutorService ioThread = Executors.newSingleThreadExecutor();
     private DatagramSocket socket;
 
-    public final Map<SocketAddress, ClientConnection> connected = new ConcurrentHashMap<>();
-    public final Config config;
+    private final Map<SocketAddress, ClientConnection> connected = new ConcurrentHashMap<>();
+
+    public synchronized void addClient(SocketAddress clientAddress, ClientConnection connection) {
+        this.connected.put(clientAddress, connection);
+    }
+
+    public synchronized ClientConnection removeClient(SocketAddress clientAddress) {
+        return this.connected.remove(clientAddress);
+    }
+
+    public synchronized ClientConnection getClient(SocketAddress clientAddress) {
+        return this.connected.get(clientAddress);
+    }
+
+    public synchronized ClientConnection getAuthenticatedClient(SocketAddress clientAddress) {
+        ClientConnection connection = this.connected.get(clientAddress);
+        return (connection != null && connection.isAuthenticated()) ? connection : null;
+    }
+
+    public synchronized Collection<ClientConnection> getAuthenticatedClients() {
+        return this.connected.values()
+                .stream().filter(ClientConnection::isAuthenticated).toList();
+    }
+
+    public Collection<Map.Entry<SocketAddress, ClientConnection>> getAuthenticatedEntries() {
+        return this.connected.entrySet()
+                .stream().filter(entry -> entry.getValue().isAuthenticated()).toList();
+    }
+
+    public synchronized Collection<SocketAddress> getAuthenticatedSockets() {
+        return this.getAuthenticatedEntries().stream().map(Map.Entry::getKey).toList();
+    }
+
+    public synchronized int getConnectedCount() {
+        return this.getAuthenticatedClients().size();
+    }
+
+    public synchronized boolean isSocketConnected(SocketAddress clientAddress) {
+        return this.connected.containsKey(clientAddress);
+    }
+
     public final LatencyManager latencyManager = new LatencyManager(this);
     public final ReliablePacketManager reliablePacketManager = new ReliablePacketManager(this);
+    public final Config config;
+    public KeyPair keyPair;
 
-    public synchronized boolean isRunning() {
+    public void generateKeyPair() throws NoSuchAlgorithmException {
+        KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+        generator.initialize(1024);
+        this.keyPair = generator.generateKeyPair();
+    }
+
+    public boolean isRunning() {
         return this.socket != null;
     }
 
@@ -98,16 +150,16 @@ public class BareBonesVCServer {
         BareBonesVC.LOGGER.info("Bare Bones Voice Chat server started");
     }
 
-    public void announceExcluding(Packet packet, SocketAddress src) {
-        for (SocketAddress address : this.connected.keySet()) {
-            if (!Objects.equals(address, src)) {
+    public void announceExcluding(Packet packet, SocketAddress excluded) {
+        for (SocketAddress address : this.getAuthenticatedSockets()) {
+            if (!Objects.equals(address, excluded)) {
                 this.send(packet, address);
             }
         }
     }
 
     public void announce(Packet packet) {
-        for (SocketAddress address : this.connected.keySet()) {
+        for (SocketAddress address : this.getAuthenticatedSockets()) {
             this.send(packet, address);
         }
     }
@@ -148,7 +200,7 @@ public class BareBonesVCServer {
     }
 
     public void onDisconnect(SocketAddress clientAddress) {
-        ClientConnection disconnected = this.connected.remove(clientAddress);
+        ClientConnection disconnected = this.removeClient(clientAddress);
         if (disconnected != null) {
             this.localServerUpdatePlayerPacket.get().create(
                     disconnected.getUsername(),
@@ -156,20 +208,42 @@ public class BareBonesVCServer {
                     false,
                     true
             );
+            this.announce(this.localServerUpdatePlayerPacket.get());
             BareBonesVC.LOGGER.info("Client disconnected: " + disconnected.getUsername() + " (" + disconnected.getUUID() + ")");
         }
     }
 
     public void onTimeout(SocketAddress clientAddress) {
-        ClientConnection connection = this.connected.get(clientAddress);
+        ClientConnection connection = this.getClient(clientAddress);
         if (connection != null) {
             BareBonesVC.LOGGER.info(connection.getUsername() + " timed out!");
             this.onDisconnect(clientAddress);
         }
     }
 
+    public void onAuthenticated(SocketAddress clientAddress, ClientConnection clientConnection) {
+        BareBonesVC.LOGGER.info("Client connected: " + clientConnection.getUsername() + " (" + clientConnection.getUUID() + ")");
+
+        clientConnection.setAuthenticated(true);
+
+        ServerUpdatePlayerPacket serverUpdatePlayerPacket = new ServerUpdatePlayerPacket();
+
+        for (ClientConnection c : this.getAuthenticatedClients()) { // tell new client who is present
+            serverUpdatePlayerPacket.create(c.getUsername(), c.getUUID(), c.isDisabled(), false);
+            this.send(serverUpdatePlayerPacket, clientAddress);
+        }
+
+        this.localServerUpdatePlayerPacket.get().create( // announce new client
+                clientConnection.getUsername(),
+                clientConnection.getUUID(),
+                clientConnection.isDisabled(),
+                false
+        );
+        this.announceExcluding(this.localServerUpdatePlayerPacket.get(), clientAddress);
+    }
+
     public void close() {
-        for (SocketAddress address : this.connected.keySet()) {
+        for (SocketAddress address : this.getAuthenticatedSockets()) {
             this.send(this.serverClosePacket, address);
         }
         this.stopNow();

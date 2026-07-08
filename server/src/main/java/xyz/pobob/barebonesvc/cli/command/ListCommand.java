@@ -8,13 +8,10 @@ public class ListCommand implements Command {
 
     @Override
     public void execute(String[] args, BareBonesVCServer server) {
-        int n = server.connected.size();
+        int n = server.getConnectedCount();
         BareBonesVC.LOGGER.info(
                 "There " + (n == 1 ? ("is currently 1 player") : ("are currently " + n + " players")) + " connected: " +
-                        String.join(
-                        ", ",
-                                server.connected.values().stream().map(ClientConnection::getUsername).toList()
-                        )
+                        String.join(", ", server.getAuthenticatedClients().stream().map(ClientConnection::getUsername).toList())
         );
     }
 }

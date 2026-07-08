@@ -9,6 +9,7 @@ import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -18,13 +19,13 @@ public final class ReliablePacketManager {
     private static final long RETRANSMIT_TIMEOUT = 1000;
     private static final int MAX_RETRIES = 10;
 
-    private final AtomicInteger nextSendSequence = new AtomicInteger();
+    private final AtomicInteger nextSendSequence = new AtomicInteger(0);
     private final Map<Integer, PendingPacket> sentPendingPackets = new ConcurrentHashMap<>();
 
-    private final AtomicInteger expectedReceiveSequence = new AtomicInteger();
+    private final AtomicInteger expectedReceiveSequence = new AtomicInteger(0);
     private final TreeMap<Integer, byte[]> receivedQueue = new TreeMap<>();
 
-    public ScheduledFuture<?> checkPendingPackets;
+    private ScheduledFuture<?> checkPendingPackets;
 
     public void registerSequence(ReliablePacket packet) {
         packet.setSequenceNumber(this.nextSendSequence.getAndIncrement());
@@ -35,26 +36,33 @@ public final class ReliablePacketManager {
         this.sentPendingPackets.remove(sequence);
     }
 
-    public void start() {
-        this.checkPendingPackets = BareBonesVCClient.INSTANCE.scheduler.scheduleAtFixedRate(() -> {
-            long now = System.currentTimeMillis();
+    public void startCheckingPendingPackets() {
+        try {
+            this.checkPendingPackets = BareBonesVCClient.INSTANCE.scheduler.scheduleAtFixedRate(() -> {
+                long now = System.currentTimeMillis();
 
-            for (PendingPacket pending : this.sentPendingPackets.values()) {
-                if (now - pending.lastSent < RETRANSMIT_TIMEOUT) {
-                    continue;
+                for (PendingPacket pending : this.sentPendingPackets.values()) {
+                    if (now - pending.lastSent < RETRANSMIT_TIMEOUT) {
+                        continue;
+                    }
+
+                    if (pending.retries >= MAX_RETRIES) {
+                        BareBonesVCClient.INSTANCE.onTimeout();
+                        continue;
+                    }
+
+                    BareBonesVCClient.INSTANCE.send(pending.packet);
+
+                    pending.lastSent = now;
+                    pending.retries++;
                 }
 
-                if (pending.retries >= MAX_RETRIES) {
-                    BareBonesVCClient.INSTANCE.onTimeout();
-                    continue;
+                if (!BareBonesVCClient.INSTANCE.isRunning()) {
+                    this.checkPendingPackets.cancel(false);
                 }
-
-                BareBonesVCClient.INSTANCE.send(pending.packet);
-
-                pending.lastSent = now;
-                pending.retries++;
-            }
-        }, 0L, 100L, TimeUnit.MILLISECONDS);
+            }, 0L, 100L, TimeUnit.MILLISECONDS);
+        } catch (RejectedExecutionException ignored) {
+        }
     }
 
     public void receive(byte[] data) {

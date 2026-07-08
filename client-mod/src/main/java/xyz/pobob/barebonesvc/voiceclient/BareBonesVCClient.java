@@ -48,22 +48,18 @@ public class BareBonesVCClient {
     public SessionConfig config;
     public long lastKeepAlive = 0;
 
-    private boolean running = false;
-    private boolean resolved = false;
+    private volatile boolean running = false;
+    public volatile boolean waitingForServerHello = true;
+    public volatile boolean waitingForAuth = true;
 
     public void start(String host, int port) {
-        this.client = null;
-        this.config = null;
-
         InetSocketAddress address = new InetSocketAddress(host, port);
         if (address.isUnresolved()) {
-            BareBonesVCClient.invalidAddress();
-            this.resolved = false;
+            sendMessageSafe(Text.of("Failed to resolve address"), true);
             return;
         } else {
             this.recvPacket.setSocketAddress(address);
             this.sendPacket.setSocketAddress(address);
-            this.resolved = true;
         }
 
         try {
@@ -100,15 +96,17 @@ public class BareBonesVCClient {
         networkReceiveThread.setDaemon(false);
         networkReceiveThread.start();
 
-        MiscTasks.startHandshake();
-
         this.reliablePacketManager = new ReliablePacketManager();
-        this.reliablePacketManager.start();
+        this.reliablePacketManager.startCheckingPendingPackets();
+
+        MiscTasks.startHandshake();
 
         BareBonesVC.LOGGER.info("Started connecting to voice server {}", this.getReadableAddress());
     }
 
     public void startVoiceChat() {
+        this.waitingForAuth = false;
+
         if (VoicechatClient.CLIENT_CONFIG.muteOnJoin.get()) {
             ClientManager.getPlayerStateManager().setMuted(true);
         }
@@ -119,6 +117,11 @@ public class BareBonesVCClient {
         }
         ((ClientVoicechatAccessor) this.client).invokeStartMicThread(null);
         BareBonesVC.LOGGER.info("Starting microphone thread");
+
+        sendMessageSafe(Text.of("Successfully connected to Bare Bones VC server!"), true);
+
+        BareBonesVCClient.INSTANCE.lastKeepAlive = System.currentTimeMillis();
+        MiscTasks.startKeepAliveTask();
     }
 
     public synchronized void send(Packet packet) {
@@ -165,33 +168,36 @@ public class BareBonesVCClient {
         }
         MinecraftClient.getInstance().execute(() -> ClientManager.getPlayerStateManager().clearStates());
 
+        this.stopNow();
+    }
+
+    public void onTimeout() {
+        sendMessageSafe(Text.of("Bare Bones VC connection timed out"), true);
+        this.onDisconnect();
+    }
+
+    public void stopNow() {
+        this.scheduler.shutdown();
+        this.scheduler = Executors.newSingleThreadScheduledExecutor(); // prepare scheduler for next session
+
+        if (this.reliablePacketManager != null) {
+            this.reliablePacketManager.clear();
+        }
+
         if (this.client != null) {
             this.client.closeMicThread();
             this.client.close();
             this.client = null;
         }
 
-        this.stopNow();
-    }
-
-    public void onTimeout() {
-        if (MinecraftClient.getInstance().player != null) {
-            MinecraftClient.getInstance().player.sendMessage(Text.of("Bare Bones VC connection timed out"), true);
-        }
-        this.onDisconnect();
-    }
-
-    public void stopNow() {
-        this.scheduler.shutdown();
-
-        if (this.reliablePacketManager != null) {
-            this.reliablePacketManager.clear();
-        }
+        this.config = null;
 
         if (this.isRunning()) {
             this.running = false;
-            this.resolved = false;
         }
+
+        this.waitingForServerHello = true;
+        this.waitingForAuth = true;
 
         if (this.socket != null) {
             this.socket.close();
@@ -200,7 +206,7 @@ public class BareBonesVCClient {
     }
 
     public boolean isRunning() {
-        return this.running && this.resolved;
+        return this.running;
     }
 
     public boolean isConnected() {
@@ -211,9 +217,9 @@ public class BareBonesVCClient {
         return this.client.getAudioChannels();
     }
 
-    public static void invalidAddress() {
+    public static void sendMessageSafe(Text text, boolean overlay) {
         if (MinecraftClient.getInstance().player != null) {
-            MinecraftClient.getInstance().player.sendMessage(Text.of("Failed to resolve address"), true);
+            MinecraftClient.getInstance().player.sendMessage(text, overlay);
         }
     }
 

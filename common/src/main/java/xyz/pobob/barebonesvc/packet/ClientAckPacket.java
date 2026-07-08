@@ -24,6 +24,6 @@ public class ClientAckPacket implements Packet {
 
     @Override
     public void deserialize(byte[] data) {
-        this.sequence = Bytes.getInt(data, this.getPayloadIndex());
+        this.sequence = Bytes.getInt(data, this.getPayloadStart());
     }
 }

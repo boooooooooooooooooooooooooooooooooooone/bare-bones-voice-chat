@@ -23,12 +23,16 @@ public class ClientAudioHandler implements ClientPacketHandler {
     @Override
     public void handle(byte[] data, SocketAddress clientAddress) {
         this.localClientAudioPacket.get().deserialize(data);
-        this.localServerAudioPacket.get().create(this.localClientAudioPacket.get(), this.server.connected.get(clientAddress).getUUID());
+        ClientConnection conn = this.server.getAuthenticatedClient(clientAddress);
+        if (conn != null) {
+            this.localServerAudioPacket.get().create(this.localClientAudioPacket.get(), conn.getUUID());
 
-        for (Map.Entry<SocketAddress, ClientConnection> entry : this.server.connected.entrySet()) {
-            if (!Objects.equals(entry.getKey(), clientAddress) && !entry.getValue().isDisabled()) {
-                this.server.send(this.localServerAudioPacket.get(), entry.getKey());
+            for (Map.Entry<SocketAddress, ClientConnection> entry : this.server.getAuthenticatedEntries()) {
+                if (!Objects.equals(entry.getKey(), clientAddress) && !entry.getValue().isDisabled()) {
+                    this.server.send(this.localServerAudioPacket.get(), entry.getKey());
+                }
             }
         }
+
     }
 }

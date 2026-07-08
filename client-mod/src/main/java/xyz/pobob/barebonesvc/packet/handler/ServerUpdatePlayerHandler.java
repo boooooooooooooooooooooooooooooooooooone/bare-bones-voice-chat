@@ -5,7 +5,7 @@ import de.maxhenkel.voicechat.voice.client.ClientManager;
 import de.maxhenkel.voicechat.voice.common.PlayerState;
 import net.minecraft.client.MinecraftClient;
 import xyz.pobob.barebonesvc.gui.ClientList;
-import xyz.pobob.barebonesvc.mixin.playerstate.ClientPlayerStateManagerInvoker;
+import xyz.pobob.barebonesvc.mixin.playerstate.ClientPlayerStateManagerAccessor;
 import xyz.pobob.barebonesvc.packet.ServerUpdatePlayerPacket;
 
 public class ServerUpdatePlayerHandler implements ServerPacketHandler {
@@ -16,7 +16,7 @@ public class ServerUpdatePlayerHandler implements ServerPacketHandler {
     public void handle(byte[] data) {
         this.serverUpdatePlayerPacket.deserialize(data);
         MinecraftClient.getInstance().execute(() -> {
-            ((ClientPlayerStateManagerInvoker) ClientManager.getPlayerStateManager()).invokeUpdatePlayerState(
+            ((ClientPlayerStateManagerAccessor) ClientManager.getPlayerStateManager()).invokeUpdatePlayerState(
                     null,
                     new PlayerStatePacket(new PlayerState(
                             this.serverUpdatePlayerPacket.getUUID(),

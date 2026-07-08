@@ -33,7 +33,7 @@ public class ClientUpdatePlayerPacket extends ReliablePacket {
 
     @Override
     public void deserialize(byte[] data) {
-        int start = this.getPayloadIndex();
+        int start = this.getPayloadStart();
 
         this.disabled = (data[start] & 1) == 1;
         this.disconnected = (data[start] & 2) == 2;

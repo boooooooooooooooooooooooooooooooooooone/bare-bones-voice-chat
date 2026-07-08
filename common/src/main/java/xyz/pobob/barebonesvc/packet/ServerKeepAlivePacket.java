@@ -25,6 +25,6 @@ public class ServerKeepAlivePacket implements Packet {
 
     @Override
     public void deserialize(byte[] data) {
-        this.id = Bytes.getInt(data, this.getPayloadIndex());
+        this.id = Bytes.getInt(data, this.getPayloadStart());
     }
 }

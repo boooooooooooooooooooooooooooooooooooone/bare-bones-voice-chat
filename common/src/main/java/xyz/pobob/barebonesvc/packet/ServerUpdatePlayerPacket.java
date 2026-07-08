@@ -41,7 +41,7 @@ public class ServerUpdatePlayerPacket extends ReliablePacket {
 
     @Override
     public void deserialize(byte[] data) {
-        int start = this.getPayloadIndex();
+        int start = this.getPayloadStart();
         short len = Packet.getPayloadLength(data);
 
         this.username = Bytes.getString(data, start, len - 16 - 1);

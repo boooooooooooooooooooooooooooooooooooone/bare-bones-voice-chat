@@ -56,7 +56,7 @@ public interface Packet {
         return Bytes.getShort(data, LENGTH_INDEX);
     }
 
-    default int getPayloadIndex() {
+    default int getPayloadStart() {
         return (this instanceof ReliablePacket) ? ReliablePacket.PAYLOAD_INDEX : Packet.PAYLOAD_INDEX;
     }
 }

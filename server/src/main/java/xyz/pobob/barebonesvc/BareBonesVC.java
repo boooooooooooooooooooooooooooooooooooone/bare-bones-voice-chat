@@ -7,7 +7,9 @@ import xyz.pobob.barebonesvc.packet.registry.PacketRegistry;
 import xyz.pobob.barebonesvc.voiceserver.BareBonesVCServer;
 import xyz.pobob.barebonesvc.voiceserver.Config;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class BareBonesVC {
@@ -42,6 +44,10 @@ public class BareBonesVC {
                 PacketType.CLIENT_UPDATE_PLAYER,
                 new ClientUpdatePlayerHandler(server)
         );
+        PacketRegistry.registerHandler(
+                PacketType.CLIENT_HASH,
+                new ClientHashHandler(server)
+        );
     }
 
     public static void main(String[] args) {
@@ -56,6 +62,16 @@ public class BareBonesVC {
         Config config = Config.load(configPath);
         if (config != null) {
             BareBonesVCServer server = new BareBonesVCServer(config);
+            if (config.mojangAuth) {
+                try {
+                    server.generateKeyPair();
+                } catch (NoSuchAlgorithmException e) {
+                    BareBonesVC.LOGGER.log(Level.SEVERE,
+                            "An error occurred while generating keypair! Disable mojang auth if this cannot be resolved", e);
+                    return;
+                }
+            }
+
             registerPackets(server);
             server.start();
         }

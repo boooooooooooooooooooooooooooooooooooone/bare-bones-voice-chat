@@ -38,7 +38,7 @@ public class ServerPlayerLatencyPacket implements Packet {
 
     @Override
     public void deserialize(byte[] data) {
-        int start = this.getPayloadIndex();
+        int start = this.getPayloadStart();
 
         this.uuid = new UUID(
                 Bytes.getLong(data, start),

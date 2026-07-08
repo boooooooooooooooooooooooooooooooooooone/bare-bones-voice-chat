@@ -36,7 +36,7 @@ public class ClientAudioPacket implements Packet {
 
     @Override
     public void deserialize(byte[] data) {
-        int start = this.getPayloadIndex();
+        int start = this.getPayloadStart();
         short len = Packet.getPayloadLength(data);
 
         this.audio = Arrays.copyOfRange(data, start, start + len - 8);
