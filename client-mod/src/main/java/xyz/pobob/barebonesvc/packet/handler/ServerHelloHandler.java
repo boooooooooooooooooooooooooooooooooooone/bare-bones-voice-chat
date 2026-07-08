@@ -64,6 +64,7 @@ public class ServerHelloHandler implements ServerPacketHandler {
 
                         if (text != null) {
                             BareBonesVCClient.sendMessageSafe(text, true);
+                            BareBonesVCClient.INSTANCE.onDisconnect();
                             return;
                         }
 
