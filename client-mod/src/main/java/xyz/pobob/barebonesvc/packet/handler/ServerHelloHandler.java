@@ -83,7 +83,7 @@ public class ServerHelloHandler implements ServerPacketHandler {
                     throw new IllegalStateException("Protocol error", e);
                 }
             } else {
-                BareBonesVCClient.INSTANCE.startVoiceChat();
+                BareBonesVCClient.INSTANCE.onAuthenticated();
             }
         }
     }

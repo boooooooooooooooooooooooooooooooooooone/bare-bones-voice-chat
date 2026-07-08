@@ -29,7 +29,7 @@ public final class ReliablePacketManager {
 
     public void registerSequence(ReliablePacket packet) {
         packet.setSequenceNumber(this.nextSendSequence.getAndIncrement());
-        this.sentPendingPackets.put(packet.getSequenceNumber(), new PendingPacket(packet, System.currentTimeMillis()));
+        this.sentPendingPackets.put(packet.getSequenceNumber(), new PendingPacket(packet.serialize(), System.currentTimeMillis()));
     }
 
     public void onServerAcknowledge(final int sequence) {
@@ -51,7 +51,7 @@ public final class ReliablePacketManager {
                         continue;
                     }
 
-                    BareBonesVCClient.INSTANCE.send(pending.packet);
+                    BareBonesVCClient.INSTANCE.send(pending.data);
 
                     pending.lastSent = now;
                     pending.retries++;

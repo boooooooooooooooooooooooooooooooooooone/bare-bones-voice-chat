@@ -164,25 +164,23 @@ public class BareBonesVCServer {
         }
     }
 
-    public synchronized void send(Packet packet, SocketAddress clientAddress) {
-        if (this.isRunning()) {
-            if (packet instanceof ReliablePacket rp) {
-                this.reliablePacketManager.registerSequence(rp, clientAddress);
-            }
+    public void send(Packet packet, SocketAddress clientAddress) {
+        if (packet instanceof ReliablePacket rp) {
+            this.reliablePacketManager.registerSequence(rp, clientAddress);
+        }
 
-            byte[] data = packet.serialize();
+        this.send(packet.serialize(), clientAddress);
+    }
 
-            this.sendPacket.setLength(data.length);
-            System.arraycopy(data, 0, this.sendPacket.getData(), 0, data.length);
-            this.sendPacket.setSocketAddress(clientAddress);
+    public synchronized void send(byte[] data, SocketAddress clientAddress) {
+        this.sendPacket.setLength(data.length);
+        System.arraycopy(data, 0, this.sendPacket.getData(), 0, data.length);
+        this.sendPacket.setSocketAddress(clientAddress);
 
-            try {
-                this.socket.send(this.sendPacket);
-            } catch (IOException e) {
-                BareBonesVC.LOGGER.log(Level.SEVERE, "An error occurred while sending Datagram packet", e);
-            }
-        } else {
-            BareBonesVC.LOGGER.warning("Unable to send packet to " + this.sendPacket.getSocketAddress() + " because socket is not open yet");
+        try {
+            this.socket.send(this.sendPacket);
+        } catch (IOException e) {
+            BareBonesVC.LOGGER.log(Level.SEVERE, "An error occurred while sending Datagram packet", e);
         }
     }
 
@@ -197,6 +195,27 @@ public class BareBonesVCServer {
         System.arraycopy(this.recvPacket.getData(), this.recvPacket.getOffset(), data, 0, this.recvPacket.getLength());
 
         return data;
+    }
+
+    public void onAuthenticated(SocketAddress clientAddress, ClientConnection clientConnection) {
+        BareBonesVC.LOGGER.info("Client connected: " + clientConnection.getUsername() + " (" + clientConnection.getUUID() + ")");
+
+        clientConnection.setAuthenticated(true);
+
+        ServerUpdatePlayerPacket serverUpdatePlayerPacket = new ServerUpdatePlayerPacket();
+
+        for (ClientConnection c : this.getAuthenticatedClients()) { // tell new client who is present
+            serverUpdatePlayerPacket.create(c.getUsername(), c.getUUID(), c.isDisabled(), false);
+            this.send(serverUpdatePlayerPacket, clientAddress);
+        }
+
+        this.localServerUpdatePlayerPacket.get().create( // announce new client
+                clientConnection.getUsername(),
+                clientConnection.getUUID(),
+                clientConnection.isDisabled(),
+                false
+        );
+        this.announceExcluding(this.localServerUpdatePlayerPacket.get(), clientAddress);
     }
 
     public void onDisconnect(SocketAddress clientAddress) {
@@ -219,27 +238,6 @@ public class BareBonesVCServer {
             BareBonesVC.LOGGER.info(connection.getUsername() + " timed out!");
             this.onDisconnect(clientAddress);
         }
-    }
-
-    public void onAuthenticated(SocketAddress clientAddress, ClientConnection clientConnection) {
-        BareBonesVC.LOGGER.info("Client connected: " + clientConnection.getUsername() + " (" + clientConnection.getUUID() + ")");
-
-        clientConnection.setAuthenticated(true);
-
-        ServerUpdatePlayerPacket serverUpdatePlayerPacket = new ServerUpdatePlayerPacket();
-
-        for (ClientConnection c : this.getAuthenticatedClients()) { // tell new client who is present
-            serverUpdatePlayerPacket.create(c.getUsername(), c.getUUID(), c.isDisabled(), false);
-            this.send(serverUpdatePlayerPacket, clientAddress);
-        }
-
-        this.localServerUpdatePlayerPacket.get().create( // announce new client
-                clientConnection.getUsername(),
-                clientConnection.getUUID(),
-                clientConnection.isDisabled(),
-                false
-        );
-        this.announceExcluding(this.localServerUpdatePlayerPacket.get(), clientAddress);
     }
 
     public void close() {

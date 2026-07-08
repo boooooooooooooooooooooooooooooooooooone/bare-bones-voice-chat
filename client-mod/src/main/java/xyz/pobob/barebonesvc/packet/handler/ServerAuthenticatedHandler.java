@@ -7,7 +7,7 @@ public class ServerAuthenticatedHandler implements ServerPacketHandler {
     public void handle(byte[] data) {
         if (BareBonesVCClient.INSTANCE.waitingForAuth) {
             BareBonesVCClient.INSTANCE.waitingForAuth = false;
-            BareBonesVCClient.INSTANCE.startVoiceChat();
+            BareBonesVCClient.INSTANCE.onAuthenticated();
         }
     }
 }

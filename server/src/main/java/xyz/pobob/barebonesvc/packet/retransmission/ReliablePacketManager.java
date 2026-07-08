@@ -27,7 +27,7 @@ public final class ReliablePacketManager {
         ClientConnection conn = this.server.getClient(clientAddress);
         if (conn != null) {
             packet.setSequenceNumber(conn.getAndIncrementNextSendSequence());
-            conn.setSentPendingPacket(packet.getSequenceNumber(), new PendingPacket(packet, clientAddress, System.currentTimeMillis()));
+            conn.setSentPendingPacket(packet.getSequenceNumber(), new PendingPacket(packet.serialize(), clientAddress, System.currentTimeMillis()));
         }
     }
 
@@ -58,7 +58,7 @@ public final class ReliablePacketManager {
                         continue;
                     }
 
-                    this.server.send(pending.packet, pending.address);
+                    this.server.send(pending.data, pending.address);
 
                     pending.lastSent = now;
                     pending.retries++;

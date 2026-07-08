@@ -1,16 +1,14 @@
 package xyz.pobob.barebonesvc.packet.retransmission;
 
-import xyz.pobob.barebonesvc.packet.ReliablePacket;
-
 public final class PendingPacket {
 
-    public final ReliablePacket packet;
+    public final byte[] data;
 
     public long lastSent;
     public int retries;
 
-    public PendingPacket(ReliablePacket packet, long lastSent) {
-        this.packet = packet;
+    public PendingPacket(byte[] data, long lastSent) {
+        this.data = data;
         this.lastSent = lastSent;
     }
 }

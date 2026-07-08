@@ -104,34 +104,16 @@ public class BareBonesVCClient {
         BareBonesVC.LOGGER.info("Started connecting to voice server {}", this.getReadableAddress());
     }
 
-    public void startVoiceChat() {
-        this.waitingForAuth = false;
-
-        if (VoicechatClient.CLIENT_CONFIG.muteOnJoin.get()) {
-            ClientManager.getPlayerStateManager().setMuted(true);
+    public void send(Packet packet) {
+        if (packet instanceof ReliablePacket rp) {
+            this.reliablePacketManager.registerSequence(rp);
         }
 
-        this.client = new ClientVoicechat();
-        if (this.client.getMicThread() != null) {
-            this.client.getMicThread().close();
-        }
-        ((ClientVoicechatAccessor) this.client).invokeStartMicThread(null);
-        BareBonesVC.LOGGER.info("Starting microphone thread");
-
-        sendMessageSafe(Text.of("Successfully connected to Bare Bones VC server!"), true);
-
-        BareBonesVCClient.INSTANCE.lastKeepAlive = System.currentTimeMillis();
-        MiscTasks.startKeepAliveTask();
+        this.send(packet.serialize());
     }
 
-    public synchronized void send(Packet packet) {
+    public synchronized void send(byte[] data) {
         if (this.isRunning()) {
-            if (packet instanceof ReliablePacket rp) {
-                this.reliablePacketManager.registerSequence(rp);
-            }
-
-            byte[] data = packet.serialize();
-
             this.sendPacket.setLength(data.length);
             System.arraycopy(data, 0, this.sendPacket.getData(), 0, data.length);
 
@@ -157,6 +139,26 @@ public class BareBonesVCClient {
         byte[] data = new byte[this.recvPacket.getLength()];
         System.arraycopy(this.recvPacket.getData(), this.recvPacket.getOffset(), data, 0, this.recvPacket.getLength());
         return data;
+    }
+
+    public void onAuthenticated() {
+        this.waitingForAuth = false;
+
+        if (VoicechatClient.CLIENT_CONFIG.muteOnJoin.get()) {
+            ClientManager.getPlayerStateManager().setMuted(true);
+        }
+
+        this.client = new ClientVoicechat();
+        if (this.client.getMicThread() != null) {
+            this.client.getMicThread().close();
+        }
+        ((ClientVoicechatAccessor) this.client).invokeStartMicThread(null);
+        BareBonesVC.LOGGER.info("Starting microphone thread");
+
+        sendMessageSafe(Text.of("Successfully connected to Bare Bones VC server!"), true);
+
+        BareBonesVCClient.INSTANCE.lastKeepAlive = System.currentTimeMillis();
+        MiscTasks.startKeepAliveTask();
     }
 
     public void onDisconnect() {
