@@ -56,6 +56,8 @@ public class ServerHelloHandler implements ServerPacketHandler {
                             NetworkEncryptionUtils.generateSecretKey()
                     )).toString(16);
 
+                    BareBonesVCClient.sendMessageSafe(Text.of("Verifying with Minecraft session server..."), true);
+
                     final ClientLoginNetworkHandler login = new ClientLoginNetworkHandler(null, MinecraftClient.getInstance(), null, null, false, null, component -> {}, null, null);
                     Util.getIoWorkerExecutor().execute(() -> {
                         Text text = ((ClientLoginNetworkHandlerAccessor) login).invokeJoinServerSession(digest);
