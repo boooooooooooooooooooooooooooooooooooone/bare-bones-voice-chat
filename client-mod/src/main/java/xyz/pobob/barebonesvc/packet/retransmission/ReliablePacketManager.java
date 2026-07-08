@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public final class ReliablePacketManager {
 
     private static final long RETRANSMIT_TIMEOUT = 1000;
-    private static final int MAX_RETRIES = 10;
+    private static final int MAX_RETRIES = 15;
 
     private final AtomicInteger nextSendSequence = new AtomicInteger(0);
     private final Map<Integer, PendingPacket> sentPendingPackets = new ConcurrentHashMap<>();
