@@ -19,7 +19,7 @@ public class MiscTasks {
                 BareBonesVCClient.INSTANCE.getAudioChannels().values().stream().filter(AudioChannel::canKill).forEach(AudioChannel::closeAndKill);
                 BareBonesVCClient.INSTANCE.getAudioChannels().entrySet().removeIf(entry -> entry.getValue().isClosed());
             }
-        }, 0L, 2000L, TimeUnit.MILLISECONDS);
+        }, 50L, 2000L, TimeUnit.MILLISECONDS);
     }
 
 
