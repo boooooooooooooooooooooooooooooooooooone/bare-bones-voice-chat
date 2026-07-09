@@ -31,7 +31,7 @@ public class MicThreadMixin {
     )
     private void injectSendAudioPacket(short[] audio, boolean whispering, CallbackInfo ci) {
         if (BareBonesVCClient.INSTANCE.isConnected()) {
-            this.clientAudioPacket.create(this.encoder.encode(audio), this.sequenceNumber.getAndIncrement());
+            this.clientAudioPacket.create(this.encoder.encode(audio), this.sequenceNumber.getAndIncrement(), whispering);
             BareBonesVCClient.INSTANCE.send(this.clientAudioPacket);
         }
     }
@@ -44,6 +44,6 @@ public class MicThreadMixin {
             )
     )
     private OpusEncoder redirectEncoder(OpusEncoderMode encoder) {
-        return OpusManager.createEncoder(BareBonesVCClient.INSTANCE.config == null ? ServerConfig.Codec.AUDIO.getMode() : BareBonesVCClient.INSTANCE.config.codec().getMode());
+        return OpusManager.createEncoder(BareBonesVCClient.INSTANCE.config == null ? ServerConfig.Codec.AUDIO.getMode() : BareBonesVCClient.INSTANCE.config.getCodec().getMode());
     }
 }

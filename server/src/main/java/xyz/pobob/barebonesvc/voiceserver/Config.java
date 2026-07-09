@@ -10,6 +10,7 @@ public class Config {
     public int port;
     public boolean mojangAuth;
     public double voiceDistance;
+    public double whisperDistance;
     public Codec codec;
 
     public static Config load(String path) {

@@ -18,8 +18,10 @@ public class ServerAudioHandler implements ServerPacketHandler {
                             this.serverAudioPacket.getUUID(),
                             this.serverAudioPacket.getAudio(),
                             this.serverAudioPacket.getSequenceNumber(),
-                            false,
-                            BareBonesVCClient.INSTANCE.config.voiceDistance(),
+                            this.serverAudioPacket.isWhispering(),
+                            this.serverAudioPacket.isWhispering() ?
+                                    BareBonesVCClient.INSTANCE.config.getWhisperDistance() :
+                                    BareBonesVCClient.INSTANCE.config.getVoiceDistance(),
                             null
                     )
             );

@@ -85,6 +85,26 @@ public final class ConfigParser {
             }
 
 
+            String whisperDistanceString = properties.getProperty("whisper-distance");
+            if (whisperDistanceString != null) {
+                try {
+                    double val = Double.parseDouble(whisperDistanceString);
+                    if (val < 1d || val > 1_000_000d) {
+                        BareBonesVC.LOGGER.warning("Failed config parsing because whisper distance is not in 1-1000000");
+                        return null;
+                    } else {
+                        config.whisperDistance = val;
+                    }
+                } catch (NumberFormatException e) {
+                    BareBonesVC.LOGGER.warning("Failed config parsing because whisper distance is invalid");
+                    return null;
+                }
+            } else {
+                BareBonesVC.LOGGER.warning("Failed config parsing because whisper-distance is not specified");
+                return null;
+            }
+
+
             String codecString = properties.getProperty("codec");
             if (codecString != null) {
                 try {
@@ -227,7 +247,40 @@ public final class ConfigParser {
         }
 
         while (true) {
-            System.out.println("Select a codec, allowed values are VOIP, AUDIO, RESTRICTED_LOWDELAY. (blank = AUDIO):");
+            System.out.println("Enter the whisper distance (blank = 24):");
+
+            String line;
+            try {
+                line = scanner.nextLine();
+            } catch (Exception e) {
+                System.out.println("Input interrupted. Exiting setup.");
+                return null;
+            }
+
+            line = line.trim();
+
+            if (!line.isEmpty()) {
+                try {
+                    double val = Double.parseDouble(line);
+                    if (val < 1d || val > 1_000_000d) {
+                        System.out.println("Whisper distance must be between 1-1000000");
+                    } else {
+                        config.whisperDistance = val;
+                        System.out.println("Set whisper distance to " + config.whisperDistance + "\n");
+                        break;
+                    }
+                } catch (NumberFormatException e) {
+                    System.out.println("Invalid whisper distance");
+                }
+            } else {
+                config.whisperDistance = 24;
+                System.out.println("Set whisper distance to " + config.whisperDistance + "\n");
+                break;
+            }
+        }
+
+        while (true) {
+            System.out.println("Select a codec, allowed values are VOIP, AUDIO, RESTRICTED_LOWDELAY (blank = AUDIO):");
 
             String line;
             try {

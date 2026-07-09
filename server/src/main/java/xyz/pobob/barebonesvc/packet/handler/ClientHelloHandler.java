@@ -55,6 +55,7 @@ public class ClientHelloHandler implements ClientPacketHandler {
         this.localServerHelloPacket.get().create(
                 config.mojangAuth,
                 config.voiceDistance,
+                config.whisperDistance,
                 config.codec,
                 publicKey
         );

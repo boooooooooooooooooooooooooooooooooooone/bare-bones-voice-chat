@@ -38,13 +38,15 @@ public class ServerHelloHandler implements ServerPacketHandler {
             BareBonesVCClient.INSTANCE.config = new SessionConfig(
                     this.serverHelloPacket.getMojangAuth(),
                     (float) this.serverHelloPacket.getVoiceDistance(),
+                    (float) this.serverHelloPacket.getWhisperDistance(),
                     codec
             );
 
             BareBonesVC.LOGGER.info(
-                    "Server config packet received! mojang auth={}, voice distance={}, codec={}",
+                    "Server config packet received! mojang auth={}, voice distance={}, whisper distance={}, codec={}",
                     this.serverHelloPacket.getMojangAuth(),
                     this.serverHelloPacket.getVoiceDistance(),
+                    this.serverHelloPacket.getWhisperDistance(),
                     codec
             );
 

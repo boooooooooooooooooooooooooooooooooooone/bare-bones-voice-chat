@@ -11,7 +11,12 @@ public class ServerUpdateVoiceDistanceHandler implements ServerPacketHandler {
     public void handle(byte[] data) {
         if (BareBonesVCClient.INSTANCE.config != null) {
             this.serverUpdateVoiceDistancePacket.deserialize(data);
-            BareBonesVCClient.INSTANCE.config.setVoiceDistance((float) this.serverUpdateVoiceDistancePacket.getVoiceDistance());
+
+            if (this.serverUpdateVoiceDistancePacket.isWhisperDistance()) {
+                BareBonesVCClient.INSTANCE.config.setWhisperDistance((float) this.serverUpdateVoiceDistancePacket.getVoiceDistance());
+            } else {
+                BareBonesVCClient.INSTANCE.config.setVoiceDistance((float) this.serverUpdateVoiceDistancePacket.getVoiceDistance());
+            }
         }
     }
 }

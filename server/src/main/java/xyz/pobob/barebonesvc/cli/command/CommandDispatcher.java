@@ -19,6 +19,7 @@ public class CommandDispatcher {
         this.register("list", new ListCommand());
         this.register("kick", new KickCommand());
         this.register("voicedistance", new VoiceDistanceCommand());
+        this.register("whisperdistance", new WhisperDistanceCommand());
     }
 
     private final Map<String, Command> commands = new HashMap<>();
