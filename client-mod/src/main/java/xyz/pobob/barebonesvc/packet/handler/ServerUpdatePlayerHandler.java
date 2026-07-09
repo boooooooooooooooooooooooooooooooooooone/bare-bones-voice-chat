@@ -15,17 +15,16 @@ public class ServerUpdatePlayerHandler implements ServerPacketHandler {
     @Override
     public void handle(byte[] data) {
         this.serverUpdatePlayerPacket.deserialize(data);
-        MinecraftClient.getInstance().execute(() -> {
-            ((ClientPlayerStateManagerAccessor) ClientManager.getPlayerStateManager()).invokeUpdatePlayerState(
-                    null,
-                    new PlayerStatePacket(new PlayerState(
-                            this.serverUpdatePlayerPacket.getUUID(),
-                            this.serverUpdatePlayerPacket.getUsername(),
-                            this.serverUpdatePlayerPacket.getDisabled(),
-                            this.serverUpdatePlayerPacket.getDisconnected()
-                    ))
-            );
-            ClientList.update();
-        });
+        ((ClientPlayerStateManagerAccessor) ClientManager.getPlayerStateManager()).invokeUpdatePlayerState(
+                null,
+                new PlayerStatePacket(new PlayerState(
+                        this.serverUpdatePlayerPacket.getUUID(),
+                        this.serverUpdatePlayerPacket.getUsername(),
+                        this.serverUpdatePlayerPacket.getDisabled(),
+                        this.serverUpdatePlayerPacket.getDisconnected()
+                ))
+        );
+
+        MinecraftClient.getInstance().execute(ClientList::update);
     }
 }
