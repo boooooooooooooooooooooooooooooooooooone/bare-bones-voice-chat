@@ -142,6 +142,9 @@ public class BareBonesVCClient {
     }
 
     public void onAuthenticated() {
+        BareBonesVCClient.INSTANCE.lastKeepAlive = System.currentTimeMillis();
+        MiscTasks.startKeepAliveTask();
+
         this.waitingForAuth = false;
 
         if (VoicechatClient.CLIENT_CONFIG.muteOnJoin.get()) {
@@ -155,10 +158,8 @@ public class BareBonesVCClient {
         ((ClientVoicechatAccessor) this.client).invokeStartMicThread(null);
         BareBonesVC.LOGGER.info("Starting microphone thread");
 
-        sendMessageSafe(Text.of("Successfully connected to Bare Bones VC server!"), true);
 
-        BareBonesVCClient.INSTANCE.lastKeepAlive = System.currentTimeMillis();
-        MiscTasks.startKeepAliveTask();
+        sendMessageSafe(Text.of("Successfully connected to Bare Bones VC server!"), true);
     }
 
     public void onDisconnect() {

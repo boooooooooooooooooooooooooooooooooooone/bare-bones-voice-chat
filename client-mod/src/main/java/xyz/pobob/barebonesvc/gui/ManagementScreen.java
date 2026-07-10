@@ -7,7 +7,6 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.MathHelper;
 import xyz.pobob.barebonesvc.BareBonesVC;
 import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
 
@@ -15,12 +14,13 @@ public class ManagementScreen extends VoiceChatScreenBase {
     private static final Identifier TEXTURE = Identifier.of(BareBonesVC.MOD_ID, "textures/gui/gui_barebonesvc.png");
     private static final Text TITLE = Text.of("Bare Bones VC");
     private static final Text DISCONNECT = Text.of("Disconnect");
+    private static final int WHITE = 0xFFFFFFFF;
 
     protected ClientList clientList;
     protected int units;
 
-    protected static final int TOP_SPACE = 18;
-    protected static final int BOTTOM_SPACE = 32;
+    protected static final int HEADER_SIZE = 20;
+    protected static final int FOOTER_SIZE = 36;
     protected static final int CELL_SIZE = 20;
 
     public ManagementScreen() {
@@ -30,7 +30,6 @@ public class ManagementScreen extends VoiceChatScreenBase {
     @Override
     protected void init() {
         super.init();
-        this.hoverAreas.clear();
         this.clearChildren();
 
         ButtonWidget disconnect = ButtonWidget.builder(DISCONNECT, button -> {
@@ -39,13 +38,13 @@ public class ManagementScreen extends VoiceChatScreenBase {
         }).dimensions(this.guiLeft + 68, this.guiTop + this.ySize - 27, this.xSize - 136, 20).build();
         this.addDrawableChild(disconnect);
 
-        int minUnits = MathHelper.ceil((float) (CELL_SIZE + 4) / (float) CELL_SIZE);
-        this.units = Math.max(minUnits, (height - TOP_SPACE - BOTTOM_SPACE - guiTop * 2) / CELL_SIZE);
+        this.units = Math.max(2, (height - HEADER_SIZE - FOOTER_SIZE - guiTop * 2) / CELL_SIZE);
 
         if (this.clientList != null) {
-            this.clientList.updateSize(this.width - 10, this.units * CELL_SIZE + 6, 0, this.guiTop + TOP_SPACE);
+            this.clientList.setDimensionsAndPosition(80, this.units * CELL_SIZE + 2, this.guiLeft + 164, this.guiTop + HEADER_SIZE);
+            this.clientList.refreshScroll();
         } else {
-            this.clientList = new ClientList(this.width - 10, this.units * CELL_SIZE + 6, this.guiTop + TOP_SPACE, CELL_SIZE, this);
+            this.clientList = new ClientList(80, this.units * CELL_SIZE + 2, this.guiLeft + 164, this.guiTop + HEADER_SIZE);
         }
 
         this.addSelectableChild(this.clientList);
@@ -58,9 +57,13 @@ public class ManagementScreen extends VoiceChatScreenBase {
 
     @Override
     public void renderForeground(DrawContext guiGraphics, int mouseX, int mouseY, float delta) {
-        guiGraphics.drawText(this.textRenderer, TITLE, this.guiLeft + (this.xSize >> 1) - (this.textRenderer.getWidth(TITLE) >> 1), this.guiTop + 7, -12566464, false);
+        guiGraphics.drawText(this.textRenderer, TITLE, this.guiLeft + (this.xSize >> 1) - (this.textRenderer.getWidth(TITLE) >> 1), this.guiTop + 7, FONT_COLOR, false);
+        if (BareBonesVCClient.INSTANCE.waitingForAuth) {
+            guiGraphics.drawText(this.textRenderer, Text.of("Connection pending..."), this.guiLeft + 14, this.guiTop + 23, WHITE, false);
+        }
 
         this.clientList.render(guiGraphics, mouseX, mouseY, delta);
+
     }
 
     @Override
