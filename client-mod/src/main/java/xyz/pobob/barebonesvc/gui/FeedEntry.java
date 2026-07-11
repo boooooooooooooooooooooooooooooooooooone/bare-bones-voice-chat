@@ -31,19 +31,21 @@ public class FeedEntry extends ElementListWidget.Entry<FeedEntry> {
     public void render(DrawContext context, int mouseX, int mouseY, boolean hovered, float deltaTicks) {
         List<OrderedText> messageSplit = this.getWrapped();
 
-        int textX = this.getContentX();
+        int textX = this.getContentX() + 2;
         int textY = this.getContentY();
-        for (int i = 0; i < messageSplit.size(); i++) {
-            context.drawText(this.textRenderer, messageSplit.get(i), textX, textY + i * this.textRenderer.fontHeight, 0xFFFFFFFF, false);
+
+        if (mouseX > this.getX() && mouseY > this.getY() - 1 && mouseX < this.getX() + this.getWidth() - 6 && mouseY < this.getY() + this.getHeight() + 3) {
+            context.drawTooltip(this.textRenderer, Text.of("Sent at " + FORMATTER.format(this.timestamp)), mouseX, mouseY);
+            context.fill(this.getX(), this.getY() - 1, this.getX() + this.getWidth() - 6, this.getY() + this.getHeight() + 3, 0x40FFFFFF);
         }
 
-        if (mouseX > this.getX() && mouseX < this.getX() + this.getWidth() && mouseY > this.getY() && mouseY < this.getY() + this.getHeight()) {
-            context.drawTooltip(this.textRenderer, Text.of("Sent at " + FORMATTER.format(this.timestamp)), mouseX, mouseY);
+        for (int i = 0; i < messageSplit.size(); i++) {
+            context.drawText(this.textRenderer, messageSplit.get(i), textX, textY + i * this.textRenderer.fontHeight, 0xFFFFFFFF, false);
         }
     }
 
     public List<OrderedText> getWrapped() {
-        return this.textRenderer.wrapLines(this.message, this.getWidth() - 10);
+        return this.textRenderer.wrapLines(this.message, this.getWidth() - 12);
     }
 
     @Override

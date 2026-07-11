@@ -65,8 +65,8 @@ public class SessionEventFeed extends ScrollableWidget {
 
     public void addEntry(FeedEntry entry) {
         this.entries.add(entry);
-        entry.setX(this.getRowLeft() + 2);
-        entry.setWidth(this.getRowWidth());
+        entry.setX(this.getX());
+        entry.setWidth(this.getWidth());
         entry.setY(this.getYOfThisEntry());
         entry.setHeight(entry.textRenderer.fontHeight * entry.getWrapped().size());
     }
@@ -79,14 +79,6 @@ public class SessionEventFeed extends ScrollableWidget {
         }
 
         return i;
-    }
-
-    public int getRowLeft() {
-        return this.getX();
-    }
-
-    public int getRowWidth() {
-        return this.getWidth();
     }
 
     public int getYOfThisEntry() {

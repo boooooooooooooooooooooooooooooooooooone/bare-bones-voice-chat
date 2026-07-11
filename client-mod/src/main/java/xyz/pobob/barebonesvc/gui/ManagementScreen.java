@@ -39,7 +39,7 @@ public class ManagementScreen extends VoiceChatScreenBase {
         } else {
             this.clientList = new ClientList(78, 202, this.guiLeft + 167, this.guiTop + 20);
         }
-        this.addSelectableChild(this.clientList);
+        this.addDrawableChild(this.clientList);
 
         if (this.feed != null) {
             this.feed.setDimensionsAndPosition(146, 202, this.guiLeft + 11, this.guiTop + 20);
@@ -47,7 +47,7 @@ public class ManagementScreen extends VoiceChatScreenBase {
         } else {
             this.feed = new SessionEventFeed(146, 202, this.guiLeft + 11, this.guiTop + 20);
         }
-        this.addSelectableChild(this.feed);
+        this.addDrawableChild(this.feed);
     }
 
     @Override

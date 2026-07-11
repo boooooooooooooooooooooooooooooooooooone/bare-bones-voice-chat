@@ -48,19 +48,11 @@ public class ClientList extends ScrollableWidget {
     }
 
     public void addEntry(ClientEntry entry) {
-        entry.setX(this.getRowLeft() + 1);
-        entry.setWidth(this.getRowWidth());
+        entry.setX(this.getX() + 1);
+        entry.setWidth(this.getWidth());
         entry.setY(this.getYOfNextEntry() + 1);
         entry.setHeight(CELL_SIZE);
         this.entries.add(entry);
-    }
-
-    public int getRowLeft() {
-        return this.getX();
-    }
-
-    public int getRowWidth() {
-        return this.getWidth();
     }
 
     public int getYOfNextEntry() {

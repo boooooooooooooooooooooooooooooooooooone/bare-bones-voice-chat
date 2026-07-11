@@ -31,11 +31,12 @@ public class ClientEntry extends ElementListWidget.Entry<ClientEntry> {
         int left = this.getContentX();
         int top = this.getContentY() + (this.getContentHeight() - SKIN_SIZE) / 2;
 
-        SkinTextures skin = GameProfileUtils.getSkin(this.state.getUuid());
-        context.drawTexture(RenderPipelines.GUI_TEXTURED, skin.body().texturePath(), left, top, 8.0F, 8.0F, SKIN_SIZE, SKIN_SIZE, 8, 8, 64, 64);
-        context.drawTexture(RenderPipelines.GUI_TEXTURED, skin.body().texturePath(), left, top, 40.0F, 8.0F, SKIN_SIZE, SKIN_SIZE, 8, 8, 64, 64);
-
         if (this.minecraft.textRenderer != null) {
+            if (mouseX > this.getX() && mouseY > this.getY() && mouseX < this.getX() + this.getWidth() - 6 && mouseY < this.getY() + this.getHeight()) {
+                context.drawTooltip(this.minecraft.textRenderer, Text.of(this.state.getName()), mouseX, mouseY);
+                context.fill(this.getX(), this.getY(), this.getX() + this.getWidth() - 6, this.getY() + this.getHeight(), 0x40FFFFFF);
+            }
+
             Double latency = BareBonesVC.LATENCIES.get(this.state.getUuid());
             if (latency != null) {
                 this.renderLatency(
@@ -43,11 +44,11 @@ public class ClientEntry extends ElementListWidget.Entry<ClientEntry> {
                         Text.literal(String.format("%.1f", latency) + "ms").setStyle(Style.EMPTY.withColor(getLatencyColor(latency)))
                 );
             }
-
-            if (mouseX > this.getX() && mouseX < this.getX() + this.getWidth() && mouseY > this.getY() && mouseY < this.getY() + this.getHeight()) {
-                context.drawTooltip(this.minecraft.textRenderer, Text.of(this.state.getName()), mouseX, mouseY);
-            }
         }
+
+        SkinTextures skin = GameProfileUtils.getSkin(this.state.getUuid());
+        context.drawTexture(RenderPipelines.GUI_TEXTURED, skin.body().texturePath(), left, top, 8.0F, 8.0F, SKIN_SIZE, SKIN_SIZE, 8, 8, 64, 64);
+        context.drawTexture(RenderPipelines.GUI_TEXTURED, skin.body().texturePath(), left, top, 40.0F, 8.0F, SKIN_SIZE, SKIN_SIZE, 8, 8, 64, 64);
     }
 
     private void renderLatency(DrawContext guiGraphics, Text text) {
