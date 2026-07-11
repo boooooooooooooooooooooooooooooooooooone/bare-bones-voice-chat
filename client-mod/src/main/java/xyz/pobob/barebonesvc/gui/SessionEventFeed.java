@@ -1,6 +1,7 @@
 package xyz.pobob.barebonesvc.gui;
 
 import com.google.common.collect.EvictingQueue;
+import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ScrollableWidget;
@@ -98,7 +99,16 @@ public class SessionEventFeed extends ScrollableWidget {
 
     @Override
     protected double getDeltaYPerScroll() {
-        return 20d;
+        return 40d;
+    }
+
+    @Override
+    public boolean mouseClicked(Click click, boolean doubled) {
+        if (this.checkScrollbarDragged(click)) {
+            return true;
+        }
+
+        return super.mouseClicked(click, doubled);
     }
 
     @Override

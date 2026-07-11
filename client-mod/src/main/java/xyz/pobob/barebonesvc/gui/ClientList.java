@@ -2,6 +2,7 @@ package xyz.pobob.barebonesvc.gui;
 
 import de.maxhenkel.voicechat.voice.client.ClientManager;
 import de.maxhenkel.voicechat.voice.common.PlayerState;
+import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ScrollableWidget;
@@ -12,7 +13,7 @@ import java.util.List;
 
 
 public class ClientList extends ScrollableWidget {
-    private static final int CELL_SIZE = 20;
+    private static final int CELL_SIZE = 22;
 
     protected final List<ClientEntry> entries;
 
@@ -48,9 +49,9 @@ public class ClientList extends ScrollableWidget {
     }
 
     public void addEntry(ClientEntry entry) {
-        entry.setX(this.getX() + 1);
+        entry.setX(this.getX());
         entry.setWidth(this.getWidth());
-        entry.setY(this.getYOfNextEntry() + 1);
+        entry.setY(this.getYOfNextEntry());
         entry.setHeight(CELL_SIZE);
         this.entries.add(entry);
     }
@@ -79,6 +80,15 @@ public class ClientList extends ScrollableWidget {
     @Override
     protected double getDeltaYPerScroll() {
         return CELL_SIZE * 0.5;
+    }
+
+    @Override
+    public boolean mouseClicked(Click click, boolean doubled) {
+        if (this.checkScrollbarDragged(click)) {
+            return true;
+        }
+
+        return super.mouseClicked(click, doubled);
     }
 
     @Override

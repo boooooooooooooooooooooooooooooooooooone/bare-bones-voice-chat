@@ -28,13 +28,10 @@ public class ClientEntry extends ElementListWidget.Entry<ClientEntry> {
     }
 
     public void render(DrawContext context, int mouseX, int mouseY, boolean hovered, float deltaTicks) {
-        int left = this.getContentX();
-        int top = this.getContentY() + (this.getContentHeight() - SKIN_SIZE) / 2;
-
         if (this.minecraft.textRenderer != null) {
             if (mouseX > this.getX() && mouseY > this.getY() && mouseX < this.getX() + this.getWidth() - 6 && mouseY < this.getY() + this.getHeight()) {
                 context.drawTooltip(this.minecraft.textRenderer, Text.of(this.state.getName()), mouseX, mouseY);
-                context.fill(this.getX(), this.getY(), this.getX() + this.getWidth() - 6, this.getY() + this.getHeight(), 0x40FFFFFF);
+                context.fill(this.getX(), this.getY(), this.getX() + this.getWidth() - 6, this.getY() + this.getHeight(), 0x20FFFFFF);
             }
 
             Double latency = BareBonesVC.LATENCIES.get(this.state.getUuid());
@@ -47,14 +44,21 @@ public class ClientEntry extends ElementListWidget.Entry<ClientEntry> {
         }
 
         SkinTextures skin = GameProfileUtils.getSkin(this.state.getUuid());
-        context.drawTexture(RenderPipelines.GUI_TEXTURED, skin.body().texturePath(), left, top, 8.0F, 8.0F, SKIN_SIZE, SKIN_SIZE, 8, 8, 64, 64);
-        context.drawTexture(RenderPipelines.GUI_TEXTURED, skin.body().texturePath(), left, top, 40.0F, 8.0F, SKIN_SIZE, SKIN_SIZE, 8, 8, 64, 64);
+        int skinX = this.getX() + 2;
+        int skinY = this.getY() + 2 + (this.getContentHeight() - SKIN_SIZE) / 2;
+        context.drawTexture(RenderPipelines.GUI_TEXTURED, skin.body().texturePath(), skinX, skinY, 8.0F, 8.0F, SKIN_SIZE, SKIN_SIZE, 8, 8, 64, 64);
+        context.drawTexture(RenderPipelines.GUI_TEXTURED, skin.body().texturePath(), skinX, skinY, 40.0F, 8.0F, SKIN_SIZE, SKIN_SIZE, 8, 8, 64, 64);
     }
 
     private void renderLatency(DrawContext guiGraphics, Text text) {
-        int textX = this.getContentX() + SKIN_SIZE + 1 + 4;
-        int textY = this.getContentY() + (this.getContentHeight() - this.minecraft.textRenderer.fontHeight) / 2 + 2;
-        guiGraphics.drawText(this.minecraft.textRenderer, text, textX, textY, 0xFFFFFFFF, false);
+        guiGraphics.drawText(
+                this.minecraft.textRenderer,
+                text,
+                this.getX() + 2 + SKIN_SIZE + 4,
+                this.getY() + 2 + (this.getContentHeight() - this.minecraft.textRenderer.fontHeight) / 2 + 2,
+                0xFFFFFFFF,
+                false
+        );
     }
 
     private static int getLatencyColor(double ping) {

@@ -33,14 +33,6 @@ public class ManagementScreen extends VoiceChatScreenBase {
         }).dimensions(this.guiLeft + 68, this.guiTop + this.ySize - 27, this.xSize - 136, 20).build();
         this.addDrawableChild(disconnect);
 
-        if (this.clientList != null) {
-            this.clientList.setDimensionsAndPosition(78, 202, this.guiLeft + 167, this.guiTop + 20);
-            this.clientList.refreshScroll();
-        } else {
-            this.clientList = new ClientList(78, 202, this.guiLeft + 167, this.guiTop + 20);
-        }
-        this.addDrawableChild(this.clientList);
-
         if (this.feed != null) {
             this.feed.setDimensionsAndPosition(146, 202, this.guiLeft + 11, this.guiTop + 20);
             this.feed.refreshScroll();
@@ -48,6 +40,14 @@ public class ManagementScreen extends VoiceChatScreenBase {
             this.feed = new SessionEventFeed(146, 202, this.guiLeft + 11, this.guiTop + 20);
         }
         this.addDrawableChild(this.feed);
+
+        if (this.clientList != null) {
+            this.clientList.setDimensionsAndPosition(78, 202, this.guiLeft + 167, this.guiTop + 20);
+            this.clientList.refreshScroll();
+        } else {
+            this.clientList = new ClientList(78, 202, this.guiLeft + 167, this.guiTop + 20);
+        }
+        this.addDrawableChild(this.clientList);
     }
 
     @Override
