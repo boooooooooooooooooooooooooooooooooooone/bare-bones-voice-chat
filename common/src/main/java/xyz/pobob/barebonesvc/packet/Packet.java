@@ -6,7 +6,7 @@ import xyz.pobob.barebonesvc.util.Bytes;
 public interface Packet {
 
     byte MAGIC_BYTE = 0x65;
-    byte VERSION = 0x06;
+    byte VERSION = 0x07;
     byte RELIABLE_MASK = (byte) 0b10000000;
 
     int MAGIC_BYTE_INDEX = 0;
