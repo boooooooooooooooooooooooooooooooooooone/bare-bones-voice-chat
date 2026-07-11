@@ -35,6 +35,7 @@ public class ClientUpdatePlayerHandler implements ClientPacketHandler {
                         conn.getUsername(),
                         conn.getUUID(),
                         this.localClientUpdatePlayerPacket.get().isDisabled(),
+                        false,
                         false
                 );
 

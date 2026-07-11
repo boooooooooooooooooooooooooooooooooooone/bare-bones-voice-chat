@@ -5,7 +5,7 @@ import xyz.pobob.barebonesvc.util.Bytes;
 import java.util.UUID;
 
 /**
- * [USERNAME : len-17][UUID : 16][DISABLED + DISCONNECTED : 1]
+ * [USERNAME : len-17][UUID : 16][DISABLED + DISCONNECTED + SHOULD LOG : 1]
  */
 public class ServerUpdatePlayerPacket extends ReliablePacket {
 
@@ -13,17 +13,20 @@ public class ServerUpdatePlayerPacket extends ReliablePacket {
     private UUID uuid;
     private boolean disabled;
     private boolean disconnected;
+    private boolean shouldLog;
 
     public String getUsername() {return this.username;}
     public UUID getUUID() {return this.uuid;}
-    public boolean getDisabled() {return this.disabled;}
-    public boolean getDisconnected() {return this.disconnected;}
+    public boolean isDisabled() {return this.disabled;}
+    public boolean isDisconnected() {return this.disconnected;}
+    public boolean shouldLog() {return this.shouldLog;}
 
-    public void create(String username, UUID uuid, boolean disabled, boolean disconnected) {
+    public void create(String username, UUID uuid, boolean disabled, boolean disconnected, boolean shouldLog) {
         this.username = username;
         this.uuid = uuid;
         this.disabled = disabled;
         this.disconnected = disconnected;
+        this.shouldLog = shouldLog;
     }
 
     @Override
@@ -35,7 +38,9 @@ public class ServerUpdatePlayerPacket extends ReliablePacket {
                 usernameBytes,
                 Bytes.of(this.uuid.getMostSignificantBits()),
                 Bytes.of(this.uuid.getLeastSignificantBits()),
-                new byte[] {(byte) ((this.disabled ? 1 : 0) + (this.disconnected ? 2 : 0))}
+                new byte[] {(byte) ((this.disabled ? 1 : 0)
+                        + (this.disconnected ? 2 : 0)
+                        + (this.shouldLog ? 4 : 0))}
         );
     }
 
@@ -51,5 +56,6 @@ public class ServerUpdatePlayerPacket extends ReliablePacket {
         );
         this.disabled = (data[start + len - 1] & 1) == 1;
         this.disconnected = (data[start + len - 1] & 2) == 2;
+        this.shouldLog = (data[start + len - 1] & 4) == 4;
     }
 }

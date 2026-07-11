@@ -37,7 +37,7 @@ public class ClientHelloHandler implements ClientPacketHandler {
                 clientHelloPacket.getUsername(),
                 clientHelloPacket.getUUID(),
                 clientHelloPacket.isDisabled(),
-                !config.mojangAuth
+                false
         );
 
         this.server.addClient(clientAddress, conn);

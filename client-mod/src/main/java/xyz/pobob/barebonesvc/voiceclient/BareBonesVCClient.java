@@ -8,6 +8,7 @@ import de.maxhenkel.voicechat.voice.client.ClientVoicechat;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
 import xyz.pobob.barebonesvc.BareBonesVC;
+import xyz.pobob.barebonesvc.gui.SessionEventFeed;
 import xyz.pobob.barebonesvc.mixin.ClientVoicechatAccessor;
 import xyz.pobob.barebonesvc.packet.ClientUpdatePlayerPacket;
 import xyz.pobob.barebonesvc.packet.Packet;
@@ -102,6 +103,7 @@ public class BareBonesVCClient {
         MiscTasks.startHandshake();
 
         BareBonesVC.LOGGER.info("Started connecting to voice server {}", this.getReadableAddress());
+        SessionEventFeed.send("Connecting to voice server...");
     }
 
     public void send(Packet packet) {
@@ -158,12 +160,13 @@ public class BareBonesVCClient {
         ((ClientVoicechatAccessor) this.client).invokeStartMicThread(null);
         BareBonesVC.LOGGER.info("Starting microphone thread");
 
-
         sendMessageSafe(Text.of("Successfully connected to Bare Bones VC server!"), true);
+        SessionEventFeed.send(MinecraftClient.getInstance().getGameProfile().name() + " joined");
     }
 
     public void onDisconnect() {
         BareBonesVC.LOGGER.info("Disconnected from {}", this.getReadableAddress());
+        SessionEventFeed.clear();
 
         if (this.isRunning()) {
             this.clientUpdatePlayerPacket.create(ClientManager.getPlayerStateManager().isDisabled(), true);

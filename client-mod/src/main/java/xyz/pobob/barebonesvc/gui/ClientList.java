@@ -1,68 +1,25 @@
 package xyz.pobob.barebonesvc.gui;
 
-import com.google.common.collect.Lists;
 import de.maxhenkel.voicechat.voice.client.ClientManager;
 import de.maxhenkel.voicechat.voice.common.PlayerState;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
-import net.minecraft.client.gui.widget.ContainerWidget;
+import net.minecraft.client.gui.widget.ScrollableWidget;
 import net.minecraft.screen.ScreenTexts;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
-public class ClientList extends ContainerWidget {
+public class ClientList extends ScrollableWidget {
+    private static final int CELL_SIZE = 20;
+
     protected final List<ClientEntry> entries;
 
     public ClientList(int width, int height, int x, int y) {
         super(x, y, width, height, ScreenTexts.EMPTY);
-        this.entries = Lists.newArrayList();
+        this.entries = new ArrayList<>();
         this.updateEntryList();
-    }
-
-    public static void update() {
-        if (MinecraftClient.getInstance().currentScreen instanceof ManagementScreen managementScreen) {
-            managementScreen.clientList.updateEntryList();
-        }
-    }
-
-    public void updateEntryList() {
-        List<PlayerState> onlinePlayers = ClientManager.getPlayerStateManager().getPlayerStates(true);
-        this.entries.clear();
-
-        for (PlayerState state : onlinePlayers) {
-            if (!state.isDisconnected()) {
-                this.addEntry(new ClientEntry(state));
-            }
-        }
-    }
-
-    public void addEntry(ClientEntry entry) {
-        entry.setX(this.getRowLeft());
-        entry.setWidth(this.getRowWidth());
-        entry.setY(this.getYOfNextEntry());
-        entry.setHeight(ManagementScreen.CELL_SIZE);
-        this.entries.add(entry);
-    }
-
-    public int getRowLeft() {
-        return this.getX() + this.width / 2 - this.getRowWidth() / 2;
-    }
-
-    public int getRowWidth() {
-        return this.width;
-    }
-
-    public int getYOfNextEntry() {
-        int i = 1 + this.getY() - (int) this.getScrollY();
-
-        for (ClientEntry entry : this.entries) {
-            i += entry.getHeight();
-        }
-
-        return i;
     }
 
     @Override
@@ -76,12 +33,44 @@ public class ClientList extends ContainerWidget {
             }
         }
         context.disableScissor();
+
         this.drawScrollbar(context, mouseX, mouseY);
     }
 
-    @Override
-    public List<? extends Element> children() {
-        return List.of();
+    public void updateEntryList() {
+        this.entries.clear();
+
+        for (PlayerState state : ClientManager.getPlayerStateManager().getPlayerStates(true)) {
+            if (!state.isDisconnected()) {
+                this.addEntry(new ClientEntry(state));
+            }
+        }
+    }
+
+    public void addEntry(ClientEntry entry) {
+        entry.setX(this.getRowLeft() + 1);
+        entry.setWidth(this.getRowWidth());
+        entry.setY(this.getYOfNextEntry() + 1);
+        entry.setHeight(CELL_SIZE);
+        this.entries.add(entry);
+    }
+
+    public int getRowLeft() {
+        return this.getX();
+    }
+
+    public int getRowWidth() {
+        return this.getWidth();
+    }
+
+    public int getYOfNextEntry() {
+        int i = this.getY() - (int) this.getScrollY();
+
+        for (ClientEntry entry : this.entries) {
+            i += entry.getHeight();
+        }
+
+        return i;
     }
 
     @Override
@@ -97,11 +86,10 @@ public class ClientList extends ContainerWidget {
 
     @Override
     protected double getDeltaYPerScroll() {
-        return ManagementScreen.CELL_SIZE * 0.5;
+        return CELL_SIZE * 0.5;
     }
 
     @Override
     protected void appendClickableNarrations(NarrationMessageBuilder builder) {
-
     }
 }

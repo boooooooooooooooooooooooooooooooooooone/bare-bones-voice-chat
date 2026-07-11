@@ -198,14 +198,22 @@ public class BareBonesVCServer {
     }
 
     public void onAuthenticated(SocketAddress clientAddress, ClientConnection clientConnection) {
+        if (clientConnection.isAuthenticated()) return;
+
         BareBonesVC.LOGGER.info("Client connected: " + clientConnection.getUsername() + " (" + clientConnection.getUUID() + ")");
 
         clientConnection.setAuthenticated(true);
 
         ServerUpdatePlayerPacket serverUpdatePlayerPacket = new ServerUpdatePlayerPacket();
 
-        for (ClientConnection c : this.getAuthenticatedClients()) { // tell new client who is present
-            serverUpdatePlayerPacket.create(c.getUsername(), c.getUUID(), c.isDisabled(), false);
+        for (ClientConnection c : this.getAuthenticatedClients()) { // introduce already present players to new client
+            serverUpdatePlayerPacket.create(
+                    c.getUsername(),
+                    c.getUUID(),
+                    c.isDisabled(),
+                    false,
+                    false
+            );
             this.send(serverUpdatePlayerPacket, clientAddress);
         }
 
@@ -213,7 +221,8 @@ public class BareBonesVCServer {
                 clientConnection.getUsername(),
                 clientConnection.getUUID(),
                 clientConnection.isDisabled(),
-                false
+                false,
+                true
         );
         this.announceExcluding(this.localServerUpdatePlayerPacket.get(), clientAddress);
     }
@@ -225,6 +234,7 @@ public class BareBonesVCServer {
                     disconnected.getUsername(),
                     disconnected.getUUID(),
                     false,
+                    true,
                     true
             );
             this.announce(this.localServerUpdatePlayerPacket.get());

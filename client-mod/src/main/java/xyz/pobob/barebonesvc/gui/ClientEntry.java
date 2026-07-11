@@ -29,21 +29,18 @@ public class ClientEntry extends ElementListWidget.Entry<ClientEntry> {
 
     public void render(DrawContext context, int mouseX, int mouseY, boolean hovered, float deltaTicks) {
         int left = this.getContentX();
-        int top = this.getContentY();
-        int skinX = left + 4;
-        int skinY = top + (this.getContentHeight() - SKIN_SIZE) / 2;
+        int top = this.getContentY() + (this.getContentHeight() - SKIN_SIZE) / 2;
 
         SkinTextures skin = GameProfileUtils.getSkin(this.state.getUuid());
-        context.drawTexture(RenderPipelines.GUI_TEXTURED, skin.body().texturePath(), skinX, skinY, 8.0F, 8.0F, SKIN_SIZE, SKIN_SIZE, 8, 8, 64, 64);
-        context.drawTexture(RenderPipelines.GUI_TEXTURED, skin.body().texturePath(), skinX, skinY, 40.0F, 8.0F, SKIN_SIZE, SKIN_SIZE, 8, 8, 64, 64);
+        context.drawTexture(RenderPipelines.GUI_TEXTURED, skin.body().texturePath(), left, top, 8.0F, 8.0F, SKIN_SIZE, SKIN_SIZE, 8, 8, 64, 64);
+        context.drawTexture(RenderPipelines.GUI_TEXTURED, skin.body().texturePath(), left, top, 40.0F, 8.0F, SKIN_SIZE, SKIN_SIZE, 8, 8, 64, 64);
 
         if (this.minecraft.textRenderer != null) {
             Double latency = BareBonesVC.LATENCIES.get(this.state.getUuid());
             if (latency != null) {
                 this.renderLatency(
                         context,
-                        Text.literal(String.format("%.1f", latency) + "ms")
-                                .setStyle(Style.EMPTY.withColor(getLatencyColor(latency)))
+                        Text.literal(String.format("%.1f", latency) + "ms").setStyle(Style.EMPTY.withColor(getLatencyColor(latency)))
                 );
             }
 
@@ -54,7 +51,7 @@ public class ClientEntry extends ElementListWidget.Entry<ClientEntry> {
     }
 
     private void renderLatency(DrawContext guiGraphics, Text text) {
-        int textX = this.getContentX() + SKIN_SIZE + 4 + 4;
+        int textX = this.getContentX() + SKIN_SIZE + 1 + 4;
         int textY = this.getContentY() + (this.getContentHeight() - this.minecraft.textRenderer.fontHeight) / 2 + 2;
         guiGraphics.drawText(this.minecraft.textRenderer, text, textX, textY, 0xFFFFFFFF, false);
     }
