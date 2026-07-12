@@ -12,7 +12,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import xyz.pobob.barebonesvc.BareBonesVC;
 import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
 import xyz.pobob.barebonesvc.voiceclient.FabricBareBonesVCClient;
 
@@ -33,7 +32,7 @@ public class ClientVoicechatMixin {
         if (connection != null) return;
 
         this.micThread = new MicThread(((FabricBareBonesVCClient) BareBonesVCClient.INSTANCE).client, null,
-                e -> BareBonesVC.LOGGER.error("Failed to start microphone thread", e));
+                e -> BareBonesVCClient.INSTANCE.logError("Failed to start microphone thread", e));
         this.micThread.start();
         ci.cancel();
     }

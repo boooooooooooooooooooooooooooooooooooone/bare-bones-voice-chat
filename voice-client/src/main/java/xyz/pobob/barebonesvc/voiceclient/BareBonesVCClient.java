@@ -1,6 +1,5 @@
 package xyz.pobob.barebonesvc.voiceclient;
 
-import xyz.pobob.barebonesvc.BareBonesVC;
 import xyz.pobob.barebonesvc.packet.ClientUpdatePlayerPacket;
 import xyz.pobob.barebonesvc.packet.Packet;
 import xyz.pobob.barebonesvc.packet.ReliablePacket;
@@ -55,7 +54,7 @@ public abstract class BareBonesVCClient {
         try {
             this.socket = new DatagramSocket();
         } catch (SocketException e) {
-            BareBonesVC.LOGGER.error("An error occurred while starting voice client", e);
+            this.logError("An error occurred while starting voice client", e);
             return;
         }
         this.running = true;
@@ -91,7 +90,7 @@ public abstract class BareBonesVCClient {
 
         MiscTasks.startHandshake();
 
-        BareBonesVC.LOGGER.info("Started connecting to voice server " + this.getReadableAddress());
+        this.logInfo("Started connecting to voice server " + this.getReadableAddress());
         this.sendFeed("Connecting to voice server...");
     }
 
@@ -111,7 +110,7 @@ public abstract class BareBonesVCClient {
             try {
                 this.socket.send(this.sendPacket);
             } catch (IOException e) {
-                BareBonesVC.LOGGER.error("An error occurred while sending Datagram packet", e);
+                this.logError("An error occurred while sending Datagram packet", e);
             }
         }
     }
@@ -143,7 +142,7 @@ public abstract class BareBonesVCClient {
     }
 
     public void onDisconnect() {
-        BareBonesVC.LOGGER.info("Disconnected from " + this.getReadableAddress());
+        this.logInfo("Disconnected from " + this.getReadableAddress());
         this.clearFeed();
 
         if (this.isRunning()) {
@@ -203,9 +202,17 @@ public abstract class BareBonesVCClient {
 
     public abstract boolean isSimpleVoiceChatDisabled();
 
+    public abstract void logInfo(String msg);
+
+    public abstract void logWarn(String msg);
+
+    public abstract void logError(String msg, Throwable t);
+
     public abstract void sendMessage(String message, boolean overlay);
 
     public abstract void sendFeed(String message);
+
+    public abstract void clearFeed();
 
     public abstract void initializeSimpleVoiceChat();
 
@@ -221,7 +228,7 @@ public abstract class BareBonesVCClient {
 
     public abstract void pruneAudioChannels();
 
-    public abstract void clearFeed();
+    public abstract void registerClientQuitEvent(Runnable action);
 
     public abstract Executor getIoWorkerExecutor();
 

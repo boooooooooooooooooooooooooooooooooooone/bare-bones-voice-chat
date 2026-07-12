@@ -5,10 +5,9 @@ import xyz.pobob.barebonesvc.packet.handler.*;
 import xyz.pobob.barebonesvc.packet.registry.PacketRegistry;
 import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
 
-public abstract class BareBonesVC {
+public class BareBonesVC {
 
     public static final String MOD_ID = "barebonesvc";
-    public static Logger LOGGER;
 
     static {
         PacketRegistry.registerHandler(
@@ -53,14 +52,12 @@ public abstract class BareBonesVC {
         );
     }
 
-    // ensure that the entrypoint method for each implementation consists only of a call to this method
-    public void onStartup() {
-        this.registerClientQuit(() -> {
+    // the entrypoint method for each client implementation should consist only of a call to this method
+    public static void onStartup() {
+        BareBonesVCClient.INSTANCE.registerClientQuitEvent(() -> {
             if (BareBonesVCClient.INSTANCE.isRunning()) {
                 BareBonesVCClient.INSTANCE.onDisconnect();
             }
         });
     }
-
-    public abstract void registerClientQuit(Runnable action);
 }

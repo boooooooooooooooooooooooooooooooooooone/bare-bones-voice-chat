@@ -7,12 +7,15 @@ import de.maxhenkel.voicechat.voice.client.ClientManager;
 import de.maxhenkel.voicechat.voice.client.ClientVoicechat;
 import de.maxhenkel.voicechat.voice.common.PlayerSoundPacket;
 import de.maxhenkel.voicechat.voice.common.PlayerState;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientLoginNetworkHandler;
 import net.minecraft.network.encryption.NetworkEncryptionException;
 import net.minecraft.network.encryption.NetworkEncryptionUtils;
 import net.minecraft.text.Text;
 import net.minecraft.util.Util;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import xyz.pobob.barebonesvc.BareBonesVC;
 import xyz.pobob.barebonesvc.gui.SessionEventFeed;
 import xyz.pobob.barebonesvc.mixin.ClientLoginNetworkHandlerAccessor;
@@ -26,6 +29,8 @@ import java.util.concurrent.Executor;
 
 public class FabricBareBonesVCClient extends BareBonesVCClient {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(BareBonesVC.MOD_ID);
+
     public ClientVoicechat client;
 
     public synchronized Map<UUID, AudioChannel> getAudioChannels() {
@@ -37,12 +42,29 @@ public class FabricBareBonesVCClient extends BareBonesVCClient {
         return MinecraftClient.getInstance().getGameProfile().name();
     }
 
+    @Override
     public UUID getOwnUUID() {
         return MinecraftClient.getInstance().getGameProfile().id();
     }
 
+    @Override
     public boolean isSimpleVoiceChatDisabled() {
         return VoicechatClient.CLIENT_CONFIG.disabled.get();
+    }
+
+    @Override
+    public void logInfo(String msg) {
+        LOGGER.info(msg);
+    }
+
+    @Override
+    public void logWarn(String msg) {
+        LOGGER.warn(msg);
+    }
+
+    @Override
+    public void logError(String msg, Throwable t) {
+        LOGGER.error(msg, t);
     }
 
     @Override
@@ -58,6 +80,11 @@ public class FabricBareBonesVCClient extends BareBonesVCClient {
     }
 
     @Override
+    public void clearFeed() {
+        SessionEventFeed.clear();
+    }
+
+    @Override
     public void initializeSimpleVoiceChat() {
         if (VoicechatClient.CLIENT_CONFIG.muteOnJoin.get()) {
             ClientManager.getPlayerStateManager().setMuted(true);
@@ -68,7 +95,7 @@ public class FabricBareBonesVCClient extends BareBonesVCClient {
             this.client.getMicThread().close();
         }
         ((ClientVoicechatAccessor) this.client).invokeStartMicThread(null);
-        BareBonesVC.LOGGER.info("Starting microphone thread");
+        this.logInfo("Starting microphone thread");
     }
 
     @Override
@@ -120,8 +147,8 @@ public class FabricBareBonesVCClient extends BareBonesVCClient {
     }
 
     @Override
-    public void clearFeed() {
-        SessionEventFeed.clear();
+    public void registerClientQuitEvent(Runnable action) {
+        ClientLifecycleEvents.CLIENT_STOPPING.register(client -> action.run());
     }
 
     @Override
