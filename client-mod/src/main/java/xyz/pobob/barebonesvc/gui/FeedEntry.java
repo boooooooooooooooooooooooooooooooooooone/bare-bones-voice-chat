@@ -34,9 +34,9 @@ public class FeedEntry extends ElementListWidget.Entry<FeedEntry> {
         int textX = this.getContentX() + 2;
         int textY = this.getContentY();
 
-        if (mouseX > this.getX() && mouseY > this.getY() - 1 && mouseX < this.getX() + this.getWidth() - 6 && mouseY < this.getY() + this.getHeight() + 3) {
+        if (mouseX > this.getX() && mouseY > this.getY() - 1 && mouseX < this.getX() + this.getWidth() - 3 && mouseY < this.getY() + this.getHeight() + 3) {
             context.drawTooltip(this.textRenderer, Text.of("Sent at " + FORMATTER.format(this.timestamp)), mouseX, mouseY);
-            context.fill(this.getX(), this.getY() - 1, this.getX() + this.getWidth() - 6, this.getY() + this.getHeight() + 3, 0x20FFFFFF);
+            context.fill(this.getX(), this.getY() - 1, this.getX() + this.getWidth() - 3, this.getY() + this.getHeight() + 3, 0x20FFFFFF);
         }
 
         for (int i = 0; i < messageSplit.size(); i++) {

@@ -29,9 +29,9 @@ public class ClientEntry extends ElementListWidget.Entry<ClientEntry> {
 
     public void render(DrawContext context, int mouseX, int mouseY, boolean hovered, float deltaTicks) {
         if (this.minecraft.textRenderer != null) {
-            if (mouseX > this.getX() && mouseY > this.getY() && mouseX < this.getX() + this.getWidth() - 6 && mouseY < this.getY() + this.getHeight()) {
+            if (mouseX > this.getX() && mouseY > this.getY() && mouseX < this.getX() + this.getWidth() - 3 && mouseY < this.getY() + this.getHeight()) {
                 context.drawTooltip(this.minecraft.textRenderer, Text.of(this.state.getName()), mouseX, mouseY);
-                context.fill(this.getX(), this.getY(), this.getX() + this.getWidth() - 6, this.getY() + this.getHeight(), 0x20FFFFFF);
+                context.fill(this.getX(), this.getY(), this.getX() + this.getWidth() - 3, this.getY() + this.getHeight(), 0x20FFFFFF);
             }
 
             Double latency = BareBonesVC.LATENCIES.get(this.state.getUuid());
@@ -44,7 +44,7 @@ public class ClientEntry extends ElementListWidget.Entry<ClientEntry> {
         }
 
         SkinTextures skin = GameProfileUtils.getSkin(this.state.getUuid());
-        int skinX = this.getX() + 2;
+        int skinX = this.getX() + 3;
         int skinY = this.getY() + 2 + (this.getContentHeight() - SKIN_SIZE) / 2;
         context.drawTexture(RenderPipelines.GUI_TEXTURED, skin.body().texturePath(), skinX, skinY, 8.0F, 8.0F, SKIN_SIZE, SKIN_SIZE, 8, 8, 64, 64);
         context.drawTexture(RenderPipelines.GUI_TEXTURED, skin.body().texturePath(), skinX, skinY, 40.0F, 8.0F, SKIN_SIZE, SKIN_SIZE, 8, 8, 64, 64);
@@ -54,7 +54,7 @@ public class ClientEntry extends ElementListWidget.Entry<ClientEntry> {
         guiGraphics.drawText(
                 this.minecraft.textRenderer,
                 text,
-                this.getX() + 2 + SKIN_SIZE + 4,
+                this.getX() + 3 + SKIN_SIZE + 4,
                 this.getY() + 2 + (this.getContentHeight() - this.minecraft.textRenderer.fontHeight) / 2 + 2,
                 0xFFFFFFFF,
                 false

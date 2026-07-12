@@ -216,7 +216,7 @@ public class BareBonesVCClient {
     }
 
     public boolean isConnected() {
-        return this.running && System.currentTimeMillis() - this.lastKeepAlive < TIMEOUT_MILLIS;
+        return this.isRunning() && System.currentTimeMillis() - this.lastKeepAlive < TIMEOUT_MILLIS;
     }
 
     public synchronized Map<UUID, AudioChannel> getAudioChannels() {
