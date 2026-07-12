@@ -1,23 +1,18 @@
 package xyz.pobob.barebonesvc.voiceclient;
 
-import de.maxhenkel.voicechat.VoicechatClient;
-import de.maxhenkel.voicechat.voice.client.AudioChannel;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.Text;
 import xyz.pobob.barebonesvc.packet.ClientHelloPacket;
 
 import java.util.concurrent.TimeUnit;
 
 public class MiscTasks {
-    public static void startKeepAliveTask() {
+    public static void startTimeoutAndAudioChannelCheck() {
         BareBonesVCClient.INSTANCE.scheduler.scheduleAtFixedRate(() -> {
             if (System.currentTimeMillis() - BareBonesVCClient.INSTANCE.lastKeepAlive > BareBonesVCClient.TIMEOUT_MILLIS) {
                 BareBonesVCClient.INSTANCE.onTimeout();
             }
 
-            if (BareBonesVCClient.INSTANCE.client != null) {
-                BareBonesVCClient.INSTANCE.getAudioChannels().values().stream().filter(AudioChannel::canKill).forEach(AudioChannel::closeAndKill);
-                BareBonesVCClient.INSTANCE.getAudioChannels().entrySet().removeIf(entry -> entry.getValue().isClosed());
+            if (BareBonesVCClient.INSTANCE.isSimpleVoiceChatRunning()) {
+                BareBonesVCClient.INSTANCE.pruneAudioChannels();
             }
         }, 50L, 2000L, TimeUnit.MILLISECONDS);
     }
@@ -29,9 +24,9 @@ public class MiscTasks {
     public static void startHandshake() {
         final ClientHelloPacket clientHelloPacket = new ClientHelloPacket();
         clientHelloPacket.create(
-                MinecraftClient.getInstance().getGameProfile().name(),
-                MinecraftClient.getInstance().getGameProfile().id(),
-                VoicechatClient.CLIENT_CONFIG.disabled.get()
+                BareBonesVCClient.INSTANCE.getOwnUsername(),
+                BareBonesVCClient.INSTANCE.getOwnUUID(),
+                BareBonesVCClient.INSTANCE.isSimpleVoiceChatDisabled()
         );
 
         Thread thread = new Thread(null, () -> {
@@ -45,8 +40,8 @@ public class MiscTasks {
                 count++;
             }
             if (count >= MAX_SENDS) {
+                BareBonesVCClient.INSTANCE.sendMessage("Failed to connect to Bare Bones VC server", true);
                 BareBonesVCClient.INSTANCE.onDisconnect();
-                BareBonesVCClient.sendMessageSafe(Text.of("Failed to connect to Bare Bones VC server"), true);
             }
         }, "BareBonesVCHandshakeThread");
         thread.setDaemon(true);

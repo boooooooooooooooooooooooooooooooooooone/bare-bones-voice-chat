@@ -1,6 +1,5 @@
 package xyz.pobob.barebonesvc.packet.handler;
 
-import xyz.pobob.barebonesvc.gui.SessionEventFeed;
 import xyz.pobob.barebonesvc.packet.ServerUpdateVoiceDistancePacket;
 import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
 
@@ -16,10 +15,10 @@ public class ServerUpdateVoiceDistanceHandler implements ServerPacketHandler {
             float value = (float) this.serverUpdateVoiceDistancePacket.getVoiceDistance();
             if (this.serverUpdateVoiceDistancePacket.isWhisperDistance()) {
                 BareBonesVCClient.INSTANCE.config.setWhisperDistance(value);
-                SessionEventFeed.send("Whisper distance was set to " + value);
+                BareBonesVCClient.INSTANCE.sendFeed("Whisper distance was set to " + value);
             } else {
                 BareBonesVCClient.INSTANCE.config.setVoiceDistance(value);
-                SessionEventFeed.send("Voice distance was set to " + value);
+                BareBonesVCClient.INSTANCE.sendFeed("Voice distance was set to " + value);
             }
         }
     }

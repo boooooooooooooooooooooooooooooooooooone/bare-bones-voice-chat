@@ -1,7 +1,7 @@
 package xyz.pobob.barebonesvc.packet.handler;
 
-import xyz.pobob.barebonesvc.BareBonesVC;
 import xyz.pobob.barebonesvc.packet.ServerPlayerLatencyPacket;
+import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
 
 public class ServerPlayerLatencyHandler implements ServerPacketHandler {
 
@@ -10,7 +10,7 @@ public class ServerPlayerLatencyHandler implements ServerPacketHandler {
     @Override
     public void handle(byte[] data) {
         this.serverPlayerLatencyPacket.deserialize(data);
-        BareBonesVC.LATENCIES.put(
+        BareBonesVCClient.INSTANCE.latencies.put(
                 this.serverPlayerLatencyPacket.getUUID(),
                 this.serverPlayerLatencyPacket.getLatencyNano() * 1e-6
         );

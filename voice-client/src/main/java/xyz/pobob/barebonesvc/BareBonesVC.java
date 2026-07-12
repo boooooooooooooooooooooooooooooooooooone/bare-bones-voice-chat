@@ -1,23 +1,14 @@
 package xyz.pobob.barebonesvc;
 
-import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import xyz.pobob.barebonesvc.packet.PacketType;
 import xyz.pobob.barebonesvc.packet.handler.*;
 import xyz.pobob.barebonesvc.packet.registry.PacketRegistry;
 import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
 
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-
-public class BareBonesVC implements ClientModInitializer {
+public abstract class BareBonesVC {
 
     public static final String MOD_ID = "barebonesvc";
-    public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
-    public static final Map<UUID, Double> LATENCIES = new ConcurrentHashMap<>();
+    public static Logger LOGGER;
 
     static {
         PacketRegistry.registerHandler(
@@ -62,10 +53,14 @@ public class BareBonesVC implements ClientModInitializer {
         );
     }
 
-    @Override
-    public void onInitializeClient() {
-        ClientLifecycleEvents.CLIENT_STOPPING.register(minecraftClient -> {
-            if (BareBonesVCClient.INSTANCE.isRunning()) BareBonesVCClient.INSTANCE.onDisconnect();
+    // ensure that the entrypoint method for each implementation consists only of a call to this method
+    public void onStartup() {
+        this.registerClientQuit(() -> {
+            if (BareBonesVCClient.INSTANCE.isRunning()) {
+                BareBonesVCClient.INSTANCE.onDisconnect();
+            }
         });
     }
+
+    public abstract void registerClientQuit(Runnable action);
 }

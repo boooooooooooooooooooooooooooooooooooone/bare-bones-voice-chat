@@ -14,7 +14,7 @@
   "environment": "client",
   "entrypoints": {
     "client": [
-      "xyz.pobob.barebonesvc.BareBonesVC"
+      "xyz.pobob.barebonesvc.FabricBareBonesVCInitializer"
     ]
   },
 

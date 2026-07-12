@@ -8,3 +8,4 @@ pluginManagement {
 rootProject.name = 'BareBonesVoiceChat'
 
 include("common", "voice-client", "voice-server")
+include 'fabric-1.21.11'

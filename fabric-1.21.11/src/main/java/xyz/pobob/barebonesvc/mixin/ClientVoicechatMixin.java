@@ -14,6 +14,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import xyz.pobob.barebonesvc.BareBonesVC;
 import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
+import xyz.pobob.barebonesvc.voiceclient.FabricBareBonesVCClient;
 
 @Mixin(ClientVoicechat.class)
 public class ClientVoicechatMixin {
@@ -31,7 +32,7 @@ public class ClientVoicechatMixin {
     private void injectStartMicThread(ClientVoicechatConnection connection, CallbackInfo ci) {
         if (connection != null) return;
 
-        this.micThread = new MicThread(BareBonesVCClient.INSTANCE.client, null,
+        this.micThread = new MicThread(((FabricBareBonesVCClient) BareBonesVCClient.INSTANCE).client, null,
                 e -> BareBonesVC.LOGGER.error("Failed to start microphone thread", e));
         this.micThread.start();
         ci.cancel();
@@ -43,12 +44,16 @@ public class ClientVoicechatMixin {
             cancellable = true
     )
     private void injectProcessSoundPacket(SoundPacket<?> packet, CallbackInfo ci) {
-        if (BareBonesVCClient.INSTANCE.client != null && !VoicechatClient.CLIENT_CONFIG.disabled.get()) {
-            AudioChannel channel = BareBonesVCClient.INSTANCE.getAudioChannels().get(packet.getChannelId());
+        if (BareBonesVCClient.INSTANCE.isSimpleVoiceChatRunning() && !VoicechatClient.CLIENT_CONFIG.disabled.get()) {
+            AudioChannel channel = ((FabricBareBonesVCClient) BareBonesVCClient.INSTANCE).getAudioChannels().get(packet.getChannelId());
             if (channel == null) {
-                channel = new AudioChannel(BareBonesVCClient.INSTANCE.client, null, packet.getChannelId());
+                channel = new AudioChannel(
+                        ((FabricBareBonesVCClient) BareBonesVCClient.INSTANCE).client,
+                        null,
+                        packet.getChannelId()
+                );
                 channel.start();
-                BareBonesVCClient.INSTANCE.getAudioChannels().put(packet.getChannelId(), channel);
+                ((FabricBareBonesVCClient) BareBonesVCClient.INSTANCE).getAudioChannels().put(packet.getChannelId(), channel);
             }
             channel.addToQueue(packet);
 

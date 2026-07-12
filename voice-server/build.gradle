@@ -2,12 +2,8 @@ plugins {
     id 'java'
 }
 
-version = 'alpha-9'
-group = 'xyz.pobob.barebonesvc'
-
-repositories {
-    mavenCentral()
-}
+version = project.version
+group = project.maven_group
 
 dependencies {
     implementation project(':common')

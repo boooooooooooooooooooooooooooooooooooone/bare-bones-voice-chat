@@ -2,7 +2,6 @@ package xyz.pobob.barebonesvc.mixin;
 
 import de.maxhenkel.voicechat.api.opus.OpusEncoder;
 import de.maxhenkel.voicechat.api.opus.OpusEncoderMode;
-import de.maxhenkel.voicechat.config.ServerConfig;
 import de.maxhenkel.voicechat.natives.OpusManager;
 import de.maxhenkel.voicechat.voice.client.MicThread;
 import org.spongepowered.asm.mixin.Final;
@@ -43,7 +42,15 @@ public class MicThreadMixin {
                     target = "Lde/maxhenkel/voicechat/natives/OpusManager;createEncoder(Lde/maxhenkel/voicechat/api/opus/OpusEncoderMode;)Lde/maxhenkel/voicechat/api/opus/OpusEncoder;"
             )
     )
-    private OpusEncoder redirectEncoder(OpusEncoderMode encoder) {
-        return OpusManager.createEncoder(BareBonesVCClient.INSTANCE.config == null ? ServerConfig.Codec.AUDIO.getMode() : BareBonesVCClient.INSTANCE.config.getCodec().getMode());
+    private OpusEncoder redirectEncoder(OpusEncoderMode mode) {
+        if (BareBonesVCClient.INSTANCE.config != null) {
+            return OpusManager.createEncoder(switch (BareBonesVCClient.INSTANCE.config.getCodec()) {
+                case VOIP -> OpusEncoderMode.VOIP;
+                case AUDIO -> OpusEncoderMode.AUDIO;
+                case RESTRICTED_LOWDELAY -> OpusEncoderMode.RESTRICTED_LOWDELAY;
+            });
+        } else {
+            return OpusManager.createEncoder(OpusEncoderMode.AUDIO);
+        }
     }
 }

@@ -1,11 +1,7 @@
 package xyz.pobob.barebonesvc.packet.handler;
 
-import de.maxhenkel.voicechat.net.PlayerStatePacket;
-import de.maxhenkel.voicechat.voice.client.ClientManager;
-import de.maxhenkel.voicechat.voice.common.PlayerState;
-import xyz.pobob.barebonesvc.gui.SessionEventFeed;
-import xyz.pobob.barebonesvc.mixin.playerstate.ClientPlayerStateManagerAccessor;
 import xyz.pobob.barebonesvc.packet.ServerUpdatePlayerPacket;
+import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
 
 public class ServerUpdatePlayerHandler implements ServerPacketHandler {
 
@@ -16,18 +12,15 @@ public class ServerUpdatePlayerHandler implements ServerPacketHandler {
         this.serverUpdatePlayerPacket.deserialize(data);
 
         if (this.serverUpdatePlayerPacket.shouldLog()) {
-            SessionEventFeed.send(this.serverUpdatePlayerPacket.getUsername() +
+            BareBonesVCClient.INSTANCE.sendFeed(this.serverUpdatePlayerPacket.getUsername() +
                     (this.serverUpdatePlayerPacket.isDisconnected() ? " disconnected" : " joined"));
         }
 
-        ((ClientPlayerStateManagerAccessor) ClientManager.getPlayerStateManager()).invokeUpdatePlayerState(
-                null,
-                new PlayerStatePacket(new PlayerState(
-                        this.serverUpdatePlayerPacket.getUUID(),
-                        this.serverUpdatePlayerPacket.getUsername(),
-                        this.serverUpdatePlayerPacket.isDisabled(),
-                        this.serverUpdatePlayerPacket.isDisconnected()
-                ))
+        BareBonesVCClient.INSTANCE.updatePlayerState(
+                this.serverUpdatePlayerPacket.getUUID(),
+                this.serverUpdatePlayerPacket.getUsername(),
+                this.serverUpdatePlayerPacket.isDisabled(),
+                this.serverUpdatePlayerPacket.isDisconnected()
         );
     }
 }

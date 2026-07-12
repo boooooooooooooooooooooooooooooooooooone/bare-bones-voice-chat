@@ -1,15 +1,6 @@
 package xyz.pobob.barebonesvc.voiceclient;
 
-import de.maxhenkel.voicechat.VoicechatClient;
-import de.maxhenkel.voicechat.debug.CooldownTimer;
-import de.maxhenkel.voicechat.voice.client.AudioChannel;
-import de.maxhenkel.voicechat.voice.client.ClientManager;
-import de.maxhenkel.voicechat.voice.client.ClientVoicechat;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.Text;
 import xyz.pobob.barebonesvc.BareBonesVC;
-import xyz.pobob.barebonesvc.gui.SessionEventFeed;
-import xyz.pobob.barebonesvc.mixin.ClientVoicechatAccessor;
 import xyz.pobob.barebonesvc.packet.ClientUpdatePlayerPacket;
 import xyz.pobob.barebonesvc.packet.Packet;
 import xyz.pobob.barebonesvc.packet.ReliablePacket;
@@ -23,13 +14,11 @@ import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.*;
 
-public class BareBonesVCClient {
+public abstract class BareBonesVCClient {
 
-    public static final BareBonesVCClient INSTANCE = new BareBonesVCClient();
+    public static BareBonesVCClient INSTANCE;
     public static final int TIMEOUT_MILLIS = 20000;
 
     private final ClientUpdatePlayerPacket clientUpdatePlayerPacket = new ClientUpdatePlayerPacket();
@@ -43,9 +32,9 @@ public class BareBonesVCClient {
     private final ExecutorService pool = Executors.newSingleThreadExecutor();
     private DatagramSocket socket;
 
+    public final Map<UUID, Double> latencies = new ConcurrentHashMap<>();
     public ReliablePacketManager reliablePacketManager;
 
-    public ClientVoicechat client;
     public SessionConfig config;
     public long lastKeepAlive = 0;
 
@@ -56,7 +45,7 @@ public class BareBonesVCClient {
     public void start(String host, int port) {
         InetSocketAddress address = new InetSocketAddress(host, port);
         if (address.isUnresolved()) {
-            sendMessageSafe(Text.of("Failed to resolve address"), true);
+            this.sendMessage("Failed to resolve address", true);
             return;
         } else {
             this.recvPacket.setSocketAddress(address);
@@ -102,8 +91,8 @@ public class BareBonesVCClient {
 
         MiscTasks.startHandshake();
 
-        BareBonesVC.LOGGER.info("Started connecting to voice server {}", this.getReadableAddress());
-        SessionEventFeed.send("Connecting to voice server...");
+        BareBonesVC.LOGGER.info("Started connecting to voice server " + this.getReadableAddress());
+        this.sendFeed("Connecting to voice server...");
     }
 
     public void send(Packet packet) {
@@ -133,8 +122,6 @@ public class BareBonesVCClient {
         this.socket.receive(this.recvPacket);
 
         if (this.recvPacket.getLength() >= this.recvPacket.getData().length) {
-            CooldownTimer.run("udp_packet_too_large", () ->
-                    BareBonesVC.LOGGER.warn("Packet from {} is too large", this.getReadableAddress()));
             throw new IOException(String.format("Packet from %s is too large", this.getReadableAddress()));
         }
 
@@ -145,40 +132,31 @@ public class BareBonesVCClient {
 
     public void onAuthenticated() {
         BareBonesVCClient.INSTANCE.lastKeepAlive = System.currentTimeMillis();
-        MiscTasks.startKeepAliveTask();
+        MiscTasks.startTimeoutAndAudioChannelCheck();
 
         this.waitingForAuth = false;
 
-        if (VoicechatClient.CLIENT_CONFIG.muteOnJoin.get()) {
-            ClientManager.getPlayerStateManager().setMuted(true);
-        }
+        this.initializeSimpleVoiceChat();
 
-        this.client = new ClientVoicechat();
-        if (this.client.getMicThread() != null) {
-            this.client.getMicThread().close();
-        }
-        ((ClientVoicechatAccessor) this.client).invokeStartMicThread(null);
-        BareBonesVC.LOGGER.info("Starting microphone thread");
-
-        sendMessageSafe(Text.of("Successfully connected to Bare Bones VC server!"), true);
-        SessionEventFeed.send(MinecraftClient.getInstance().getGameProfile().name() + " joined");
+        this.sendMessage("Successfully connected to Bare Bones VC server!", true);
+        this.sendFeed(this.getOwnUsername() + " joined");
     }
 
     public void onDisconnect() {
-        BareBonesVC.LOGGER.info("Disconnected from {}", this.getReadableAddress());
-        SessionEventFeed.clear();
+        BareBonesVC.LOGGER.info("Disconnected from " + this.getReadableAddress());
+        this.clearFeed();
 
         if (this.isRunning()) {
-            this.clientUpdatePlayerPacket.create(ClientManager.getPlayerStateManager().isDisabled(), true);
+            this.clientUpdatePlayerPacket.create(false, true);
             this.send(this.clientUpdatePlayerPacket);
         }
-        MinecraftClient.getInstance().execute(() -> ClientManager.getPlayerStateManager().clearStates());
+        this.clearPlayerStatesOnSync();
 
         this.stopNow();
     }
 
     public void onTimeout() {
-        sendMessageSafe(Text.of("Bare Bones VC connection timed out"), true);
+        this.sendMessage("Bare Bones VC connection timed out", true);
         this.onDisconnect();
     }
 
@@ -190,11 +168,7 @@ public class BareBonesVCClient {
             this.reliablePacketManager.clear();
         }
 
-        if (this.client != null) {
-            this.client.closeMicThread();
-            this.client.close();
-            this.client = null;
-        }
+        this.shutdownSimpleVoiceChat();
 
         this.config = null;
 
@@ -219,17 +193,39 @@ public class BareBonesVCClient {
         return this.isRunning() && System.currentTimeMillis() - this.lastKeepAlive < TIMEOUT_MILLIS;
     }
 
-    public synchronized Map<UUID, AudioChannel> getAudioChannels() {
-        return this.client.getAudioChannels();
-    }
-
-    public static void sendMessageSafe(Text text, boolean overlay) {
-        if (MinecraftClient.getInstance().player != null) {
-            MinecraftClient.getInstance().player.sendMessage(text, overlay);
-        }
-    }
-
     public String getReadableAddress() {
         return ((this.sendPacket.getAddress() == null) ? "null" : this.sendPacket.getAddress().getHostAddress()) + ":" + this.sendPacket.getPort();
     }
+
+    public abstract String getOwnUsername();
+
+    public abstract UUID getOwnUUID();
+
+    public abstract boolean isSimpleVoiceChatDisabled();
+
+    public abstract void sendMessage(String message, boolean overlay);
+
+    public abstract void sendFeed(String message);
+
+    public abstract void initializeSimpleVoiceChat();
+
+    public abstract boolean isSimpleVoiceChatRunning();
+
+    public abstract void passSoundPacketToSimpleVoiceChat(byte[] audio, long sequenceNumber, UUID uuid, boolean whispering);
+
+    public abstract void shutdownSimpleVoiceChat();
+
+    public abstract void updatePlayerState(UUID uuid, String username, boolean disabled, boolean disconnected);
+
+    public abstract void clearPlayerStatesOnSync();
+
+    public abstract void pruneAudioChannels();
+
+    public abstract void clearFeed();
+
+    public abstract Executor getIoWorkerExecutor();
+
+    public abstract String getDigest(byte[] publicKey) throws Exception;
+
+    public abstract boolean requestSessionServerJoin(String digest);
 }

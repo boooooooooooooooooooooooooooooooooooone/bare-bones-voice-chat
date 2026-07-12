@@ -76,9 +76,7 @@ public class ConnectionScreen extends VoiceChatScreenBase {
 
             BareBonesVCClient.INSTANCE.start(uri.getHost(), uri.getPort());
         } catch (URISyntaxException | NumberFormatException e) {
-            BareBonesVC.LOGGER.error("Invalid socket address \"{}:{}\"", host, portText);
-
-            BareBonesVCClient.sendMessageSafe(Text.of("Invalid address"), true);
+            BareBonesVCClient.INSTANCE.sendMessage("Failed to resolve address", true);
         }
     }
 
@@ -89,10 +87,10 @@ public class ConnectionScreen extends VoiceChatScreenBase {
 
     @Override
     public void renderForeground(DrawContext guiGraphics, int mouseX, int mouseY, float delta) {
-        guiGraphics.drawText(this.textRenderer, TITLE, this.guiLeft + this.xSize / 2 - this.textRenderer.getWidth(TITLE) / 2, this.guiTop + 7, -12566464, false);
+        guiGraphics.drawText(this.textRenderer, TITLE, this.guiLeft + this.xSize / 2 - this.textRenderer.getWidth(TITLE) / 2, this.guiTop + 7, FONT_COLOR, false);
 
-        guiGraphics.drawText(this.textRenderer, HOST, this.guiLeft + 8, this.guiTop + 7 + 9 + 5, -12566464, false);
-        guiGraphics.drawText(this.textRenderer, PORT, this.guiLeft + 8, this.guiTop + 7 + (9 + 5) * 2 + 10 + 2, -12566464, false);
+        guiGraphics.drawText(this.textRenderer, HOST, this.guiLeft + 8, this.guiTop + 7 + 9 + 5, FONT_COLOR, false);
+        guiGraphics.drawText(this.textRenderer, PORT, this.guiLeft + 8, this.guiTop + 7 + (9 + 5) * 2 + 10 + 2, FONT_COLOR, false);
     }
 
     @Override

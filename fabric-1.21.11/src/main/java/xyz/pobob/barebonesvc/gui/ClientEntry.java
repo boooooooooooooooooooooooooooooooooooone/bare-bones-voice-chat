@@ -11,7 +11,7 @@ import net.minecraft.client.gui.widget.ElementListWidget;
 import net.minecraft.entity.player.SkinTextures;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
-import xyz.pobob.barebonesvc.BareBonesVC;
+import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
 
 import java.awt.*;
 import java.util.List;
@@ -34,7 +34,7 @@ public class ClientEntry extends ElementListWidget.Entry<ClientEntry> {
                 context.fill(this.getX(), this.getY(), this.getX() + this.getWidth() - 3, this.getY() + this.getHeight(), 0x20FFFFFF);
             }
 
-            Double latency = BareBonesVC.LATENCIES.get(this.state.getUuid());
+            Double latency = BareBonesVCClient.INSTANCE.latencies.get(this.state.getUuid());
             if (latency != null) {
                 this.renderLatency(
                         context,
