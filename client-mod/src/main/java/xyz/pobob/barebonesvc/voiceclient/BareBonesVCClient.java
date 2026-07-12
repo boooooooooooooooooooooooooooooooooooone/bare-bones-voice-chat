@@ -35,9 +35,9 @@ public class BareBonesVCClient {
     private final ClientUpdatePlayerPacket clientUpdatePlayerPacket = new ClientUpdatePlayerPacket();
 
     private final byte[] recvBuf = new byte[4096];
-    private final DatagramPacket recvPacket = new DatagramPacket(recvBuf, recvBuf.length);
+    private final DatagramPacket recvPacket = new DatagramPacket(this.recvBuf, this.recvBuf.length);
     private final byte[] sendBuf = new byte[4096];
-    private final DatagramPacket sendPacket = new DatagramPacket(sendBuf, 0);
+    private final DatagramPacket sendPacket = new DatagramPacket(this.sendBuf, 0);
 
     public ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     private final ExecutorService pool = Executors.newSingleThreadExecutor();

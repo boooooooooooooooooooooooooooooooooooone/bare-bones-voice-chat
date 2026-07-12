@@ -99,7 +99,7 @@ public class SessionEventFeed extends ScrollableWidget {
 
     @Override
     protected double getDeltaYPerScroll() {
-        return 40d;
+        return 20d;
     }
 
     @Override
