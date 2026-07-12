@@ -7,4 +7,4 @@ pluginManagement {
 
 rootProject.name = 'BareBonesVoiceChat'
 
-include("common", "client-mod", "server")
+include("common", "voice-client", "voice-server")

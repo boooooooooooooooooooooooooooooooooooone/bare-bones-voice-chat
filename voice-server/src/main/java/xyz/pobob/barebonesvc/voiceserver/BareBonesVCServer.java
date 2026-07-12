@@ -144,7 +144,6 @@ public class BareBonesVCServer {
         networkReceiveThread.start();
 
         MiscTasks.startKeepAliveTask(this);
-
         this.reliablePacketManager.startCheckingPendingPackets();
 
         BareBonesVC.LOGGER.info("Bare Bones Voice Chat server started");
