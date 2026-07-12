@@ -23,7 +23,6 @@ public class ConnectionScreen extends VoiceChatScreenBase {
 
     private TextFieldWidget host;
     private TextFieldWidget port;
-    private ButtonWidget connect;
 
     public ConnectionScreen() {
         super(TITLE, 195, 101);
@@ -57,11 +56,11 @@ public class ConnectionScreen extends VoiceChatScreenBase {
         this.port.setMaxLength(5);
         this.addDrawableChild(this.port);
 
-        this.connect = ButtonWidget.builder(CONNECT, button -> {
+        ButtonWidget connect = ButtonWidget.builder(CONNECT, button -> {
             this.connect();
             MinecraftClient.getInstance().setScreen(null);
         }).dimensions(this.guiLeft + 6, this.guiTop + this.ySize - 27, this.xSize - 12, 20).build();
-        this.addDrawableChild(this.connect);
+        this.addDrawableChild(connect);
     }
 
     private void connect() {
