@@ -8,7 +8,7 @@ java {
     }
 }
 
-def target = project.findProperty("target") ?: "26.1.2"
+def target = project.findProperty("target") ?: "26.2"
 
 ext {
     props = new Properties()
@@ -16,7 +16,7 @@ ext {
 
 def propsFile = file("versions/${target}.properties")
 if (!propsFile.exists()) {
-    propsFile = file("versions/26.1.2.properties")
+    propsFile = file("versions/26.2.properties")
 }
 
 propsFile.withInputStream {

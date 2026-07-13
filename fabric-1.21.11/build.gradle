@@ -2,6 +2,21 @@ plugins {
     id "fabric-loom" version "1.17-SNAPSHOT"
 }
 
+def target = project.findProperty("target") ?: "1.21.11"
+
+ext {
+    props = new Properties()
+}
+
+def propsFile = file("versions/${target}.properties")
+if (!propsFile.exists()) {
+    propsFile = file("versions/1.21.11.properties")
+}
+
+propsFile.withInputStream {
+    props.load(it)
+}
+
 apply from: rootProject.file("gradle/fabric-module.gradle")
 
 remapJar {
