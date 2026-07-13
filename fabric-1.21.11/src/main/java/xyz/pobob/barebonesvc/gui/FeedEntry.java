@@ -28,6 +28,7 @@ public class FeedEntry extends ElementListWidget.Entry<FeedEntry> {
         this.timestamp = Instant.now().atZone(ZoneId.systemDefault());
     }
 
+    @Override
     public void render(DrawContext context, int mouseX, int mouseY, boolean hovered, float deltaTicks) {
         List<OrderedText> messageSplit = this.getWrapped();
 

@@ -27,6 +27,7 @@ public class ClientEntry extends ElementListWidget.Entry<ClientEntry> {
         this.state = state;
     }
 
+    @Override
     public void render(DrawContext context, int mouseX, int mouseY, boolean hovered, float deltaTicks) {
         if (this.minecraft.textRenderer != null) {
             if (mouseX > this.getX() && mouseY > this.getY() && mouseX < this.getX() + this.getWidth() - 3 && mouseY < this.getY() + this.getHeight()) {

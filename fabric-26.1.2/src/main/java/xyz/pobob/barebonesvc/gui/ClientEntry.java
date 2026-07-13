@@ -7,12 +7,9 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.ContainerObjectSelectionList;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
-import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
-import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.PlayerSkin;
 import org.jetbrains.annotations.NotNull;
 import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
@@ -30,18 +27,14 @@ public class ClientEntry extends ContainerObjectSelectionList.Entry<@NotNull Cli
         this.state = state;
     }
 
+    @Override
     public void extractContent(@NotNull GuiGraphicsExtractor context, int mouseX, int mouseY, boolean hovered, float deltaTicks) {
-        if (mouseX > this.getX() && mouseY > this.getY() && mouseX < this.getX() + this.getWidth() - 3 && mouseY < this.getY() + this.getHeight()) {
-            context.fill(this.getX(), this.getY(), this.getX() + this.getWidth() - 3, this.getY() + this.getHeight(), 0x20FFFFFF);
-            context.tooltip(
-                    Minecraft.getInstance().font,
-                    List.of(ClientTooltipComponent.create(FormattedCharSequence.forward(this.state.getName(), Style.EMPTY))),
-                    mouseX,
-                    mouseY,
-                    DefaultTooltipPositioner.INSTANCE,
-                    null
-            );
-        }
+
+        PlayerSkin skin = GameProfileUtils.getSkin(this.state.getUuid());
+        int skinX = this.getX() + 3;
+        int skinY = this.getY() + 2 + (this.getContentHeight() - SKIN_SIZE) / 2;
+        context.blit(RenderPipelines.GUI_TEXTURED, skin.body().texturePath(), skinX, skinY, 8.0F, 8.0F, SKIN_SIZE, SKIN_SIZE, 8, 8, 64, 64);
+        context.blit(RenderPipelines.GUI_TEXTURED, skin.body().texturePath(), skinX, skinY, 40.0F, 8.0F, SKIN_SIZE, SKIN_SIZE, 8, 8, 64, 64);
 
         Double latency = BareBonesVCClient.INSTANCE.latencies.get(this.state.getUuid());
         if (latency != null) {
@@ -51,11 +44,10 @@ public class ClientEntry extends ContainerObjectSelectionList.Entry<@NotNull Cli
             );
         }
 
-        PlayerSkin skin = GameProfileUtils.getSkin(this.state.getUuid());
-        int skinX = this.getX() + 3;
-        int skinY = this.getY() + 2 + (this.getContentHeight() - SKIN_SIZE) / 2;
-        context.blit(RenderPipelines.GUI_TEXTURED, skin.body().texturePath(), skinX, skinY, 8.0F, 8.0F, SKIN_SIZE, SKIN_SIZE, 8, 8, 64, 64);
-        context.blit(RenderPipelines.GUI_TEXTURED, skin.body().texturePath(), skinX, skinY, 40.0F, 8.0F, SKIN_SIZE, SKIN_SIZE, 8, 8, 64, 64);
+        if (mouseX > this.getX() && mouseY > this.getY() && mouseX < this.getX() + this.getWidth() - 3 && mouseY < this.getY() + this.getHeight()) {
+            context.fill(this.getX(), this.getY(), this.getX() + this.getWidth() - 3, this.getY() + this.getHeight(), 0x20FFFFFF);
+            context.setTooltipForNextFrame(Component.literal(this.state.getName()), mouseX, mouseY);
+        }
     }
 
     private void renderLatency(GuiGraphicsExtractor context, Component text) {

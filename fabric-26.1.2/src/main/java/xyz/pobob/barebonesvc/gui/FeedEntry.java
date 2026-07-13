@@ -5,10 +5,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.ContainerObjectSelectionList;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
-import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
-import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Style;
 import net.minecraft.util.FormattedCharSequence;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,26 +27,20 @@ public class FeedEntry extends ContainerObjectSelectionList.Entry<@NotNull FeedE
         this.timestamp = Instant.now().atZone(ZoneId.systemDefault());
     }
 
+    @Override
     public void extractContent(@NotNull GuiGraphicsExtractor context, int mouseX, int mouseY, boolean hovered, float deltaTicks) {
         List<FormattedCharSequence> messageSplit = this.getWrapped();
 
         int textX = this.getContentX() + 2;
         int textY = this.getContentY();
 
-        if (mouseX > this.getX() && mouseY > this.getY() - 1 && mouseX < this.getX() + this.getWidth() - 3 && mouseY < this.getY() + this.getHeight() + 3) {
-            context.fill(this.getX(), this.getY() - 1, this.getX() + this.getWidth() - 3, this.getY() + this.getHeight() + 3, 0x20FFFFFF);
-            context.tooltip(
-                    Minecraft.getInstance().font,
-                    List.of(ClientTooltipComponent.create(FormattedCharSequence.forward("Sent at " + FORMATTER.format(this.timestamp), Style.EMPTY))),
-                    mouseX,
-                    mouseY,
-                    DefaultTooltipPositioner.INSTANCE,
-                    null
-            );
-        }
-
         for (int i = 0; i < messageSplit.size(); i++) {
             context.text(Minecraft.getInstance().font, messageSplit.get(i), textX, textY + i * Minecraft.getInstance().font.lineHeight, 0xFFFFFFFF, false);
+        }
+
+        if (mouseX > this.getX() && mouseY > this.getY() - 1 && mouseX < this.getX() + this.getWidth() - 3 && mouseY < this.getY() + this.getHeight() + 3) {
+            context.fill(this.getX(), this.getY() - 1, this.getX() + this.getWidth() - 3, this.getY() + this.getHeight() + 3, 0x20FFFFFF);
+            context.setTooltipForNextFrame(Component.literal("Sent at " + FORMATTER.format(this.timestamp)), mouseX, mouseY);
         }
     }
 
