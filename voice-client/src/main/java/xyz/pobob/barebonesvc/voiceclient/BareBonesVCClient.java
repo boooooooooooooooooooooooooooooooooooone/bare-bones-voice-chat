@@ -28,7 +28,7 @@ public abstract class BareBonesVCClient {
     private final DatagramPacket sendPacket = new DatagramPacket(this.sendBuf, 0);
 
     public ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-    private final ExecutorService pool = Executors.newSingleThreadExecutor();
+    private ExecutorService pool = Executors.newSingleThreadExecutor();
     private DatagramSocket socket;
 
     public final Map<UUID, Double> latencies = new ConcurrentHashMap<>();
@@ -160,8 +160,14 @@ public abstract class BareBonesVCClient {
     }
 
     public void stopNow() {
+
         this.scheduler.shutdown();
-        this.scheduler = Executors.newSingleThreadScheduledExecutor(); // prepare scheduler for next session
+        this.pool.shutdown();
+
+        // prepare for next session
+        this.scheduler = Executors.newSingleThreadScheduledExecutor();
+        this.pool = Executors.newSingleThreadExecutor();
+
 
         if (this.reliablePacketManager != null) {
             this.reliablePacketManager.clear();
