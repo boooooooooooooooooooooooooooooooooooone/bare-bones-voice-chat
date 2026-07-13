@@ -3,3 +3,7 @@ plugins {
 }
 
 apply from: rootProject.file("gradle/fabric-module.gradle")
+
+remapJar {
+    dependsOn jar
+}

@@ -200,7 +200,7 @@ public abstract class BareBonesVCClient {
 
     public abstract UUID getOwnUUID();
 
-    public abstract boolean isSimpleVoiceChatDisabled();
+    public abstract boolean getOwnDisabled();
 
     public abstract void logInfo(String msg);
 

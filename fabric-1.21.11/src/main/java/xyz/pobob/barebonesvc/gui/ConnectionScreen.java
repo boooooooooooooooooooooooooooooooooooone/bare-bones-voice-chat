@@ -86,11 +86,11 @@ public class ConnectionScreen extends VoiceChatScreenBase {
     }
 
     @Override
-    public void renderForeground(DrawContext guiGraphics, int mouseX, int mouseY, float delta) {
-        guiGraphics.drawText(this.textRenderer, TITLE, this.guiLeft + this.xSize / 2 - this.textRenderer.getWidth(TITLE) / 2, this.guiTop + 7, FONT_COLOR, false);
+    public void renderForeground(DrawContext context, int mouseX, int mouseY, float delta) {
+        context.drawText(this.textRenderer, TITLE, this.guiLeft + this.xSize / 2 - this.textRenderer.getWidth(TITLE) / 2, this.guiTop + 7, FONT_COLOR, false);
 
-        guiGraphics.drawText(this.textRenderer, HOST, this.guiLeft + 8, this.guiTop + 7 + 9 + 5, FONT_COLOR, false);
-        guiGraphics.drawText(this.textRenderer, PORT, this.guiLeft + 8, this.guiTop + 7 + (9 + 5) * 2 + 10 + 2, FONT_COLOR, false);
+        context.drawText(this.textRenderer, HOST, this.guiLeft + 8, this.guiTop + 7 + (9 + 5), FONT_COLOR, false);
+        context.drawText(this.textRenderer, PORT, this.guiLeft + 8, this.guiTop + 7 + (9 + 5) * 2 + 10 + 2, FONT_COLOR, false);
     }
 
     @Override
@@ -100,10 +100,10 @@ public class ConnectionScreen extends VoiceChatScreenBase {
 
     @Override
     public void resize(int width, int height) {
-        String groupNameText = this.host.getText();
-        String passwordText = this.port.getText();
+        String hostText = this.host.getText();
+        String portText = this.port.getText();
         this.init(width, height);
-        this.host.setText(groupNameText);
-        this.port.setText(passwordText);
+        this.host.setText(hostText);
+        this.port.setText(portText);
     }
 }

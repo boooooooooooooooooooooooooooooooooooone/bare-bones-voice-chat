@@ -8,11 +8,11 @@ import de.maxhenkel.voicechat.voice.client.ClientVoicechat;
 import de.maxhenkel.voicechat.voice.common.PlayerSoundPacket;
 import de.maxhenkel.voicechat.voice.common.PlayerState;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientLoginNetworkHandler;
-import net.minecraft.network.encryption.NetworkEncryptionException;
-import net.minecraft.network.encryption.NetworkEncryptionUtils;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientHandshakePacketListenerImpl;
+import net.minecraft.network.chat.Component;
+import net.minecraft.util.Crypt;
+import net.minecraft.util.CryptException;
 import net.minecraft.util.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,12 +39,12 @@ public class FabricBareBonesVCClient extends BareBonesVCClient {
 
     @Override
     public String getOwnUsername() {
-        return MinecraftClient.getInstance().getGameProfile().name();
+        return Minecraft.getInstance().getGameProfile().name();
     }
 
     @Override
     public UUID getOwnUUID() {
-        return MinecraftClient.getInstance().getGameProfile().id();
+        return Minecraft.getInstance().getGameProfile().id();
     }
 
     @Override
@@ -69,8 +69,12 @@ public class FabricBareBonesVCClient extends BareBonesVCClient {
 
     @Override
     public void sendMessage(String message, boolean overlay) {
-        if (MinecraftClient.getInstance().player != null) {
-            MinecraftClient.getInstance().player.sendMessage(Text.of(message), overlay);
+        if (Minecraft.getInstance().player != null) {
+            if (overlay) {
+                Minecraft.getInstance().player.sendOverlayMessage(Component.literal(message));
+            } else {
+                Minecraft.getInstance().player.sendSystemMessage(Component.literal(message));
+            }
         }
     }
 
@@ -137,7 +141,7 @@ public class FabricBareBonesVCClient extends BareBonesVCClient {
 
     @Override
     public void clearPlayerStatesOnSync() {
-        MinecraftClient.getInstance().execute(() -> ClientManager.getPlayerStateManager().clearStates());
+        Minecraft.getInstance().execute(() -> ClientManager.getPlayerStateManager().clearStates());
     }
 
     @Override
@@ -148,32 +152,30 @@ public class FabricBareBonesVCClient extends BareBonesVCClient {
 
     @Override
     public void registerClientQuitEvent(Runnable action) {
-        ClientLifecycleEvents.CLIENT_STOPPING.register(client -> action.run());
+        ClientLifecycleEvents.CLIENT_STOPPING.register(_ -> action.run());
     }
 
     @Override
     public Executor getIoWorkerExecutor() {
-        return Util.getIoWorkerExecutor();
+        return Util.ioPool();
     }
 
     @Override
-    public String getDigest(byte[] publicKey) throws NetworkEncryptionException {
-        return new BigInteger(NetworkEncryptionUtils.computeServerId(
+    public String getDigest(byte[] publicKey) throws CryptException {
+        return new BigInteger(Crypt.digestData(
                 "",
-                NetworkEncryptionUtils.decodeEncodedRsaPublicKey(publicKey),
-                NetworkEncryptionUtils.generateSecretKey()
+                Crypt.byteToPublicKey(publicKey),
+                Crypt.generateSecretKey()
         )).toString(16);
     }
 
     @Override
     public boolean requestSessionServerJoin(String digest) {
-        ClientLoginNetworkHandler login = new ClientLoginNetworkHandler(null, MinecraftClient.getInstance(), null, null, false, null, component -> {}, null, null);
+        ClientHandshakePacketListenerImpl login = new ClientHandshakePacketListenerImpl(null, Minecraft.getInstance(), null, null, false, null, _ -> {}, null, null);
 
-        Text text = ((ClientLoginNetworkHandlerAccessor) login).invokeJoinServerSession(digest);
-        if (text != null) {
-            if (MinecraftClient.getInstance().player != null) {
-                MinecraftClient.getInstance().player.sendMessage(text, true);
-            }
+        Component error = ((ClientLoginNetworkHandlerAccessor) login).invokeAuthenticateServer(digest);
+        if (error != null) {
+            this.sendMessage(error.getString(), true);
             return false;
         }
 

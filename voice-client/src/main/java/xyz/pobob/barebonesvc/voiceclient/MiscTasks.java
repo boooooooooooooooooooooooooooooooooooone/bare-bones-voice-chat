@@ -26,7 +26,7 @@ public class MiscTasks {
         clientHelloPacket.create(
                 BareBonesVCClient.INSTANCE.getOwnUsername(),
                 BareBonesVCClient.INSTANCE.getOwnUUID(),
-                BareBonesVCClient.INSTANCE.isSimpleVoiceChatDisabled()
+                BareBonesVCClient.INSTANCE.getOwnDisabled()
         );
 
         Thread thread = new Thread(null, () -> {
