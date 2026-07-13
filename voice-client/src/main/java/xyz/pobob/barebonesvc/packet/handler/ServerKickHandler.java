@@ -6,6 +6,6 @@ public class ServerKickHandler implements ServerPacketHandler {
     @Override
     public void handle(byte[] data) {
         BareBonesVCClient.INSTANCE.sendMessage("Kicked from Bare Bones VC server", true);
-        BareBonesVCClient.INSTANCE.onDisconnect();
+        BareBonesVCClient.INSTANCE.onDisconnect(false);
     }
 }

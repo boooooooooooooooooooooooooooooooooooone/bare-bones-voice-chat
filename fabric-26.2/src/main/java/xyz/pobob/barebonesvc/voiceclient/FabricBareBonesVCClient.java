@@ -1,6 +1,7 @@
 package xyz.pobob.barebonesvc.voiceclient;
 
 import de.maxhenkel.voicechat.VoicechatClient;
+import de.maxhenkel.voicechat.intercompatibility.FabricClientCompatibilityManager;
 import de.maxhenkel.voicechat.net.PlayerStatePacket;
 import de.maxhenkel.voicechat.voice.client.AudioChannel;
 import de.maxhenkel.voicechat.voice.client.ClientManager;
@@ -19,8 +20,8 @@ import org.slf4j.LoggerFactory;
 import xyz.pobob.barebonesvc.BareBonesVC;
 import xyz.pobob.barebonesvc.gui.SessionEventFeed;
 import xyz.pobob.barebonesvc.mixin.ClientLoginNetworkHandlerAccessor;
-import xyz.pobob.barebonesvc.mixin.ClientVoicechatAccessor;
 import xyz.pobob.barebonesvc.mixin.playerstate.ClientPlayerStateManagerAccessor;
+import xyz.pobob.barebonesvc.mixin.voicechat.ClientManagerAccessor;
 
 import java.math.BigInteger;
 import java.util.Map;
@@ -89,17 +90,25 @@ public class FabricBareBonesVCClient extends BareBonesVCClient {
     }
 
     @Override
+    public void shutdownVanilla() {
+        FabricClientCompatibilityManager.INSTANCE.emitDisconnectedEvent();
+    }
+
+    @Override
+    public void restartVanilla() {
+        ((ClientManagerAccessor) ClientManager.instance()).invokeOnJoinWorld();
+    }
+
+    @Override
     public void initializeSimpleVoiceChat() {
+        this.client = new ClientVoicechat();
+
         if (VoicechatClient.CLIENT_CONFIG.muteOnJoin.get()) {
             ClientManager.getPlayerStateManager().setMuted(true);
         }
 
-        this.client = new ClientVoicechat();
-        if (this.client.getMicThread() != null) {
-            this.client.getMicThread().close();
-        }
-        ((ClientVoicechatAccessor) this.client).invokeStartMicThread(null);
-        this.logInfo("Starting microphone thread");
+        FabricClientCompatibilityManager.INSTANCE.emitVoiceChatConnectedEvent(null);
+        this.client.onVoiceChatConnected(null);
     }
 
     @Override
@@ -140,8 +149,8 @@ public class FabricBareBonesVCClient extends BareBonesVCClient {
     }
 
     @Override
-    public void clearPlayerStatesOnSync() {
-        Minecraft.getInstance().execute(() -> ClientManager.getPlayerStateManager().clearStates());
+    public void clearPlayerStates() {
+        ClientManager.getPlayerStateManager().clearStates();
     }
 
     @Override

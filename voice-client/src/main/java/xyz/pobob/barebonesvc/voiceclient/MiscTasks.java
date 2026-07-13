@@ -41,7 +41,7 @@ public class MiscTasks {
             }
             if (count >= MAX_SENDS) {
                 BareBonesVCClient.INSTANCE.sendMessage("Failed to connect to Bare Bones VC server", true);
-                BareBonesVCClient.INSTANCE.onDisconnect();
+                BareBonesVCClient.INSTANCE.onDisconnect(false);
             }
         }, "BareBonesVCHandshakeThread");
         thread.setDaemon(true);

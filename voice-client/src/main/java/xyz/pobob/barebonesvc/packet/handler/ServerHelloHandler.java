@@ -18,6 +18,8 @@ public class ServerHelloHandler implements ServerPacketHandler {
         if (BareBonesVCClient.INSTANCE.waitingForServerHello) {
             BareBonesVCClient.INSTANCE.waitingForServerHello = false;
 
+            BareBonesVCClient.INSTANCE.clearPlayerStates();
+
             this.serverHelloPacket.deserialize(data);
 
             BareBonesVCClient.INSTANCE.config = new SessionConfig(
@@ -47,7 +49,7 @@ public class ServerHelloHandler implements ServerPacketHandler {
                             BareBonesVCClient.INSTANCE.scheduler.schedule(() -> task.cancel(false), 10L, TimeUnit.SECONDS);
 
                         } else {
-                            BareBonesVCClient.INSTANCE.onDisconnect();
+                            BareBonesVCClient.INSTANCE.onDisconnect(false);
                         }
                     });
 

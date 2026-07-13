@@ -1,4 +1,4 @@
-package xyz.pobob.barebonesvc.mixin;
+package xyz.pobob.barebonesvc.mixin.voicechat;
 
 import de.maxhenkel.voicechat.api.opus.OpusEncoder;
 import de.maxhenkel.voicechat.api.opus.OpusEncoderMode;

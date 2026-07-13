@@ -1,4 +1,4 @@
-package xyz.pobob.barebonesvc.mixin;
+package xyz.pobob.barebonesvc.mixin.voicechat;
 
 import de.maxhenkel.voicechat.VoicechatClient;
 import de.maxhenkel.voicechat.voice.client.AudioChannel;
@@ -31,9 +31,16 @@ public class ClientVoicechatMixin {
     private void injectStartMicThread(ClientVoicechatConnection connection, CallbackInfo ci) {
         if (connection != null) return;
 
-        this.micThread = new MicThread(((FabricBareBonesVCClient) BareBonesVCClient.INSTANCE).client, null,
-                e -> BareBonesVCClient.INSTANCE.logError("Failed to start microphone thread", e));
-        this.micThread.start();
+        ClientVoicechat client = ((FabricBareBonesVCClient) BareBonesVCClient.INSTANCE).client;
+        if (client != null) {
+            this.micThread = new MicThread(
+                    client,
+                    null,
+                    e -> BareBonesVCClient.INSTANCE.logError("Failed to start microphone thread", e)
+            );
+            this.micThread.start();
+        }
+
         ci.cancel();
     }
 

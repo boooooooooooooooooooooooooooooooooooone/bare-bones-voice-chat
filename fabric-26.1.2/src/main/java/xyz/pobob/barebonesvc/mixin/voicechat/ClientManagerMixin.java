@@ -1,4 +1,4 @@
-package xyz.pobob.barebonesvc.mixin;
+package xyz.pobob.barebonesvc.mixin.voicechat;
 
 import de.maxhenkel.voicechat.voice.client.ClientManager;
 import de.maxhenkel.voicechat.voice.client.ClientVoicechat;
@@ -13,6 +13,18 @@ import xyz.pobob.barebonesvc.voiceclient.FabricBareBonesVCClient;
 
 @Mixin(ClientManager.class)
 public class ClientManagerMixin {
+
+    @Inject(
+            method = "authenticate",
+            at = @At("HEAD"),
+            cancellable = true
+    )
+    private void injectAuthenticate(CallbackInfo ci) {
+        if (BareBonesVCClient.INSTANCE.isRunning()) {
+            ci.cancel();
+        }
+    }
+
     @Inject(
             method = "getClient",
             at = @At("HEAD"),

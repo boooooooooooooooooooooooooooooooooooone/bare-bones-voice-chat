@@ -59,6 +59,8 @@ public abstract class BareBonesVCClient {
         }
         this.running = true;
 
+        this.shutdownVanilla();
+
         Thread networkReceiveThread = new Thread(null, () -> {
             while (this.isRunning()) {
                 final byte[] data;
@@ -79,8 +81,6 @@ public abstract class BareBonesVCClient {
                     }
                 });
             }
-
-            this.stopNow();
         }, "BareBonesVCNetworkThread");
         networkReceiveThread.setDaemon(false);
         networkReceiveThread.start();
@@ -141,7 +141,12 @@ public abstract class BareBonesVCClient {
         this.sendFeed(this.getOwnUsername() + " joined");
     }
 
-    public void onDisconnect() {
+    public void onTimeout() {
+        this.sendMessage("Bare Bones VC connection timed out", true);
+        this.onDisconnect(false);
+    }
+
+    public void onDisconnect(boolean quitting) {
         this.logInfo("Disconnected from " + this.getReadableAddress());
         this.clearFeed();
 
@@ -149,17 +154,12 @@ public abstract class BareBonesVCClient {
             this.clientUpdatePlayerPacket.create(false, true);
             this.send(this.clientUpdatePlayerPacket);
         }
-        this.clearPlayerStatesOnSync();
+        this.clearPlayerStates();
 
-        this.stopNow();
+        this.stopNow(quitting);
     }
 
-    public void onTimeout() {
-        this.sendMessage("Bare Bones VC connection timed out", true);
-        this.onDisconnect();
-    }
-
-    public void stopNow() {
+    public void stopNow(boolean quitting) {
 
         this.scheduler.shutdown();
         this.pool.shutdown();
@@ -188,6 +188,11 @@ public abstract class BareBonesVCClient {
             this.socket.close();
             this.socket = null;
         }
+
+        if (!quitting) {
+            this.restartVanilla();
+        }
+
     }
 
     public boolean isRunning() {
@@ -220,6 +225,10 @@ public abstract class BareBonesVCClient {
 
     public abstract void clearFeed();
 
+    public abstract void shutdownVanilla();
+
+    public abstract void restartVanilla();
+
     public abstract void initializeSimpleVoiceChat();
 
     public abstract boolean isSimpleVoiceChatRunning();
@@ -230,7 +239,7 @@ public abstract class BareBonesVCClient {
 
     public abstract void updatePlayerState(UUID uuid, String username, boolean disabled, boolean disconnected);
 
-    public abstract void clearPlayerStatesOnSync();
+    public abstract void clearPlayerStates();
 
     public abstract void pruneAudioChannels();
 

@@ -56,7 +56,7 @@ public class BareBonesVC {
     public static void onStartup() {
         BareBonesVCClient.INSTANCE.registerClientQuitEvent(() -> {
             if (BareBonesVCClient.INSTANCE.isRunning()) {
-                BareBonesVCClient.INSTANCE.onDisconnect();
+                BareBonesVCClient.INSTANCE.onDisconnect(true);
             }
         });
     }
