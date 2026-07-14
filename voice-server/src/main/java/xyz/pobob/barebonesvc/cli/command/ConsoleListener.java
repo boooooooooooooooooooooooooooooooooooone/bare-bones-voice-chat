@@ -1,8 +1,8 @@
 package xyz.pobob.barebonesvc.cli.command;
 
-import xyz.pobob.barebonesvc.BareBonesVC;
 import xyz.pobob.barebonesvc.voiceserver.BareBonesVCServer;
 
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 public class ConsoleListener implements Runnable {
@@ -23,9 +23,7 @@ public class ConsoleListener implements Runnable {
             String line;
             try {
                 line = scanner.nextLine().trim();
-            } catch (Exception e) {
-                BareBonesVC.LOGGER.info("Input interrupted. Stopping server.");
-                this.server.close();
+            } catch (NoSuchElementException | IllegalStateException e) {
                 return;
             }
 

@@ -36,10 +36,13 @@ public class BareBonesVCServer {
     private final DatagramPacket recvPacket = new DatagramPacket(this.recvBuf, this.recvBuf.length);
     private final DatagramPacket sendPacket = new DatagramPacket(this.sendBuf, 0);
 
-    public final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-    private final ExecutorService pool = Executors.newFixedThreadPool(4);
-    public final ExecutorService ioThread = Executors.newSingleThreadExecutor();
     private DatagramSocket socket;
+    private Thread networkReceiveThread;
+    private final ExecutorService pool = Executors.newFixedThreadPool(4);
+    public final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    public final ExecutorService ioThread = Executors.newSingleThreadExecutor();
+
+    private volatile boolean running = false;
 
     private final Map<SocketAddress, ClientConnection> connected = new ConcurrentHashMap<>();
 
@@ -94,7 +97,7 @@ public class BareBonesVCServer {
     }
 
     public boolean isRunning() {
-        return this.socket != null;
+        return this.running;
     }
 
     public BareBonesVCServer(Config config) {
@@ -104,8 +107,10 @@ public class BareBonesVCServer {
     public void start() {
         try {
             this.socket = new DatagramSocket(this.config.port, this.config.listenAddress);
+            this.running = true;
         } catch (Exception e) {
             BareBonesVC.LOGGER.log(Level.SEVERE, "An error occurred while starting voice server", e);
+            return;
         }
 
         Thread consoleThread = new Thread(
@@ -113,10 +118,12 @@ public class BareBonesVCServer {
                 new ConsoleListener(this, new CommandDispatcher(this)),
                 "ConsoleThread"
         );
-        consoleThread.setDaemon(false);
+        consoleThread.setDaemon(true);
         consoleThread.start();
 
-        Thread networkReceiveThread = new Thread(null, () -> {
+        Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
+
+        this.networkReceiveThread = new Thread(null, () -> {
             while (this.isRunning()) {
                 final byte[] data;
                 try {
@@ -138,10 +145,9 @@ public class BareBonesVCServer {
                     }
                 });
             }
-            this.close();
         }, "BareBonesVCNetworkThread");
-        networkReceiveThread.setDaemon(false);
-        networkReceiveThread.start();
+        this.networkReceiveThread.setDaemon(false);
+        this.networkReceiveThread.start();
 
         MiscTasks.startKeepAliveTask(this);
         this.reliablePacketManager.startCheckingPendingPackets();
@@ -196,16 +202,16 @@ public class BareBonesVCServer {
         return data;
     }
 
-    public void onAuthenticated(SocketAddress clientAddress, ClientConnection clientConnection) {
-        if (clientConnection.isAuthenticated()) return;
+    public void onAuthenticated(SocketAddress clientAddress, ClientConnection client) {
+        if (client.isAuthenticated()) return;
 
-        BareBonesVC.LOGGER.info("Client connected: " + clientConnection.getUsername() + " (" + clientConnection.getUUID() + ")");
+        BareBonesVC.LOGGER.info("Client connected: " + client.getUsername() + " (" + client.getUUID() + ")");
 
-        clientConnection.setAuthenticated(true);
+        client.setAuthenticated(true);
 
         ServerUpdatePlayerPacket serverUpdatePlayerPacket = new ServerUpdatePlayerPacket();
 
-        for (ClientConnection c : this.getAuthenticatedClients()) { // introduce already present players to new client
+        for (ClientConnection c : this.getAuthenticatedClients()) { // tell new client who is already present
             serverUpdatePlayerPacket.create(
                     c.getUsername(),
                     c.getUUID(),
@@ -217,9 +223,9 @@ public class BareBonesVCServer {
         }
 
         this.localServerUpdatePlayerPacket.get().create( // announce new client
-                clientConnection.getUsername(),
-                clientConnection.getUUID(),
-                clientConnection.isDisabled(),
+                client.getUsername(),
+                client.getUUID(),
+                client.isDisabled(),
                 false,
                 true
         );
@@ -249,17 +255,19 @@ public class BareBonesVCServer {
         }
     }
 
-    public void close() {
+    public void stop() {
+        BareBonesVC.LOGGER.info("Stopping Bare Bones VC server");
+
         for (SocketAddress address : this.getAuthenticatedSockets()) {
             this.send(this.serverClosePacket, address);
         }
-        this.stopNow();
-    }
 
-    public void stopNow() {
-        if (this.isRunning()) {
+        this.running = false;
+
+        if (this.socket != null) {
             this.socket.close();
         }
+
         this.pool.shutdown();
         this.scheduler.shutdown();
     }
