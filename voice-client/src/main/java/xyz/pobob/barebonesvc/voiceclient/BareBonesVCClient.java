@@ -187,7 +187,8 @@ public abstract class BareBonesVCClient {
         }
 
         if (notQuitting) {
-            this.restartVanillaSVC();
+            this.shutdownVanillaSVC();
+            this.startVanillaSVC();
         }
 
     }
@@ -224,7 +225,7 @@ public abstract class BareBonesVCClient {
 
     public abstract void shutdownVanillaSVC();
 
-    public abstract void restartVanillaSVC();
+    public abstract void startVanillaSVC();
 
     public abstract void initializeOurSVC();
 

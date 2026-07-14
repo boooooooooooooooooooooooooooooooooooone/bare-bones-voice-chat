@@ -91,7 +91,7 @@ public class FabricBareBonesVCClient extends BareBonesVCClient {
     }
 
     @Override
-    public void restartVanillaSVC() {
+    public void startVanillaSVC() {
         ((ClientManagerAccessor) ClientManager.instance()).invokeOnJoinWorld();
     }
 
