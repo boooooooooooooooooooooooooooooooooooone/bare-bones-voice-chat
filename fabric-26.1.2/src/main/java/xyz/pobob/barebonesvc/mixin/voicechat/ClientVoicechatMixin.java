@@ -1,11 +1,8 @@
 package xyz.pobob.barebonesvc.mixin.voicechat;
 
-import de.maxhenkel.voicechat.VoicechatClient;
-import de.maxhenkel.voicechat.voice.client.AudioChannel;
 import de.maxhenkel.voicechat.voice.client.ClientVoicechat;
 import de.maxhenkel.voicechat.voice.client.ClientVoicechatConnection;
 import de.maxhenkel.voicechat.voice.client.MicThread;
-import de.maxhenkel.voicechat.voice.common.SoundPacket;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -42,28 +39,5 @@ public class ClientVoicechatMixin {
         }
 
         ci.cancel();
-    }
-
-    @Inject(
-            method = "processSoundPacket",
-            at = @At("HEAD"),
-            cancellable = true
-    )
-    private void injectProcessSoundPacket(SoundPacket<?> packet, CallbackInfo ci) {
-        if (BareBonesVCClient.INSTANCE.isOurSVCRunning() && !VoicechatClient.CLIENT_CONFIG.disabled.get()) {
-            AudioChannel channel = ((FabricBareBonesVCClient) BareBonesVCClient.INSTANCE).getAudioChannels().get(packet.getChannelId());
-            if (channel == null) {
-                channel = new AudioChannel(
-                        ((FabricBareBonesVCClient) BareBonesVCClient.INSTANCE).client,
-                        null,
-                        packet.getChannelId()
-                );
-                channel.start();
-                ((FabricBareBonesVCClient) BareBonesVCClient.INSTANCE).getAudioChannels().put(packet.getChannelId(), channel);
-            }
-            channel.addToQueue(packet);
-
-            ci.cancel();
-        }
     }
 }

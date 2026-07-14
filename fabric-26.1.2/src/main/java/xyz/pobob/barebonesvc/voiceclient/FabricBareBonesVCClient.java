@@ -118,17 +118,28 @@ public class FabricBareBonesVCClient extends BareBonesVCClient {
 
     @Override
     public void passSoundPacketToSVC(byte[] audio, long sequenceNumber, UUID uuid, boolean whispering) {
-        this.client.processSoundPacket(
-                new PlayerSoundPacket(
-                        uuid,
-                        uuid,
-                        audio,
-                        sequenceNumber,
-                        whispering,
-                        whispering ? this.config.getWhisperDistance() : this.config.getVoiceDistance(),
-                        null
-                )
-        );
+
+        if (this.isOurSVCRunning() && !VoicechatClient.CLIENT_CONFIG.disabled.get()) {
+            AudioChannel channel = this.getAudioChannels().get(uuid);
+            if (channel == null) {
+                channel = new AudioChannel(
+                        this.client,
+                        null,
+                        uuid
+                );
+                channel.start();
+                this.getAudioChannels().put(uuid, channel);
+            }
+            channel.addToQueue(new PlayerSoundPacket(
+                    uuid,
+                    uuid,
+                    audio,
+                    sequenceNumber,
+                    whispering,
+                    whispering ? this.config.getWhisperDistance() : this.config.getVoiceDistance(),
+                    null
+            ));
+        }
     }
 
     @Override
