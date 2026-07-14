@@ -9,7 +9,6 @@
     "playerstate.ClientPlayerStateManagerAccessor",
     "playerstate.ClientPlayerStateManagerMixin",
     "playerstate.KeyEventsMixin",
-    "playerstate.RenderEventsMixin",
     "voicechat.ClientManagerAccessor",
     "voicechat.ClientManagerMixin",
     "voicechat.ClientServerChannelMixin",
