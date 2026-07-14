@@ -11,7 +11,7 @@ public class MiscTasks {
                 BareBonesVCClient.INSTANCE.onTimeout();
             }
 
-            if (BareBonesVCClient.INSTANCE.isSimpleVoiceChatRunning()) {
+            if (BareBonesVCClient.INSTANCE.isOurSVCRunning()) {
                 BareBonesVCClient.INSTANCE.pruneAudioChannels();
             }
         }, 50L, 2000L, TimeUnit.MILLISECONDS);
@@ -41,7 +41,7 @@ public class MiscTasks {
             }
             if (count >= MAX_SENDS) {
                 BareBonesVCClient.INSTANCE.sendMessage("Failed to connect to Bare Bones VC server", true);
-                BareBonesVCClient.INSTANCE.onDisconnect(false);
+                BareBonesVCClient.INSTANCE.onDisconnect(true);
             }
         }, "BareBonesVCHandshakeThread");
         thread.setDaemon(true);

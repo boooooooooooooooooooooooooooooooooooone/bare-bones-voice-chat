@@ -31,7 +31,7 @@ public class ClientManagerMixin {
             cancellable = true
     )
     private static void injectGetClient(CallbackInfoReturnable<ClientVoicechat> cir) {
-        if (BareBonesVCClient.INSTANCE.isSimpleVoiceChatRunning()) {
+        if (BareBonesVCClient.INSTANCE.isOurSVCRunning()) {
             cir.setReturnValue(((FabricBareBonesVCClient) BareBonesVCClient.INSTANCE).client);
         }
     }

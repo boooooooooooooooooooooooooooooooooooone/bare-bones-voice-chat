@@ -19,7 +19,7 @@ public class ClientPlayerStateManagerMixin {
             cancellable = true
     )
     private void injectIsDisconnected(CallbackInfoReturnable<Boolean> cir) {
-        if (BareBonesVCClient.INSTANCE.isSimpleVoiceChatRunning()) cir.setReturnValue(false);
+        if (BareBonesVCClient.INSTANCE.isOurSVCRunning()) cir.setReturnValue(false);
     }
 
     @Inject(
@@ -32,7 +32,7 @@ public class ClientPlayerStateManagerMixin {
             cancellable = true
     )
     private void injectIsPlayerDisconnected(CallbackInfoReturnable<Boolean> cir) {
-        if (BareBonesVCClient.INSTANCE.isSimpleVoiceChatRunning()) cir.setReturnValue(true);
+        if (BareBonesVCClient.INSTANCE.isOurSVCRunning()) cir.setReturnValue(true);
     }
 
     @Inject(

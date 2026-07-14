@@ -86,17 +86,17 @@ public class FabricBareBonesVCClient extends BareBonesVCClient {
     }
 
     @Override
-    public void shutdownVanilla() {
+    public void shutdownVanillaSVC() {
         FabricClientCompatibilityManager.INSTANCE.emitDisconnectedEvent();
     }
 
     @Override
-    public void restartVanilla() {
+    public void restartVanillaSVC() {
         ((ClientManagerAccessor) ClientManager.instance()).invokeOnJoinWorld();
     }
 
     @Override
-    public void initializeSimpleVoiceChat() {
+    public void initializeOurSVC() {
         this.client = new ClientVoicechat();
 
         if (VoicechatClient.CLIENT_CONFIG.muteOnJoin.get()) {
@@ -108,27 +108,38 @@ public class FabricBareBonesVCClient extends BareBonesVCClient {
     }
 
     @Override
-    public boolean isSimpleVoiceChatRunning() {
+    public boolean isOurSVCRunning() {
         return this.client != null;
     }
 
     @Override
-    public void passSoundPacketToSimpleVoiceChat(byte[] audio, long sequenceNumber, UUID uuid, boolean whispering) {
-        this.client.processSoundPacket(
-                new PlayerSoundPacket(
-                        uuid,
-                        uuid,
-                        audio,
-                        sequenceNumber,
-                        whispering,
-                        whispering ? this.config.getWhisperDistance() : this.config.getVoiceDistance(),
-                        null
-                )
-        );
+    public void passSoundPacketToSVC(byte[] audio, long sequenceNumber, UUID uuid, boolean whispering) {
+
+        if (this.isOurSVCRunning() && !VoicechatClient.CLIENT_CONFIG.disabled.get()) {
+            AudioChannel channel = this.getAudioChannels().get(uuid);
+            if (channel == null) {
+                channel = new AudioChannel(
+                        this.client,
+                        null,
+                        uuid
+                );
+                channel.start();
+                this.getAudioChannels().put(uuid, channel);
+            }
+            channel.addToQueue(new PlayerSoundPacket(
+                    uuid,
+                    uuid,
+                    audio,
+                    sequenceNumber,
+                    whispering,
+                    whispering ? this.config.getWhisperDistance() : this.config.getVoiceDistance(),
+                    null
+            ));
+        }
     }
 
     @Override
-    public void shutdownSimpleVoiceChat() {
+    public void shutdownOurSVC() {
         if (this.client != null) {
             this.client.closeMicThread();
             this.client.close();

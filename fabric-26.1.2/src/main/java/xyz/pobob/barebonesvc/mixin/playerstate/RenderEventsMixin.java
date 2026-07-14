@@ -20,6 +20,6 @@ public class RenderEventsMixin {
             cancellable = true
     )
     private void injectShouldShowIcons(CallbackInfoReturnable<Boolean> cir) {
-        if (BareBonesVCClient.INSTANCE.isSimpleVoiceChatRunning()) cir.setReturnValue(true);
+        if (BareBonesVCClient.INSTANCE.isOurSVCRunning()) cir.setReturnValue(true);
     }
 }

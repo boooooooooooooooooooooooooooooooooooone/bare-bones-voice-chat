@@ -49,7 +49,7 @@ public class ServerHelloHandler implements ServerPacketHandler {
                             BareBonesVCClient.INSTANCE.scheduler.schedule(() -> task.cancel(false), 10L, TimeUnit.SECONDS);
 
                         } else {
-                            BareBonesVCClient.INSTANCE.onDisconnect(false);
+                            BareBonesVCClient.INSTANCE.onDisconnect(true);
                         }
                     });
 

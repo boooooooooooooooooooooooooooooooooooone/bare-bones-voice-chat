@@ -59,7 +59,7 @@ public abstract class BareBonesVCClient {
         }
         this.running = true;
 
-        this.shutdownVanilla();
+        this.shutdownVanillaSVC();
 
         Thread networkReceiveThread = new Thread(null, () -> {
             while (this.isRunning()) {
@@ -135,7 +135,7 @@ public abstract class BareBonesVCClient {
 
         this.waitingForAuth = false;
 
-        this.initializeSimpleVoiceChat();
+        this.initializeOurSVC();
 
         this.sendMessage("Successfully connected to Bare Bones VC server!", true);
         this.sendFeed(this.getOwnUsername() + " joined");
@@ -143,10 +143,10 @@ public abstract class BareBonesVCClient {
 
     public void onTimeout() {
         this.sendMessage("Bare Bones VC connection timed out", true);
-        this.onDisconnect(false);
+        this.onDisconnect(true);
     }
 
-    public void onDisconnect(boolean quitting) {
+    public void onDisconnect(boolean notQuitting) {
         this.logInfo("Disconnected from " + this.getReadableAddress());
         this.clearFeed();
 
@@ -156,31 +156,28 @@ public abstract class BareBonesVCClient {
         }
         this.clearPlayerStates();
 
-        this.stopNow(quitting);
+        this.close(notQuitting);
     }
 
-    public void stopNow(boolean quitting) {
+    public void close(boolean notQuitting) {
 
         this.scheduler.shutdown();
         this.pool.shutdown();
-
-        // prepare for next session
-        this.scheduler = Executors.newSingleThreadScheduledExecutor();
-        this.pool = Executors.newSingleThreadExecutor();
-
+        if (notQuitting) {
+            this.scheduler = Executors.newSingleThreadScheduledExecutor();
+            this.pool = Executors.newSingleThreadExecutor();
+        }
 
         if (this.reliablePacketManager != null) {
             this.reliablePacketManager.clear();
         }
 
-        this.shutdownSimpleVoiceChat();
-
-        this.config = null;
+        this.shutdownOurSVC();
 
         if (this.isRunning()) {
             this.running = false;
         }
-
+        this.config = null;
         this.waitingForServerHello = true;
         this.waitingForAuth = true;
 
@@ -189,8 +186,8 @@ public abstract class BareBonesVCClient {
             this.socket = null;
         }
 
-        if (!quitting) {
-            this.restartVanilla();
+        if (notQuitting) {
+            this.restartVanillaSVC();
         }
 
     }
@@ -225,17 +222,17 @@ public abstract class BareBonesVCClient {
 
     public abstract void clearFeed();
 
-    public abstract void shutdownVanilla();
+    public abstract void shutdownVanillaSVC();
 
-    public abstract void restartVanilla();
+    public abstract void restartVanillaSVC();
 
-    public abstract void initializeSimpleVoiceChat();
+    public abstract void initializeOurSVC();
 
-    public abstract boolean isSimpleVoiceChatRunning();
+    public abstract boolean isOurSVCRunning();
 
-    public abstract void passSoundPacketToSimpleVoiceChat(byte[] audio, long sequenceNumber, UUID uuid, boolean whispering);
+    public abstract void passSoundPacketToSVC(byte[] audio, long sequenceNumber, UUID uuid, boolean whispering);
 
-    public abstract void shutdownSimpleVoiceChat();
+    public abstract void shutdownOurSVC();
 
     public abstract void updatePlayerState(UUID uuid, String username, boolean disabled, boolean disconnected);
 

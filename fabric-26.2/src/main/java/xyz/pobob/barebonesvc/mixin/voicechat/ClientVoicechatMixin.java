@@ -50,7 +50,7 @@ public class ClientVoicechatMixin {
             cancellable = true
     )
     private void injectProcessSoundPacket(SoundPacket<?> packet, CallbackInfo ci) {
-        if (BareBonesVCClient.INSTANCE.isSimpleVoiceChatRunning() && !VoicechatClient.CLIENT_CONFIG.disabled.get()) {
+        if (BareBonesVCClient.INSTANCE.isOurSVCRunning() && !VoicechatClient.CLIENT_CONFIG.disabled.get()) {
             AudioChannel channel = ((FabricBareBonesVCClient) BareBonesVCClient.INSTANCE).getAudioChannels().get(packet.getChannelId());
             if (channel == null) {
                 channel = new AudioChannel(

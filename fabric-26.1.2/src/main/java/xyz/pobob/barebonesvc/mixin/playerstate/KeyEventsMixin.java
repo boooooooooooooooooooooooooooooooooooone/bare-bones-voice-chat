@@ -15,6 +15,6 @@ public class KeyEventsMixin {
             cancellable = true
     )
     private void injectCheckConnected(CallbackInfoReturnable<Boolean> cir) {
-        if (BareBonesVCClient.INSTANCE.isSimpleVoiceChatRunning()) cir.setReturnValue(true);
+        if (BareBonesVCClient.INSTANCE.isOurSVCRunning()) cir.setReturnValue(true);
     }
 }

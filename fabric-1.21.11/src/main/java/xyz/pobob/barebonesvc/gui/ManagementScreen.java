@@ -28,7 +28,7 @@ public class ManagementScreen extends VoiceChatScreenBase {
         this.clearChildren();
 
         ButtonWidget disconnect = ButtonWidget.builder(DISCONNECT, button -> {
-            BareBonesVCClient.INSTANCE.onDisconnect(false);
+            BareBonesVCClient.INSTANCE.onDisconnect(true);
             MinecraftClient.getInstance().setScreen(null);
         }).dimensions(this.guiLeft + 68, this.guiTop + this.ySize - 27, this.xSize - 136, 20).build();
         this.addDrawableChild(disconnect);

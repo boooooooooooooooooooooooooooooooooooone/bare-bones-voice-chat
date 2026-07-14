@@ -90,17 +90,17 @@ public class FabricBareBonesVCClient extends BareBonesVCClient {
     }
 
     @Override
-    public void shutdownVanilla() {
+    public void shutdownVanillaSVC() {
         FabricClientCompatibilityManager.INSTANCE.emitDisconnectedEvent();
     }
 
     @Override
-    public void restartVanilla() {
+    public void restartVanillaSVC() {
         ((ClientManagerAccessor) ClientManager.instance()).invokeOnJoinWorld();
     }
 
     @Override
-    public void initializeSimpleVoiceChat() {
+    public void initializeOurSVC() {
         this.client = new ClientVoicechat();
 
         if (VoicechatClient.CLIENT_CONFIG.muteOnJoin.get()) {
@@ -112,12 +112,12 @@ public class FabricBareBonesVCClient extends BareBonesVCClient {
     }
 
     @Override
-    public boolean isSimpleVoiceChatRunning() {
+    public boolean isOurSVCRunning() {
         return this.client != null;
     }
 
     @Override
-    public void passSoundPacketToSimpleVoiceChat(byte[] audio, long sequenceNumber, UUID uuid, boolean whispering) {
+    public void passSoundPacketToSVC(byte[] audio, long sequenceNumber, UUID uuid, boolean whispering) {
         this.client.processSoundPacket(
                 new PlayerSoundPacket(
                         uuid,
@@ -132,7 +132,7 @@ public class FabricBareBonesVCClient extends BareBonesVCClient {
     }
 
     @Override
-    public void shutdownSimpleVoiceChat() {
+    public void shutdownOurSVC() {
         if (this.client != null) {
             this.client.closeMicThread();
             this.client.close();
