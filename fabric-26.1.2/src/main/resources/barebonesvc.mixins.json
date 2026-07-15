@@ -4,19 +4,21 @@
   "package": "xyz.pobob.barebonesvc.mixin",
   "compatibilityLevel": "JAVA_25",
   "mixins": [
-    "ClientLoginNetworkHandlerAccessor",
+    "ClientLoginNetworkHandlerInvoker",
     "gui.VoiceChatScreenMixin",
-    "playerstate.ClientPlayerStateManagerAccessor",
+    "playerstate.ClientPlayerStateManagerInvoker",
     "playerstate.ClientPlayerStateManagerMixin",
     "playerstate.KeyEventsMixin",
+    "voicechat.AuthThreadMixin",
     "voicechat.ClientManagerAccessor",
     "voicechat.ClientManagerMixin",
     "voicechat.ClientServerChannelMixin",
+    "voicechat.ClientVoicechatConnectionMixin",
     "voicechat.ClientVoicechatMixin",
+    "voicechat.InitializationDataMixin",
     "voicechat.MicThreadMixin"
   ],
   "client": [
-    "ClientLoginNetworkHandlerAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

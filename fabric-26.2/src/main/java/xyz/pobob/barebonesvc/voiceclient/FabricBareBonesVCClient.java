@@ -3,7 +3,6 @@ package xyz.pobob.barebonesvc.voiceclient;
 import de.maxhenkel.voicechat.VoicechatClient;
 import de.maxhenkel.voicechat.intercompatibility.FabricClientCompatibilityManager;
 import de.maxhenkel.voicechat.net.PlayerStatePacket;
-import de.maxhenkel.voicechat.voice.client.AudioChannel;
 import de.maxhenkel.voicechat.voice.client.ClientManager;
 import de.maxhenkel.voicechat.voice.client.ClientVoicechat;
 import de.maxhenkel.voicechat.voice.common.PlayerSoundPacket;
@@ -19,24 +18,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xyz.pobob.barebonesvc.BareBonesVC;
 import xyz.pobob.barebonesvc.gui.SessionEventFeed;
-import xyz.pobob.barebonesvc.mixin.ClientLoginNetworkHandlerAccessor;
-import xyz.pobob.barebonesvc.mixin.playerstate.ClientPlayerStateManagerAccessor;
+import xyz.pobob.barebonesvc.mixin.ClientLoginNetworkHandlerInvoker;
+import xyz.pobob.barebonesvc.mixin.playerstate.ClientPlayerStateManagerInvoker;
 import xyz.pobob.barebonesvc.mixin.voicechat.ClientManagerAccessor;
 
 import java.math.BigInteger;
-import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.Executor;
 
 public class FabricBareBonesVCClient extends BareBonesVCClient {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BareBonesVC.MOD_ID);
-
-    public ClientVoicechat client;
-
-    public synchronized Map<UUID, AudioChannel> getAudioChannels() {
-        return this.client.getAudioChannels();
-    }
 
     @Override
     public String getOwnUsername() {
@@ -90,84 +83,52 @@ public class FabricBareBonesVCClient extends BareBonesVCClient {
     }
 
     @Override
-    public void shutdownVoiceChat() {
-        FabricClientCompatibilityManager.INSTANCE.emitDisconnectedEvent();
-    }
-
-    @Override
     public void startVanillaSVC() {
         ((ClientManagerAccessor) ClientManager.instance()).invokeOnJoinWorld();
     }
 
     @Override
     public void startOurSVC() {
-        this.client = new ClientVoicechat();
-
         if (VoicechatClient.CLIENT_CONFIG.muteOnJoin.get()) {
             ClientManager.getPlayerStateManager().setMuted(true);
         }
 
-        FabricClientCompatibilityManager.INSTANCE.emitVoiceChatConnectedEvent(null);
-        this.client.onVoiceChatConnected(null);
+        ((ClientManagerAccessor) ClientManager.instance()).setClient(new ClientVoicechat());
+
+        FabricClientCompatibilityManager.INSTANCE.emitVoiceChatConnectedEvent(ClientManager.getClient().getConnection());
     }
 
     @Override
-    public boolean isOurSVCRunning() {
-        return this.client != null;
+    public void shutdownVoiceChat() {
+        if (ClientManager.getClient() != null) {
+            ClientManager.getClient().close();
+        }
     }
 
     @Override
     public void passSoundPacketToSVC(byte[] audio, long sequenceNumber, UUID uuid, boolean whispering) {
-
-        if (this.isOurSVCRunning() && !VoicechatClient.CLIENT_CONFIG.disabled.get()) {
-            AudioChannel channel = this.getAudioChannels().get(uuid);
-            if (channel == null) {
-                channel = new AudioChannel(
-                        this.client,
-                        null,
-                        uuid
-                );
-                channel.start();
-                this.getAudioChannels().put(uuid, channel);
-            }
-            channel.addToQueue(new PlayerSoundPacket(
-                    uuid,
-                    uuid,
-                    audio,
-                    sequenceNumber,
-                    whispering,
-                    whispering ? this.config.getWhisperDistance() : this.config.getVoiceDistance(),
-                    null
-            ));
-        }
+        Objects.requireNonNull(ClientManager.getClient()).processSoundPacket(new PlayerSoundPacket(
+                uuid,
+                uuid,
+                audio,
+                sequenceNumber,
+                whispering,
+                whispering ? this.config.getWhisperDistance() : this.config.getVoiceDistance(),
+                null
+        ));
     }
 
     @Override
-    public void shutdownOurSVC() {
-        if (this.client != null) {
-            this.client.closeMicThread();
-            this.client.close();
-            this.client = null;
-        }
-    }
-
-    @Override
-    public void updatePlayerState(UUID uuid, String username, boolean disabled, boolean disconnected) {
-        ((ClientPlayerStateManagerAccessor) ClientManager.getPlayerStateManager()).invokeUpdatePlayerState(
+    public synchronized void updatePlayerState(UUID uuid, String username, boolean disabled, boolean disconnected) {
+        ((ClientPlayerStateManagerInvoker) ClientManager.getPlayerStateManager()).invokeUpdatePlayerState(
                 null,
                 new PlayerStatePacket(new PlayerState(uuid, username, disabled, disconnected))
         );
     }
 
     @Override
-    public void clearPlayerStates() {
+    public synchronized void clearPlayerStates() {
         ClientManager.getPlayerStateManager().clearStates();
-    }
-
-    @Override
-    public void pruneAudioChannels() {
-        this.getAudioChannels().values().stream().filter(AudioChannel::canKill).forEach(AudioChannel::closeAndKill);
-        this.getAudioChannels().entrySet().removeIf(entry -> entry.getValue().isClosed());
     }
 
     @Override
@@ -193,7 +154,7 @@ public class FabricBareBonesVCClient extends BareBonesVCClient {
     public boolean requestSessionServerJoin(String digest) {
         ClientHandshakePacketListenerImpl login = new ClientHandshakePacketListenerImpl(null, Minecraft.getInstance(), null, null, false, null, _ -> {}, null, null);
 
-        Component error = ((ClientLoginNetworkHandlerAccessor) login).invokeAuthenticateServer(digest);
+        Component error = ((ClientLoginNetworkHandlerInvoker) login).invokeAuthenticateServer(digest);
         if (error != null) {
             this.sendMessage(error.getString(), true);
             return false;

@@ -6,7 +6,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(ClientHandshakePacketListenerImpl.class)
-public interface ClientLoginNetworkHandlerAccessor {
+public interface ClientLoginNetworkHandlerInvoker {
     @Invoker("authenticateServer")
     Component invokeAuthenticateServer(String serverId);
 }

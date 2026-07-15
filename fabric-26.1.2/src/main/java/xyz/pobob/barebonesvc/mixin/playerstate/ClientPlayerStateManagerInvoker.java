@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(ClientPlayerStateManager.class)
-public interface ClientPlayerStateManagerAccessor {
+public interface ClientPlayerStateManagerInvoker {
     @Invoker("lambda$new$0")
     void invokeUpdatePlayerState(LocalPlayer player, PlayerStatePacket packet);
 }

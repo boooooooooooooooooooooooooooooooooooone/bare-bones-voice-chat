@@ -13,7 +13,4 @@ public interface ClientManagerAccessor {
 
     @Accessor("client")
     void setClient(ClientVoicechat client);
-
-    @Invoker("onDisconnect")
-    void invokeOnDisconnect();
 }

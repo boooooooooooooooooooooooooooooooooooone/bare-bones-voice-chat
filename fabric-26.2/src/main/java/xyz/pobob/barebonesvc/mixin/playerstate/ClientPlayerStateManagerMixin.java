@@ -19,12 +19,12 @@ public class ClientPlayerStateManagerMixin {
             cancellable = true
     )
     private void injectIsDisconnected(CallbackInfoReturnable<Boolean> cir) {
-        if (BareBonesVCClient.INSTANCE.isOurSVCRunning()) cir.setReturnValue(false);
+        if (BareBonesVCClient.INSTANCE.isConnected()) cir.setReturnValue(false);
     }
 
     @Inject(
             method = "isPlayerDisconnected",
-            at = @At( // the injection point will only be found if states.get(uuid) == null
+            at = @At(
                     value = "FIELD",
                     target = "Lde/maxhenkel/voicechat/VoicechatClient;CLIENT_CONFIG:Lde/maxhenkel/voicechat/config/ClientConfig;",
                     opcode = Opcodes.GETSTATIC
@@ -32,16 +32,7 @@ public class ClientPlayerStateManagerMixin {
             cancellable = true
     )
     private void injectIsPlayerDisconnected(CallbackInfoReturnable<Boolean> cir) {
-        if (BareBonesVCClient.INSTANCE.isOurSVCRunning()) cir.setReturnValue(true);
-    }
-
-    @Inject(
-            method = "onDisconnect",
-            at = @At("HEAD"),
-            cancellable = true
-    )
-    private void injectOnDisconnect(CallbackInfo ci) {
-        if (BareBonesVCClient.INSTANCE.isRunning()) ci.cancel();
+        if (BareBonesVCClient.INSTANCE.isConnected()) cir.setReturnValue(true);
     }
 
     @Unique
@@ -55,6 +46,17 @@ public class ClientPlayerStateManagerMixin {
         if (BareBonesVCClient.INSTANCE.isConnected()) {
             this.clientUpdatePlayerPacket.create(disabled, false);
             BareBonesVCClient.INSTANCE.send(this.clientUpdatePlayerPacket);
+        }
+    }
+
+    @Inject(
+            method = "onDisconnect",
+            at = @At("HEAD"),
+            cancellable = true
+    )
+    private void injectOnDisconnect(CallbackInfo ci) {
+        if (BareBonesVCClient.INSTANCE.isConnected()) {
+            ci.cancel();
         }
     }
 }

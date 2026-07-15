@@ -1,8 +1,6 @@
 package xyz.pobob.barebonesvc.mixin.voicechat;
 
 import de.maxhenkel.voicechat.api.opus.OpusEncoder;
-import de.maxhenkel.voicechat.api.opus.OpusEncoderMode;
-import de.maxhenkel.voicechat.natives.OpusManager;
 import de.maxhenkel.voicechat.voice.client.MicThread;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -10,7 +8,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import xyz.pobob.barebonesvc.packet.ClientAudioPacket;
 import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
@@ -26,33 +23,14 @@ public class MicThreadMixin {
 
     @Inject(
             method = "sendAudioPacket",
-            at = @At("HEAD")
+            at = @At("HEAD"),
+            cancellable = true
     )
     private void injectSendAudioPacket(short[] audio, boolean whispering, CallbackInfo ci) {
         if (BareBonesVCClient.INSTANCE.isConnected()) {
             this.clientAudioPacket.create(this.encoder.encode(audio), this.sequenceNumber.getAndIncrement(), whispering);
             BareBonesVCClient.INSTANCE.send(this.clientAudioPacket);
+            ci.cancel();
         }
-    }
-
-    @Redirect(
-            method = "<init>",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lde/maxhenkel/voicechat/natives/OpusManager;createEncoder(Lde/maxhenkel/voicechat/api/opus/OpusEncoderMode;)Lde/maxhenkel/voicechat/api/opus/OpusEncoder;"
-            )
-    )
-    private OpusEncoder redirectEncoder(OpusEncoderMode mode) {
-        if (BareBonesVCClient.INSTANCE.isConnected()) {
-            if (BareBonesVCClient.INSTANCE.config != null) {
-                return OpusManager.createEncoder(switch (BareBonesVCClient.INSTANCE.config.getCodec()) {
-                    case VOIP -> OpusEncoderMode.VOIP;
-                    case AUDIO -> OpusEncoderMode.AUDIO;
-                    case RESTRICTED_LOWDELAY -> OpusEncoderMode.RESTRICTED_LOWDELAY;
-                });
-            } else {
-                return OpusManager.createEncoder(OpusEncoderMode.AUDIO);
-            }
-        } else return OpusManager.createEncoder(mode);
     }
 }
