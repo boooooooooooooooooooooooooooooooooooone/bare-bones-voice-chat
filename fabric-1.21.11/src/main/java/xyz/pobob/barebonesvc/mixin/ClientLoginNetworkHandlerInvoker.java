@@ -6,7 +6,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(ClientLoginNetworkHandler.class)
-public interface ClientLoginNetworkHandlerAccessor {
+public interface ClientLoginNetworkHandlerInvoker {
     @Invoker("joinServerSession")
     Text invokeJoinServerSession(String serverId);
 }

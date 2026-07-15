@@ -5,6 +5,7 @@ import xyz.pobob.barebonesvc.packet.ServerHelloPacket;
 import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
 import xyz.pobob.barebonesvc.voiceclient.SessionConfig;
 
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -12,11 +13,14 @@ public class ServerHelloHandler implements ServerPacketHandler {
 
     private final ServerHelloPacket serverHelloPacket = new ServerHelloPacket();
     private final ClientHashPacket clientHashPacket = new ClientHashPacket();
+    private ScheduledFuture<?> task;
+
+    public static volatile boolean waitingForServerHello = true;
 
     @Override
     public void handle(byte[] data) {
-        if (BareBonesVCClient.INSTANCE.waitingForServerHello) {
-            BareBonesVCClient.INSTANCE.waitingForServerHello = false;
+        if (waitingForServerHello) {
+            waitingForServerHello = false;
 
             BareBonesVCClient.INSTANCE.clearPlayerStates();
 
@@ -41,13 +45,18 @@ public class ServerHelloHandler implements ServerPacketHandler {
 
                             this.clientHashPacket.create(digest);
 
-                            final ScheduledFuture<?> task = BareBonesVCClient.INSTANCE.scheduler.scheduleAtFixedRate(() -> {
-                                if (BareBonesVCClient.INSTANCE.waitingForAuth) {
-                                    BareBonesVCClient.INSTANCE.send(this.clientHashPacket);
-                                }
-                            }, 0L, 995L, TimeUnit.MILLISECONDS);
-                            BareBonesVCClient.INSTANCE.scheduler.schedule(() -> task.cancel(false), 10L, TimeUnit.SECONDS);
-
+                            int[] count = {0};
+                            try {
+                                this.task = BareBonesVCClient.INSTANCE.scheduler.scheduleAtFixedRate(() -> {
+                                    if (!BareBonesVCClient.INSTANCE.isConnected() && count[0] < 10) {
+                                        BareBonesVCClient.INSTANCE.send(this.clientHashPacket);
+                                    } else {
+                                        return;
+                                    }
+                                    count[0]++;
+                                }, 0L, 995L, TimeUnit.MILLISECONDS);
+                            } catch (RejectedExecutionException ignored) {
+                            }
                         } else {
                             BareBonesVCClient.INSTANCE.onDisconnect(true);
                         }

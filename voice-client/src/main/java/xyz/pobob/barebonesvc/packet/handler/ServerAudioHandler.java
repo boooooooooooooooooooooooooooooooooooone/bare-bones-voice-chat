@@ -9,7 +9,7 @@ public class ServerAudioHandler implements ServerPacketHandler {
 
     @Override
     public void handle(byte[] data) {
-        if (BareBonesVCClient.INSTANCE.isOurSVCRunning()) {
+        if (BareBonesVCClient.INSTANCE.isConnected()) {
             this.serverAudioPacket.deserialize(data);
             BareBonesVCClient.INSTANCE.passSoundPacketToSVC(
                     this.serverAudioPacket.getAudio(),

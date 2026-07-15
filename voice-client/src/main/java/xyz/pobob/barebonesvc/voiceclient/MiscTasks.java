@@ -2,23 +2,7 @@ package xyz.pobob.barebonesvc.voiceclient;
 
 import xyz.pobob.barebonesvc.packet.ClientHelloPacket;
 
-import java.util.concurrent.TimeUnit;
-
 public class MiscTasks {
-    public static void startTimeoutAndAudioChannelCheck() {
-        BareBonesVCClient.INSTANCE.scheduler.scheduleAtFixedRate(() -> {
-            if (System.currentTimeMillis() - BareBonesVCClient.INSTANCE.lastKeepAlive > BareBonesVCClient.TIMEOUT_MILLIS) {
-                BareBonesVCClient.INSTANCE.onTimeout();
-            }
-
-            if (BareBonesVCClient.INSTANCE.isOurSVCRunning()) {
-                BareBonesVCClient.INSTANCE.pruneAudioChannels();
-            }
-        }, 50L, 2000L, TimeUnit.MILLISECONDS);
-    }
-
-
-
     private static final int MAX_SENDS = 20;
 
     public static void startHandshake() {

@@ -3,6 +3,7 @@ package xyz.pobob.barebonesvc.voiceclient;
 import xyz.pobob.barebonesvc.packet.ClientUpdatePlayerPacket;
 import xyz.pobob.barebonesvc.packet.Packet;
 import xyz.pobob.barebonesvc.packet.ReliablePacket;
+import xyz.pobob.barebonesvc.packet.handler.ServerHelloHandler;
 import xyz.pobob.barebonesvc.packet.registry.PacketRegistry;
 import xyz.pobob.barebonesvc.packet.retransmission.ReliablePacketManager;
 
@@ -27,21 +28,24 @@ public abstract class BareBonesVCClient {
     private final byte[] sendBuf = new byte[4096];
     private final DatagramPacket sendPacket = new DatagramPacket(this.sendBuf, 0);
 
-    public ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-    private ExecutorService pool = Executors.newSingleThreadExecutor();
+    public ScheduledExecutorService scheduler;
+    private ExecutorService pool;
     private DatagramSocket socket;
 
     public final Map<UUID, Double> latencies = new ConcurrentHashMap<>();
     public ReliablePacketManager reliablePacketManager;
 
-    public SessionConfig config;
-    public long lastKeepAlive = 0;
+    public volatile SessionConfig config;
+    public String host;
+    public int port;
+    public long lastKeepAlive = -1;
 
     private volatile boolean running = false;
-    public volatile boolean waitingForServerHello = true;
-    public volatile boolean waitingForAuth = true;
 
     public void start(String host, int port) {
+        this.scheduler = Executors.newSingleThreadScheduledExecutor();
+        this.pool = Executors.newSingleThreadExecutor();
+
         InetSocketAddress address = new InetSocketAddress(host, port);
         if (address.isUnresolved()) {
             this.sendMessage("Failed to resolve address", true);
@@ -59,7 +63,7 @@ public abstract class BareBonesVCClient {
         }
         this.running = true;
 
-        this.shutdownVanillaSVC();
+        this.shutdownVoiceChat();
 
         Thread networkReceiveThread = new Thread(null, () -> {
             while (this.isRunning()) {
@@ -69,6 +73,8 @@ public abstract class BareBonesVCClient {
                     if (data.length < 5) continue;
                 } catch (IOException e) {
                     continue;
+                } catch (Exception e) {
+                    break;
                 }
 
                 pool.submit(() -> {
@@ -108,7 +114,9 @@ public abstract class BareBonesVCClient {
             System.arraycopy(data, 0, this.sendPacket.getData(), 0, data.length);
 
             try {
-                this.socket.send(this.sendPacket);
+                if (this.socket != null && !this.socket.isClosed()) {
+                    this.socket.send(this.sendPacket);
+                }
             } catch (IOException e) {
                 this.logError("An error occurred while sending Datagram packet", e);
             }
@@ -116,12 +124,12 @@ public abstract class BareBonesVCClient {
     }
 
     public byte[] receive() throws IOException {
-        if (!this.isRunning()) return null;
-
-        this.socket.receive(this.recvPacket);
+        if (this.socket != null && !this.socket.isClosed()) {
+            this.socket.receive(this.recvPacket);
+        }
 
         if (this.recvPacket.getLength() >= this.recvPacket.getData().length) {
-            throw new IOException(String.format("Packet from %s is too large", this.getReadableAddress()));
+            throw new IOException("Packet from" + this.getReadableAddress() + "is too large");
         }
 
         byte[] data = new byte[this.recvPacket.getLength()];
@@ -131,11 +139,7 @@ public abstract class BareBonesVCClient {
 
     public void onAuthenticated() {
         BareBonesVCClient.INSTANCE.lastKeepAlive = System.currentTimeMillis();
-        MiscTasks.startTimeoutAndAudioChannelCheck();
-
-        this.waitingForAuth = false;
-
-        this.initializeOurSVC();
+        this.startOurSVC();
 
         this.sendMessage("Successfully connected to Bare Bones VC server!", true);
         this.sendFeed(this.getOwnUsername() + " joined");
@@ -146,51 +150,51 @@ public abstract class BareBonesVCClient {
         this.onDisconnect(true);
     }
 
-    public void onDisconnect(boolean notQuitting) {
+    public synchronized void onDisconnect(boolean notQuitting) {
         this.logInfo("Disconnected from " + this.getReadableAddress());
         this.clearFeed();
 
-        if (this.isRunning()) {
+        if (this.isConnected()) {
             this.clientUpdatePlayerPacket.create(false, true);
             this.send(this.clientUpdatePlayerPacket);
         }
-        this.clearPlayerStates();
 
         this.close(notQuitting);
     }
 
-    public void close(boolean notQuitting) {
+    public synchronized void close(boolean notQuitting) {
+        this.running = false;
 
-        this.scheduler.shutdown();
-        this.pool.shutdown();
+        try {
+            if (this.scheduler != null) {
+                this.scheduler.shutdown();
+                this.scheduler.awaitTermination(2, TimeUnit.SECONDS);
+            }
+            if (this.pool != null) {
+                this.pool.shutdown();
+                this.pool.awaitTermination(2, TimeUnit.SECONDS);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        this.shutdownVoiceChat();
+
         if (notQuitting) {
-            this.scheduler = Executors.newSingleThreadScheduledExecutor();
-            this.pool = Executors.newSingleThreadExecutor();
+            this.startVanillaSVC();
         }
-
-        if (this.reliablePacketManager != null) {
-            this.reliablePacketManager.clear();
-        }
-
-        this.shutdownOurSVC();
-
-        if (this.isRunning()) {
-            this.running = false;
-        }
-        this.config = null;
-        this.waitingForServerHello = true;
-        this.waitingForAuth = true;
 
         if (this.socket != null) {
             this.socket.close();
             this.socket = null;
         }
 
-        if (notQuitting) {
-            this.shutdownVanillaSVC();
-            this.startVanillaSVC();
+        if (this.reliablePacketManager != null) {
+            this.reliablePacketManager.clear();
         }
-
+        ServerHelloHandler.waitingForServerHello = true;
+        this.lastKeepAlive = -1;
+        this.config = null;
     }
 
     public boolean isRunning() {
@@ -223,23 +227,17 @@ public abstract class BareBonesVCClient {
 
     public abstract void clearFeed();
 
-    public abstract void shutdownVanillaSVC();
-
     public abstract void startVanillaSVC();
 
-    public abstract void initializeOurSVC();
+    public abstract void startOurSVC();
 
-    public abstract boolean isOurSVCRunning();
+    public abstract void shutdownVoiceChat();
 
     public abstract void passSoundPacketToSVC(byte[] audio, long sequenceNumber, UUID uuid, boolean whispering);
-
-    public abstract void shutdownOurSVC();
 
     public abstract void updatePlayerState(UUID uuid, String username, boolean disabled, boolean disconnected);
 
     public abstract void clearPlayerStates();
-
-    public abstract void pruneAudioChannels();
 
     public abstract void registerClientQuitEvent(Runnable action);
 

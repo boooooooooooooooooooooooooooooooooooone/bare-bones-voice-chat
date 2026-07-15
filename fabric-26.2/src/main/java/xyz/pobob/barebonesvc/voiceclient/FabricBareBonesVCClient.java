@@ -90,7 +90,7 @@ public class FabricBareBonesVCClient extends BareBonesVCClient {
     }
 
     @Override
-    public void shutdownVanillaSVC() {
+    public void shutdownVoiceChat() {
         FabricClientCompatibilityManager.INSTANCE.emitDisconnectedEvent();
     }
 
@@ -100,7 +100,7 @@ public class FabricBareBonesVCClient extends BareBonesVCClient {
     }
 
     @Override
-    public void initializeOurSVC() {
+    public void startOurSVC() {
         this.client = new ClientVoicechat();
 
         if (VoicechatClient.CLIENT_CONFIG.muteOnJoin.get()) {

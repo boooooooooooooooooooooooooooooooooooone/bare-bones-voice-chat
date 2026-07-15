@@ -43,14 +43,16 @@ public class MicThreadMixin {
             )
     )
     private OpusEncoder redirectEncoder(OpusEncoderMode mode) {
-        if (BareBonesVCClient.INSTANCE.config != null) {
-            return OpusManager.createEncoder(switch (BareBonesVCClient.INSTANCE.config.getCodec()) {
-                case VOIP -> OpusEncoderMode.VOIP;
-                case AUDIO -> OpusEncoderMode.AUDIO;
-                case RESTRICTED_LOWDELAY -> OpusEncoderMode.RESTRICTED_LOWDELAY;
-            });
-        } else {
-            return OpusManager.createEncoder(OpusEncoderMode.AUDIO);
-        }
+        if (BareBonesVCClient.INSTANCE.isConnected()) {
+            if (BareBonesVCClient.INSTANCE.config != null) {
+                return OpusManager.createEncoder(switch (BareBonesVCClient.INSTANCE.config.getCodec()) {
+                    case VOIP -> OpusEncoderMode.VOIP;
+                    case AUDIO -> OpusEncoderMode.AUDIO;
+                    case RESTRICTED_LOWDELAY -> OpusEncoderMode.RESTRICTED_LOWDELAY;
+                });
+            } else {
+                return OpusManager.createEncoder(OpusEncoderMode.AUDIO);
+            }
+        } else return OpusManager.createEncoder(mode);
     }
 }
