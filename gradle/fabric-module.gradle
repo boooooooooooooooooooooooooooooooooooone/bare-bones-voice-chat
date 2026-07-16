@@ -1,5 +1,6 @@
-version = project.version
+version = "${project.version}+mc${props.minecraft_version}"
 group = project.maven_group
+archives_base_name = project.archives_base_name
 
 base {
     archivesName = props.archives_base_name
@@ -56,4 +57,6 @@ processResources {
 jar {
     from(project(":common").sourceSets.main.output)
     from(project(":voice-client").sourceSets.main.output)
+
+    archiveFileName = "${archives_base_name}-fabric-${version}.jar"
 }
