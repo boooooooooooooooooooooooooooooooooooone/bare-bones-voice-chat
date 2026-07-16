@@ -27,34 +27,20 @@ public class Util {
         }
 
         switch (method.toUpperCase()) {
-            case "GET":
-                builder.GET();
-                break;
-
-            case "POST":
-                builder.POST(HttpRequest.BodyPublishers.ofString(body != null ? body : ""));
-                break;
-
-            case "PUT":
-                builder.PUT(HttpRequest.BodyPublishers.ofString(body != null ? body : ""));
-                break;
-
-            case "DELETE":
+            case "GET" -> builder.GET();
+            case "POST" -> builder.POST(HttpRequest.BodyPublishers.ofString(body != null ? body : ""));
+            case "PUT" -> builder.PUT(HttpRequest.BodyPublishers.ofString(body != null ? body : ""));
+            case "DELETE" -> {
                 if (body == null) {
                     builder.DELETE();
                 } else {
                     builder.method("DELETE",
                             HttpRequest.BodyPublishers.ofString(body));
                 }
-                break;
-
-            case "PATCH":
-                builder.method("PATCH",
-                        HttpRequest.BodyPublishers.ofString(body != null ? body : ""));
-                break;
-
-            default:
-                throw new IllegalArgumentException("Unsupported HTTP method: " + method);
+            }
+            case "PATCH" -> builder.method("PATCH",
+                    HttpRequest.BodyPublishers.ofString(body != null ? body : ""));
+            default -> throw new IllegalArgumentException("Unsupported HTTP method: " + method);
         }
 
         return CLIENT.sendAsync(

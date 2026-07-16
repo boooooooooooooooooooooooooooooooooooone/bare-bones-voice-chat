@@ -42,10 +42,12 @@ public class ClientHelloHandler implements ClientPacketHandler {
 
         this.server.addClient(clientAddress, conn);
         this.server.scheduler.schedule(() -> {
+
             if (!conn.isAuthenticated()) {
-                this.server.onDisconnect(clientAddress);
+                this.server.removeClient(clientAddress);
             }
-        }, 20, TimeUnit.SECONDS);
+
+        }, 15, TimeUnit.SECONDS);
 
         byte[] publicKey = null;
         if (config.mojangAuth) {
