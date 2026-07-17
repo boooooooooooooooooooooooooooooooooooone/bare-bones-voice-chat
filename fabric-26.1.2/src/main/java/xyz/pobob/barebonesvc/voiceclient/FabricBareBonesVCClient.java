@@ -102,6 +102,7 @@ public class FabricBareBonesVCClient extends BareBonesVCClient {
     public void shutdownVoiceChat() {
         if (ClientManager.getClient() != null) {
             ClientManager.getClient().close();
+            ((ClientManagerAccessor) ClientManager.instance()).setClient(null);
         }
     }
 
