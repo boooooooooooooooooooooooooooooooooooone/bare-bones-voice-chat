@@ -56,14 +56,12 @@ public class ConnectionScreen extends VoiceChatScreenBase {
         this.port.setMaxLength(5);
         this.addDrawableChild(this.port);
 
-        ButtonWidget connect = ButtonWidget.builder(CONNECT, button -> {
-            this.connect();
-            MinecraftClient.getInstance().setScreen(null);
-        }).dimensions(this.guiLeft + 6, this.guiTop + this.ySize - 27, this.xSize - 12, 20).build();
+        ButtonWidget connect = ButtonWidget.builder(CONNECT, button ->
+                MinecraftClient.getInstance().setScreen(this.connect() ? new ManagementScreen() : null)).dimensions(this.guiLeft + 6, this.guiTop + this.ySize - 27, this.xSize - 12, 20).build();
         this.addDrawableChild(connect);
     }
 
-    private void connect() {
+    private boolean connect() {
         String host = this.host.getText().trim();
         String portText = this.port.getText().trim();
 
@@ -75,8 +73,10 @@ public class ConnectionScreen extends VoiceChatScreenBase {
             URI uri = new URI("http", null, host, port, null, null, null);
 
             BareBonesVCClient.INSTANCE.start(uri.getHost(), uri.getPort());
+            return true;
         } catch (URISyntaxException | NumberFormatException e) {
             BareBonesVCClient.INSTANCE.sendMessage("Failed to resolve address", true);
+            return false;
         }
     }
 

@@ -5,7 +5,7 @@
   "compatibilityLevel": "JAVA_25",
   "mixins": [
     "ClientLoginNetworkHandlerInvoker",
-    "gui.VoiceChatScreenMixin",
+    "ScreenMixin",
     "playerstate.ClientPlayerStateManagerInvoker",
     "playerstate.ClientPlayerStateManagerMixin",
     "playerstate.KeyEventsMixin",
@@ -19,6 +19,7 @@
     "voicechat.MicThreadMixin"
   ],
   "client": [
+
   ],
   "injectors": {
     "defaultRequire": 1

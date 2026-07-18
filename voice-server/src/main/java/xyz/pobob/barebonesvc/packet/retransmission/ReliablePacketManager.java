@@ -31,7 +31,7 @@ public final class ReliablePacketManager {
         }
     }
 
-    public void onClientAcknowledge(final int sequence, SocketAddress clientAddress) {
+    public void onClientAcknowledge(int sequence, SocketAddress clientAddress) {
         ClientConnection conn = this.server.getClient(clientAddress);
         if (conn != null) {
             conn.removeSentPendingPacket(sequence);

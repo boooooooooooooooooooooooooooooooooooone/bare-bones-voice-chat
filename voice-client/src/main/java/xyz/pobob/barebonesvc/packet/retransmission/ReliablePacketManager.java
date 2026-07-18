@@ -32,7 +32,7 @@ public final class ReliablePacketManager {
         this.sentPendingPackets.put(packet.getSequenceNumber(), new PendingPacket(packet.serialize(), System.currentTimeMillis()));
     }
 
-    public void onServerAcknowledge(final int sequence) {
+    public void onServerAcknowledge(int sequence) {
         this.sentPendingPackets.remove(sequence);
     }
 
