@@ -3,35 +3,31 @@ package xyz.pobob.barebonesvc.cli.command;
 import xyz.pobob.barebonesvc.BareBonesVC;
 import xyz.pobob.barebonesvc.voiceserver.BareBonesVCServer;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 public class CommandDispatcher {
+
+    private static final Map<String, Command> COMMANDS = new HashMap<>();
+
+    static {
+        COMMANDS.put("help", new HelpCommand());
+        COMMANDS.put("stop", new StopCommand());
+        COMMANDS.put("list", new ListCommand());
+        COMMANDS.put("kick", new KickCommand());
+        COMMANDS.put("voicedistance", new VoiceDistanceCommand());
+        COMMANDS.put("whisperdistance", new WhisperDistanceCommand());
+    }
 
     private final BareBonesVCServer server;
 
     public CommandDispatcher(BareBonesVCServer server) {
         this.server = server;
-
-        this.register("stop", new StopCommand());
-        this.register("list", new ListCommand());
-        this.register("kick", new KickCommand());
-        this.register("voicedistance", new VoiceDistanceCommand());
-        this.register("whisperdistance", new WhisperDistanceCommand());
-    }
-
-    private final Map<String, Command> commands = new HashMap<>();
-
-    public void register(String name, Command command) {
-        this.commands.put(name, command);
     }
 
     public void dispatch(String input) {
         String[] parts = input.split("\\s+");
 
-        Command command = commands.get(parts[0].toLowerCase(Locale.ROOT));
+        Command command = COMMANDS.get(parts[0].toLowerCase(Locale.ROOT));
 
         if (command == null) {
             BareBonesVC.LOGGER.warning("Unknown command");
@@ -39,5 +35,9 @@ public class CommandDispatcher {
         }
 
         command.execute(Arrays.copyOfRange(parts, 1, parts.length), this.server);
+    }
+
+    public static Set<String> getCommandRoots() {
+        return COMMANDS.keySet();
     }
 }
