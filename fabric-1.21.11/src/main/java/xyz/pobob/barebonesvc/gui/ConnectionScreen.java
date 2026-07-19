@@ -24,6 +24,9 @@ public class ConnectionScreen extends VoiceChatScreenBase {
     private TextFieldWidget host;
     private TextFieldWidget port;
 
+    private static String hostCache;
+    private static String portCache;
+
     public ConnectionScreen() {
         super(TITLE, 195, 101);
     }
@@ -44,6 +47,9 @@ public class ConnectionScreen extends VoiceChatScreenBase {
         );
         this.host.setMaxLength(48);
         this.addDrawableChild(this.host);
+        if (hostCache != null) {
+            this.host.setText(hostCache);
+        }
 
         this.port = new TextFieldWidget(
                 this.textRenderer,
@@ -55,6 +61,9 @@ public class ConnectionScreen extends VoiceChatScreenBase {
         );
         this.port.setMaxLength(5);
         this.addDrawableChild(this.port);
+        if (portCache != null) {
+            this.port.setText(portCache);
+        }
 
         ButtonWidget connect = ButtonWidget.builder(CONNECT, button ->
                 MinecraftClient.getInstance().setScreen(this.connect() ? new ManagementScreen() : null)).dimensions(this.guiLeft + 6, this.guiTop + this.ySize - 27, this.xSize - 12, 20).build();
@@ -73,6 +82,9 @@ public class ConnectionScreen extends VoiceChatScreenBase {
             URI uri = new URI("http", null, host, port, null, null, null);
 
             BareBonesVCClient.INSTANCE.start(uri.getHost(), uri.getPort());
+
+            hostCache = host;
+            portCache = portText;
             return true;
         } catch (URISyntaxException | NumberFormatException e) {
             BareBonesVCClient.INSTANCE.sendMessage("Failed to resolve address", true);
