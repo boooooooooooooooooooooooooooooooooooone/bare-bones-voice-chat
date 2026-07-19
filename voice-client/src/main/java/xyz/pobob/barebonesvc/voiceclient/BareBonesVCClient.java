@@ -150,7 +150,7 @@ public abstract class BareBonesVCClient {
         this.onDisconnect(true);
     }
 
-    public synchronized void onDisconnect(boolean notQuitting) {
+    public void onDisconnect(boolean notQuitting) {
         this.logInfo("Disconnected from " + this.getReadableAddress());
         this.clearFeed();
 
@@ -195,6 +195,7 @@ public abstract class BareBonesVCClient {
         ServerHelloHandler.waitingForServerHello = true;
         this.lastKeepAlive = -1;
         this.config = null;
+        this.latencies.clear();
     }
 
     public boolean isRunning() {

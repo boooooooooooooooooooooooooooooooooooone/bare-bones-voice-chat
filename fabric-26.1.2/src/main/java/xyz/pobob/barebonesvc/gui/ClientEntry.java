@@ -2,6 +2,7 @@ package xyz.pobob.barebonesvc.gui;
 
 import de.maxhenkel.voicechat.gui.GameProfileUtils;
 import de.maxhenkel.voicechat.voice.common.PlayerState;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.ContainerObjectSelectionList;
@@ -41,6 +42,11 @@ public class ClientEntry extends ContainerObjectSelectionList.Entry<@NotNull Cli
             this.renderLatency(
                     context,
                     Component.literal(String.format("%.1f", latency) + "ms").setStyle(Style.EMPTY.withColor(getLatencyColor(latency)))
+            );
+        } else {
+            this.renderLatency(
+                    context,
+                    Component.literal("N/A").setStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW))
             );
         }
 

@@ -11,6 +11,7 @@ import net.minecraft.client.gui.widget.ElementListWidget;
 import net.minecraft.entity.player.SkinTextures;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
 
 import java.awt.*;
@@ -40,6 +41,11 @@ public class ClientEntry extends ElementListWidget.Entry<ClientEntry> {
                 this.renderLatency(
                         context,
                         Text.literal(String.format("%.1f", latency) + "ms").setStyle(Style.EMPTY.withColor(getLatencyColor(latency)))
+                );
+            } else {
+                this.renderLatency(
+                        context,
+                        Text.literal("N/A").setStyle(Style.EMPTY.withColor(Formatting.YELLOW))
                 );
             }
         }
