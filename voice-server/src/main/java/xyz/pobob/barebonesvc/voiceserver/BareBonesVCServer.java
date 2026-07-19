@@ -205,7 +205,7 @@ public class BareBonesVCServer {
     public void onAuthenticated(SocketAddress clientAddress, ClientConnection client) {
         if (client.isAuthenticated()) return;
 
-        BareBonesVC.LOGGER.info("Client connected: " + client.getUsername() + " (" + client.getUUID() + ")");
+        BareBonesVC.LOGGER.info("Client joined: " + client.getUsername() + " (" + client.getUUID() + ")");
 
         client.setAuthenticated(true);
 

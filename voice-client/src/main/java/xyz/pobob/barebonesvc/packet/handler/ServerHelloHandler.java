@@ -34,7 +34,7 @@ public class ServerHelloHandler implements ServerPacketHandler {
             );
 
             if (this.serverHelloPacket.getMojangAuth()) {
-                BareBonesVCClient.INSTANCE.sendMessage("Verifying with Minecraft session server...", true);
+                BareBonesVCClient.INSTANCE.sendFeed("Verifying with Minecraft session server...");
 
                 try {
                     final String digest = BareBonesVCClient.INSTANCE.getDigest(this.serverHelloPacket.getPublicKey());

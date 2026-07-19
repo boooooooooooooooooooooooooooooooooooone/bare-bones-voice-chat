@@ -141,18 +141,17 @@ public abstract class BareBonesVCClient {
         BareBonesVCClient.INSTANCE.lastKeepAlive = System.currentTimeMillis();
         this.startOurSVC();
 
-        this.sendMessage("Successfully connected to Bare Bones VC server!", true);
+        this.sendMessage("Successfully connected to voice server!", true);
         this.sendFeed(this.getOwnUsername() + " joined");
     }
 
     public void onTimeout() {
-        this.sendMessage("Bare Bones VC connection timed out", true);
+        this.sendMessage("Voice chat connection timed out", true);
         this.onDisconnect(true);
     }
 
     public void onDisconnect(boolean notQuitting) {
         this.logInfo("Disconnected from " + this.getReadableAddress());
-        this.clearFeed();
 
         if (this.isConnected()) {
             this.clientUpdatePlayerPacket.create(false, true);
@@ -196,6 +195,7 @@ public abstract class BareBonesVCClient {
         this.lastKeepAlive = -1;
         this.config = null;
         this.latencies.clear();
+        this.clearFeed();
     }
 
     public boolean isRunning() {
