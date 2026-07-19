@@ -1,6 +1,6 @@
 package xyz.pobob.barebonesvc.packet.retransmission;
 
-public final class PendingPacket {
+public class PendingPacket {
 
     public final byte[] data;
 
