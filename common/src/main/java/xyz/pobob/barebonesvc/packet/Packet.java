@@ -1,6 +1,7 @@
 package xyz.pobob.barebonesvc.packet;
 
 import xyz.pobob.barebonesvc.packet.registry.PacketRegistry;
+import xyz.pobob.barebonesvc.packet.retransmission.ReliablePacket;
 import xyz.pobob.barebonesvc.util.Bytes;
 
 public interface Packet {

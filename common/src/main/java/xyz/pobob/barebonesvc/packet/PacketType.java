@@ -1,5 +1,7 @@
 package xyz.pobob.barebonesvc.packet;
 
+import xyz.pobob.barebonesvc.packet.retransmission.ReliablePacket;
+
 public enum PacketType {
 
     CLIENT_HELLO(0x00, ClientHelloPacket.class),

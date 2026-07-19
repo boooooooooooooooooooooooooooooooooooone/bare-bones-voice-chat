@@ -4,10 +4,10 @@ import xyz.pobob.barebonesvc.BareBonesVC;
 import xyz.pobob.barebonesvc.cli.command.CommandDispatcher;
 import xyz.pobob.barebonesvc.cli.command.ConsoleListener;
 import xyz.pobob.barebonesvc.packet.Packet;
-import xyz.pobob.barebonesvc.packet.ReliablePacket;
 import xyz.pobob.barebonesvc.packet.ServerClosePacket;
 import xyz.pobob.barebonesvc.packet.ServerUpdatePlayerPacket;
 import xyz.pobob.barebonesvc.packet.registry.PacketRegistry;
+import xyz.pobob.barebonesvc.packet.retransmission.ReliablePacket;
 import xyz.pobob.barebonesvc.packet.retransmission.ReliablePacketManager;
 
 import java.io.IOException;

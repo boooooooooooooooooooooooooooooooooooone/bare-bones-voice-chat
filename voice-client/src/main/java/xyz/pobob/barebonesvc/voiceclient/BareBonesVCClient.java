@@ -2,9 +2,9 @@ package xyz.pobob.barebonesvc.voiceclient;
 
 import xyz.pobob.barebonesvc.packet.ClientUpdatePlayerPacket;
 import xyz.pobob.barebonesvc.packet.Packet;
-import xyz.pobob.barebonesvc.packet.ReliablePacket;
 import xyz.pobob.barebonesvc.packet.handler.ServerHelloHandler;
 import xyz.pobob.barebonesvc.packet.registry.PacketRegistry;
+import xyz.pobob.barebonesvc.packet.retransmission.ReliablePacket;
 import xyz.pobob.barebonesvc.packet.retransmission.ReliablePacketManager;
 
 import java.io.IOException;

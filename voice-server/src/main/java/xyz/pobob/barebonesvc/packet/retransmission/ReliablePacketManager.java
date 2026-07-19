@@ -1,6 +1,5 @@
 package xyz.pobob.barebonesvc.packet.retransmission;
 
-import xyz.pobob.barebonesvc.packet.ReliablePacket;
 import xyz.pobob.barebonesvc.packet.ServerAckPacket;
 import xyz.pobob.barebonesvc.packet.registry.PacketRegistry;
 import xyz.pobob.barebonesvc.util.Bytes;
