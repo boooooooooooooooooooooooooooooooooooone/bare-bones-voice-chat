@@ -10,7 +10,7 @@ import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import xyz.pobob.barebonesvc.BareBonesVC;
-import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
+import xyz.pobob.barebonesvc.client.BareBonesVCClient;
 
 import java.net.URI;
 import java.net.URISyntaxException;

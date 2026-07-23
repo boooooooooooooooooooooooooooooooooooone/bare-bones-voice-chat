@@ -29,7 +29,6 @@ public class ClientUpdatePlayerHandler implements ClientPacketHandler {
             if (this.localClientUpdatePlayerPacket.get().isDisconnected()) {
                 this.server.onDisconnect(clientAddress);
             } else {
-
                 conn.setDisabled(this.localClientUpdatePlayerPacket.get().isDisabled());
                 this.localServerUpdatePlayerPacket.get().create(
                         conn.getUsername(),

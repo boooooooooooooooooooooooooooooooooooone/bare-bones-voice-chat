@@ -13,7 +13,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.world.entity.player.PlayerSkin;
 import org.jetbrains.annotations.NotNull;
-import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
+import xyz.pobob.barebonesvc.client.BareBonesVCClient;
 
 import java.awt.*;
 import java.util.List;
@@ -46,7 +46,7 @@ public class ClientEntry extends ContainerObjectSelectionList.Entry<@NotNull Cli
         } else {
             this.renderLatency(
                     context,
-                    Component.literal("N/A").setStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW))
+                    Component.literal("N/A").setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE))
             );
         }
 

@@ -1,6 +1,6 @@
 package xyz.pobob.barebonesvc.packet.handler;
 
-import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
+import xyz.pobob.barebonesvc.client.BareBonesVCClient;
 
 public class ServerAuthenticatedHandler implements ServerPacketHandler {
     @Override

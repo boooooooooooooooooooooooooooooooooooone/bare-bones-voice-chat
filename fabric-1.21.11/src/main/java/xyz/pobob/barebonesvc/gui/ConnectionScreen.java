@@ -9,7 +9,7 @@ import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import xyz.pobob.barebonesvc.BareBonesVC;
-import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
+import xyz.pobob.barebonesvc.client.BareBonesVCClient;
 
 import java.net.URI;
 import java.net.URISyntaxException;

@@ -1,7 +1,7 @@
 package xyz.pobob.barebonesvc.packet.handler;
 
+import xyz.pobob.barebonesvc.client.BareBonesVCClient;
 import xyz.pobob.barebonesvc.packet.ServerAckPacket;
-import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
 
 public class ServerAckHandler implements ServerPacketHandler {
 

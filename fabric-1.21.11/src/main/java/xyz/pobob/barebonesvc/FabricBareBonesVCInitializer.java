@@ -7,10 +7,10 @@ import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
+import xyz.pobob.barebonesvc.client.BareBonesVCClient;
+import xyz.pobob.barebonesvc.client.FabricBareBonesVCClient;
 import xyz.pobob.barebonesvc.gui.ConnectionScreen;
 import xyz.pobob.barebonesvc.gui.ManagementScreen;
-import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
-import xyz.pobob.barebonesvc.voiceclient.FabricBareBonesVCClient;
 
 public class FabricBareBonesVCInitializer implements ClientModInitializer {
 

@@ -1,4 +1,4 @@
-package xyz.pobob.barebonesvc.voiceclient;
+package xyz.pobob.barebonesvc.client;
 
 import de.maxhenkel.voicechat.VoicechatClient;
 import de.maxhenkel.voicechat.intercompatibility.FabricClientCompatibilityManager;
@@ -8,11 +8,11 @@ import de.maxhenkel.voicechat.voice.client.ClientVoicechat;
 import de.maxhenkel.voicechat.voice.common.PlayerSoundPacket;
 import de.maxhenkel.voicechat.voice.common.PlayerState;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientHandshakePacketListenerImpl;
-import net.minecraft.network.chat.Component;
-import net.minecraft.util.Crypt;
-import net.minecraft.util.CryptException;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientLoginNetworkHandler;
+import net.minecraft.network.encryption.NetworkEncryptionException;
+import net.minecraft.network.encryption.NetworkEncryptionUtils;
+import net.minecraft.text.Text;
 import net.minecraft.util.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,12 +33,12 @@ public class FabricBareBonesVCClient extends BareBonesVCClient {
 
     @Override
     public String getOwnUsername() {
-        return Minecraft.getInstance().getGameProfile().name();
+        return MinecraftClient.getInstance().getGameProfile().name();
     }
 
     @Override
     public UUID getOwnUUID() {
-        return Minecraft.getInstance().getGameProfile().id();
+        return MinecraftClient.getInstance().getGameProfile().id();
     }
 
     @Override
@@ -63,12 +63,8 @@ public class FabricBareBonesVCClient extends BareBonesVCClient {
 
     @Override
     public void sendMessage(String message, boolean overlay) {
-        if (Minecraft.getInstance().player != null) {
-            if (overlay) {
-                Minecraft.getInstance().player.sendOverlayMessage(Component.literal(message));
-            } else {
-                Minecraft.getInstance().player.sendSystemMessage(Component.literal(message));
-            }
+        if (MinecraftClient.getInstance().player != null) {
+            MinecraftClient.getInstance().player.sendMessage(Text.of(message), overlay);
         }
     }
 
@@ -134,30 +130,32 @@ public class FabricBareBonesVCClient extends BareBonesVCClient {
 
     @Override
     public void registerClientQuitEvent(Runnable action) {
-        ClientLifecycleEvents.CLIENT_STOPPING.register(_ -> action.run());
+        ClientLifecycleEvents.CLIENT_STOPPING.register(client -> action.run());
     }
 
     @Override
     public Executor getIoWorkerExecutor() {
-        return Util.ioPool();
+        return Util.getIoWorkerExecutor();
     }
 
     @Override
-    public String getDigest(byte[] publicKey) throws CryptException {
-        return new BigInteger(Crypt.digestData(
+    public String getDigest(byte[] publicKey) throws NetworkEncryptionException {
+        return new BigInteger(NetworkEncryptionUtils.computeServerId(
                 "",
-                Crypt.byteToPublicKey(publicKey),
-                Crypt.generateSecretKey()
+                NetworkEncryptionUtils.decodeEncodedRsaPublicKey(publicKey),
+                NetworkEncryptionUtils.generateSecretKey()
         )).toString(16);
     }
 
     @Override
     public boolean requestSessionServerJoin(String digest) {
-        ClientHandshakePacketListenerImpl login = new ClientHandshakePacketListenerImpl(null, Minecraft.getInstance(), null, null, false, null, _ -> {}, null, null);
+        ClientLoginNetworkHandler login = new ClientLoginNetworkHandler(null, MinecraftClient.getInstance(), null, null, false, null, component -> {}, null, null);
 
-        Component error = ((ClientLoginNetworkHandlerInvoker) login).invokeAuthenticateServer(digest);
-        if (error != null) {
-            this.sendMessage(error.getString(), true);
+        Text text = ((ClientLoginNetworkHandlerInvoker) login).invokeJoinServerSession(digest);
+        if (text != null) {
+            if (MinecraftClient.getInstance().player != null) {
+                MinecraftClient.getInstance().player.sendMessage(text, true);
+            }
             return false;
         }
 

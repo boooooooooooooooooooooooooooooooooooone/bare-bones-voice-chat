@@ -1,4 +1,4 @@
-package xyz.pobob.barebonesvc.voiceclient;
+package xyz.pobob.barebonesvc.client;
 
 import xyz.pobob.barebonesvc.packet.ClientUpdatePlayerPacket;
 import xyz.pobob.barebonesvc.packet.Packet;
@@ -6,6 +6,8 @@ import xyz.pobob.barebonesvc.packet.handler.ServerHelloHandler;
 import xyz.pobob.barebonesvc.packet.registry.PacketRegistry;
 import xyz.pobob.barebonesvc.packet.retransmission.ReliablePacket;
 import xyz.pobob.barebonesvc.packet.retransmission.ReliablePacketManager;
+import xyz.pobob.barebonesvc.voice.MiscTasks;
+import xyz.pobob.barebonesvc.voice.SessionConfig;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -141,17 +143,18 @@ public abstract class BareBonesVCClient {
         BareBonesVCClient.INSTANCE.lastKeepAlive = System.currentTimeMillis();
         this.startOurSVC();
 
-        this.sendMessage("Successfully connected to voice server!", true);
         this.sendFeed(this.getOwnUsername() + " joined");
     }
 
     public void onTimeout() {
-        this.sendMessage("Voice chat connection timed out", true);
-        this.onDisconnect(true);
+        this.onDisconnect("Voice chat connection timed out", true);
     }
 
-    public void onDisconnect(boolean notQuitting) {
+    public void onDisconnect(String message, boolean notQuitting) {
         this.logInfo("Disconnected from " + this.getReadableAddress());
+        if (message != null) {
+            this.sendMessage(message, true);
+        }
 
         if (this.isConnected()) {
             this.clientUpdatePlayerPacket.create(false, true);

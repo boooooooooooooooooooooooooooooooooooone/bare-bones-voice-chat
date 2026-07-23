@@ -1,4 +1,4 @@
-package xyz.pobob.barebonesvc.voiceclient;
+package xyz.pobob.barebonesvc.client;
 
 import de.maxhenkel.voicechat.VoicechatClient;
 import de.maxhenkel.voicechat.intercompatibility.FabricClientCompatibilityManager;

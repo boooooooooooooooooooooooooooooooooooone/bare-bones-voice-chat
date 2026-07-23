@@ -1,9 +1,9 @@
 package xyz.pobob.barebonesvc;
 
+import xyz.pobob.barebonesvc.client.BareBonesVCClient;
 import xyz.pobob.barebonesvc.packet.PacketType;
 import xyz.pobob.barebonesvc.packet.handler.*;
 import xyz.pobob.barebonesvc.packet.registry.PacketRegistry;
-import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
 
 public class BareBonesVC {
 
@@ -56,7 +56,7 @@ public class BareBonesVC {
     public static void onStartup() {
         BareBonesVCClient.INSTANCE.registerClientQuitEvent(() -> {
             if (BareBonesVCClient.INSTANCE.isRunning()) {
-                BareBonesVCClient.INSTANCE.onDisconnect(false);
+                BareBonesVCClient.INSTANCE.onDisconnect(null, false);
             }
         });
     }

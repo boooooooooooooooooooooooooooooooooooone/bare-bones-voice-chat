@@ -9,8 +9,8 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import xyz.pobob.barebonesvc.client.BareBonesVCClient;
 import xyz.pobob.barebonesvc.packet.ClientAudioPacket;
-import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
 
 import java.util.concurrent.atomic.AtomicLong;
 

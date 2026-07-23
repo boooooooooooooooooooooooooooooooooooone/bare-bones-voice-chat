@@ -6,10 +6,10 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.resources.Identifier;
+import xyz.pobob.barebonesvc.client.BareBonesVCClient;
+import xyz.pobob.barebonesvc.client.FabricBareBonesVCClient;
 import xyz.pobob.barebonesvc.gui.ConnectionScreen;
 import xyz.pobob.barebonesvc.gui.ManagementScreen;
-import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
-import xyz.pobob.barebonesvc.voiceclient.FabricBareBonesVCClient;
 
 public class FabricBareBonesVCInitializer implements ClientModInitializer {
 

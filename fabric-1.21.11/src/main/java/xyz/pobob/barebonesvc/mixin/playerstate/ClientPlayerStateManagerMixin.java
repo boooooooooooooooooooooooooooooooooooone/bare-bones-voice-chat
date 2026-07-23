@@ -8,8 +8,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import xyz.pobob.barebonesvc.client.BareBonesVCClient;
 import xyz.pobob.barebonesvc.packet.ClientUpdatePlayerPacket;
-import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
 
 @Mixin(ClientPlayerStateManager.class)
 public class ClientPlayerStateManagerMixin {

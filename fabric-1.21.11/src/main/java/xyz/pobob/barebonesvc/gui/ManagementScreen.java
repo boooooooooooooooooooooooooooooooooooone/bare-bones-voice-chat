@@ -8,7 +8,7 @@ import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import xyz.pobob.barebonesvc.BareBonesVC;
-import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
+import xyz.pobob.barebonesvc.client.BareBonesVCClient;
 
 public class ManagementScreen extends VoiceChatScreenBase {
     private static final Identifier TEXTURE = Identifier.of(BareBonesVC.MOD_ID, "textures/gui/gui_barebonesvc.png");
@@ -28,7 +28,7 @@ public class ManagementScreen extends VoiceChatScreenBase {
         this.clearChildren();
 
         ButtonWidget disconnect = ButtonWidget.builder(DISCONNECT, button -> {
-            BareBonesVCClient.INSTANCE.onDisconnect(true);
+            BareBonesVCClient.INSTANCE.onDisconnect(null, true);
             MinecraftClient.getInstance().setScreen(null);
         }).dimensions(this.guiLeft + 68, this.guiTop + this.ySize - 27, this.xSize - 136, 20).build();
         this.addDrawableChild(disconnect);
@@ -66,6 +66,10 @@ public class ManagementScreen extends VoiceChatScreenBase {
     @Override
     public void tick() {
         super.tick();
+
+        if (!BareBonesVCClient.INSTANCE.isRunning()) {
+            MinecraftClient.getInstance().setScreen(null);
+        }
     }
 
     @Override

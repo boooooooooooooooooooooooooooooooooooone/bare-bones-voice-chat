@@ -10,9 +10,9 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import xyz.pobob.barebonesvc.client.BareBonesVCClient;
 import xyz.pobob.barebonesvc.gui.ConnectionScreen;
 import xyz.pobob.barebonesvc.gui.ManagementScreen;
-import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
 
 import static xyz.pobob.barebonesvc.FabricBareBonesVCInitializer.OPEN_MENU;
 

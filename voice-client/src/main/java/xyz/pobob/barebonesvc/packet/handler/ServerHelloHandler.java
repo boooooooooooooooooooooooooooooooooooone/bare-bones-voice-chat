@@ -1,9 +1,9 @@
 package xyz.pobob.barebonesvc.packet.handler;
 
+import xyz.pobob.barebonesvc.client.BareBonesVCClient;
 import xyz.pobob.barebonesvc.packet.ClientHashPacket;
 import xyz.pobob.barebonesvc.packet.ServerHelloPacket;
-import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
-import xyz.pobob.barebonesvc.voiceclient.SessionConfig;
+import xyz.pobob.barebonesvc.voice.SessionConfig;
 
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledFuture;
@@ -51,6 +51,7 @@ public class ServerHelloHandler implements ServerPacketHandler {
                                     if (!BareBonesVCClient.INSTANCE.isConnected() && count[0] < 10) {
                                         BareBonesVCClient.INSTANCE.send(this.clientHashPacket);
                                     } else {
+                                        this.task.cancel(false);
                                         return;
                                     }
                                     count[0]++;
@@ -58,7 +59,7 @@ public class ServerHelloHandler implements ServerPacketHandler {
                             } catch (RejectedExecutionException ignored) {
                             }
                         } else {
-                            BareBonesVCClient.INSTANCE.onDisconnect(true);
+                            BareBonesVCClient.INSTANCE.onDisconnect("Failed to verify with voice server!", true);
                         }
                     });
 

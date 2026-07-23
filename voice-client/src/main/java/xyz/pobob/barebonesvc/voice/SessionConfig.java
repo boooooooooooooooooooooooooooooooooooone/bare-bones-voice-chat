@@ -1,7 +1,5 @@
-package xyz.pobob.barebonesvc.voiceclient;
+package xyz.pobob.barebonesvc.voice;
 
-
-import xyz.pobob.barebonesvc.voice.Codec;
 
 public final class SessionConfig {
     private final boolean mojangAuth;

@@ -1,5 +1,6 @@
-package xyz.pobob.barebonesvc.voiceclient;
+package xyz.pobob.barebonesvc.voice;
 
+import xyz.pobob.barebonesvc.client.BareBonesVCClient;
 import xyz.pobob.barebonesvc.packet.ClientHelloPacket;
 
 public class MiscTasks {
@@ -24,8 +25,7 @@ public class MiscTasks {
                 count++;
             }
             if (count >= MAX_SENDS) {
-                BareBonesVCClient.INSTANCE.sendMessage("Failed to connect to Bare Bones VC server", true);
-                BareBonesVCClient.INSTANCE.onDisconnect(true);
+                BareBonesVCClient.INSTANCE.onDisconnect("Failed to connect to voice server", true);
             }
         }, "BareBonesVCHandshakeThread");
         thread.setDaemon(true);

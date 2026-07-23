@@ -1,9 +1,9 @@
 package xyz.pobob.barebonesvc.packet.retransmission;
 
+import xyz.pobob.barebonesvc.client.BareBonesVCClient;
 import xyz.pobob.barebonesvc.packet.ClientAckPacket;
 import xyz.pobob.barebonesvc.packet.registry.PacketRegistry;
 import xyz.pobob.barebonesvc.util.Bytes;
-import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
 
 import java.util.Map;
 import java.util.TreeMap;

@@ -1,8 +1,8 @@
 package xyz.pobob.barebonesvc.packet.handler;
 
+import xyz.pobob.barebonesvc.client.BareBonesVCClient;
 import xyz.pobob.barebonesvc.packet.ClientKeepAlivePacket;
 import xyz.pobob.barebonesvc.packet.ServerKeepAlivePacket;
-import xyz.pobob.barebonesvc.voiceclient.BareBonesVCClient;
 
 public class ServerKeepAliveHandler implements ServerPacketHandler {
 
