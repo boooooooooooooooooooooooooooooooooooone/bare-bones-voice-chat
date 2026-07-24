@@ -26,7 +26,7 @@ public enum PacketType {
     public final Class<? extends Packet> packetClass;
 
     PacketType(int id, Class<? extends Packet> packetClass) {
-        this.id = (byte) ((ReliablePacket.class.isAssignableFrom(packetClass)) ? (id | Packet.RELIABLE_MASK) : id);
+        this.id = (byte) (ReliablePacket.class.isAssignableFrom(packetClass) ? (id | Packet.RELIABLE_BIT) : id);
         this.packetClass = packetClass;
     }
 }

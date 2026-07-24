@@ -37,7 +37,7 @@ public class ClientEntry extends ContainerObjectSelectionList.Entry<@NotNull Cli
         context.blit(RenderPipelines.GUI_TEXTURED, skin.body().texturePath(), skinX, skinY, 8.0F, 8.0F, SKIN_SIZE, SKIN_SIZE, 8, 8, 64, 64);
         context.blit(RenderPipelines.GUI_TEXTURED, skin.body().texturePath(), skinX, skinY, 40.0F, 8.0F, SKIN_SIZE, SKIN_SIZE, 8, 8, 64, 64);
 
-        Double latency = BareBonesVCClient.INSTANCE.latencies.get(this.state.getUuid());
+        Double latency = BareBonesVCClient.instance.latencies.get(this.state.getUuid());
         if (latency != null) {
             this.renderLatency(
                     context,

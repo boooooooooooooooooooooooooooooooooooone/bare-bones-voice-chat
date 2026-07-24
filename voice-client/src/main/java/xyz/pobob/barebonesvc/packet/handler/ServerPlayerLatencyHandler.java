@@ -10,7 +10,7 @@ public class ServerPlayerLatencyHandler implements ServerPacketHandler {
     @Override
     public void handle(byte[] data) {
         this.serverPlayerLatencyPacket.deserialize(data);
-        BareBonesVCClient.INSTANCE.latencies.put(
+        BareBonesVCClient.instance.latencies.put(
                 this.serverPlayerLatencyPacket.getUUID(),
                 this.serverPlayerLatencyPacket.getLatencyNano() * 1e-6
         );

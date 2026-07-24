@@ -10,6 +10,6 @@ public class ServerAckHandler implements ServerPacketHandler {
     @Override
     public void handle(byte[] data) {
         this.serverAckPacket.deserialize(data);
-        BareBonesVCClient.INSTANCE.reliablePacketManager.onServerAcknowledge(this.serverAckPacket.getSequence());
+        BareBonesVCClient.instance.reliablePacketManager.onServerAcknowledge(this.serverAckPacket.getSequence());
     }
 }

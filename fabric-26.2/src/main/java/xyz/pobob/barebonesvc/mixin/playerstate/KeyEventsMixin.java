@@ -15,6 +15,6 @@ public class KeyEventsMixin {
             cancellable = true
     )
     private void injectCheckConnected(CallbackInfoReturnable<Boolean> cir) {
-        if (BareBonesVCClient.INSTANCE.isConnected()) cir.setReturnValue(true);
+        if (BareBonesVCClient.instance.isConnected()) cir.setReturnValue(true);
     }
 }

@@ -14,7 +14,7 @@ public class AuthThreadMixin {
             cancellable = true
     )
     private void injectAuthThreadRun(CallbackInfo ci) {
-        if (BareBonesVCClient.INSTANCE.isConnected()) {
+        if (BareBonesVCClient.instance.isConnected()) {
             ci.cancel();
         }
     }

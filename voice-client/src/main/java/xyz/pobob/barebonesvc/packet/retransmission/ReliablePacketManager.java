@@ -37,7 +37,7 @@ public final class ReliablePacketManager {
 
     public void startCheckingPendingPackets() {
         try {
-            this.checkPendingPackets = BareBonesVCClient.INSTANCE.scheduler.scheduleAtFixedRate(() -> {
+            this.checkPendingPackets = BareBonesVCClient.instance.scheduler.scheduleAtFixedRate(() -> {
                 long now = System.currentTimeMillis();
 
                 for (PendingPacket pending : this.sentPendingPackets.values()) {
@@ -46,17 +46,17 @@ public final class ReliablePacketManager {
                     }
 
                     if (pending.retries >= MAX_RETRIES) {
-                        BareBonesVCClient.INSTANCE.onTimeout();
+                        BareBonesVCClient.instance.onTimeout();
                         continue;
                     }
 
-                    BareBonesVCClient.INSTANCE.send(pending.data);
+                    BareBonesVCClient.instance.send(pending.data);
 
                     pending.lastSent = now;
                     pending.retries++;
                 }
 
-                if (!BareBonesVCClient.INSTANCE.isRunning()) {
+                if (!BareBonesVCClient.instance.isRunning()) {
                     this.checkPendingPackets.cancel(false);
                 }
             }, 0L, 100L, TimeUnit.MILLISECONDS);
@@ -93,7 +93,7 @@ public final class ReliablePacketManager {
 
     private void sendAck(int sequence) {
         this.clientAckPacket.create(sequence);
-        BareBonesVCClient.INSTANCE.send(this.clientAckPacket);
+        BareBonesVCClient.instance.send(this.clientAckPacket);
     }
 
     public void clear() {

@@ -54,9 +54,9 @@ public class BareBonesVC {
 
     // the entrypoint method for each client implementation should start with a call to this method
     public static void onStartup() {
-        BareBonesVCClient.INSTANCE.registerClientQuitEvent(() -> {
-            if (BareBonesVCClient.INSTANCE.isRunning()) {
-                BareBonesVCClient.INSTANCE.onDisconnect(null, false);
+        BareBonesVCClient.instance.registerClientQuitEvent(() -> {
+            if (BareBonesVCClient.instance.isRunning()) {
+                BareBonesVCClient.instance.onDisconnect(null, false);
             }
         });
     }

@@ -27,9 +27,9 @@ public class MicThreadMixin {
             cancellable = true
     )
     private void injectSendAudioPacket(short[] audio, boolean whispering, CallbackInfo ci) {
-        if (BareBonesVCClient.INSTANCE.isConnected()) {
+        if (BareBonesVCClient.instance.isConnected()) {
             this.clientAudioPacket.create(this.encoder.encode(audio), this.sequenceNumber.getAndIncrement(), whispering);
-            BareBonesVCClient.INSTANCE.send(this.clientAudioPacket);
+            BareBonesVCClient.instance.send(this.clientAudioPacket);
             ci.cancel();
         }
     }

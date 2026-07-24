@@ -17,6 +17,7 @@ import net.minecraft.util.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xyz.pobob.barebonesvc.BareBonesVC;
+import xyz.pobob.barebonesvc.gui.ManagementScreen;
 import xyz.pobob.barebonesvc.gui.SessionEventFeed;
 import xyz.pobob.barebonesvc.mixin.ClientLoginNetworkHandlerInvoker;
 import xyz.pobob.barebonesvc.mixin.playerstate.ClientPlayerStateManagerInvoker;
@@ -25,7 +26,6 @@ import xyz.pobob.barebonesvc.mixin.voicechat.ClientManagerAccessor;
 import java.math.BigInteger;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.concurrent.Executor;
 
 public class FabricBareBonesVCClient extends BareBonesVCClient {
 
@@ -83,6 +83,16 @@ public class FabricBareBonesVCClient extends BareBonesVCClient {
     }
 
     @Override
+    public void showManagementScreen() {
+        Minecraft.getInstance().setScreenAndShow(new ManagementScreen());
+    }
+
+    @Override
+    public void closeScreen() {
+        Minecraft.getInstance().setScreenAndShow(null);
+    }
+
+    @Override
     public void startVanillaSVC() {
         ((ClientManagerAccessor) ClientManager.instance()).invokeOnJoinWorld();
     }
@@ -100,6 +110,8 @@ public class FabricBareBonesVCClient extends BareBonesVCClient {
 
     @Override
     public void shutdownVoiceChat() {
+        ClientManager.getPlayerStateManager().clearStates();
+
         if (ClientManager.getClient() != null) {
             ClientManager.getClient().close();
             ((ClientManagerAccessor) ClientManager.instance()).setClient(null);
@@ -128,18 +140,18 @@ public class FabricBareBonesVCClient extends BareBonesVCClient {
     }
 
     @Override
-    public synchronized void clearPlayerStates() {
-        ClientManager.getPlayerStateManager().clearStates();
-    }
-
-    @Override
     public void registerClientQuitEvent(Runnable action) {
         ClientLifecycleEvents.CLIENT_STOPPING.register(_ -> action.run());
     }
 
     @Override
-    public Executor getIoWorkerExecutor() {
-        return Util.ioPool();
+    public void submitToRenderThread(Runnable runnable) {
+        Minecraft.getInstance().execute(runnable);
+    }
+
+    @Override
+    public void submitToIoThread(Runnable runnable) {
+        Util.ioPool().execute(runnable);
     }
 
     @Override

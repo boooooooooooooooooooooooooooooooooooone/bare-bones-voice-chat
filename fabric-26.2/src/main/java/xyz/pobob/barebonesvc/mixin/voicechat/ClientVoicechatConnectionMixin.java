@@ -22,7 +22,7 @@ public class ClientVoicechatConnectionMixin {
             )
     )
     private void injectClientVoicechatConnectionInit(CallbackInfo ci) {
-        this.running = !BareBonesVCClient.INSTANCE.isConnected();
+        this.running = !BareBonesVCClient.instance.isConnected();
     }
 
     @Inject(
@@ -31,9 +31,9 @@ public class ClientVoicechatConnectionMixin {
             cancellable = true
     )
     private void injectCheckTimeout(CallbackInfo ci) {
-        if (BareBonesVCClient.INSTANCE.isRunning() && BareBonesVCClient.INSTANCE.lastKeepAlive > 0) {
-            if (!BareBonesVCClient.INSTANCE.isConnected()) {
-                BareBonesVCClient.INSTANCE.onTimeout();
+        if (BareBonesVCClient.instance.isRunning() && BareBonesVCClient.instance.lastKeepAlive > 0) {
+            if (!BareBonesVCClient.instance.isConnected()) {
+                BareBonesVCClient.instance.onTimeout();
             }
             ci.cancel();
         }

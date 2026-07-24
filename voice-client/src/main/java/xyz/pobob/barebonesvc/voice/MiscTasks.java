@@ -9,15 +9,15 @@ public class MiscTasks {
     public static void startHandshake() {
         final ClientHelloPacket clientHelloPacket = new ClientHelloPacket();
         clientHelloPacket.create(
-                BareBonesVCClient.INSTANCE.getOwnUsername(),
-                BareBonesVCClient.INSTANCE.getOwnUUID(),
-                BareBonesVCClient.INSTANCE.getOwnDisabled()
+                BareBonesVCClient.instance.getOwnUsername(),
+                BareBonesVCClient.instance.getOwnUUID(),
+                BareBonesVCClient.instance.getOwnDisabled()
         );
 
         Thread thread = new Thread(null, () -> {
             int count = 0;
-            while (BareBonesVCClient.INSTANCE.isRunning() && BareBonesVCClient.INSTANCE.config == null && count < MAX_SENDS) {
-                BareBonesVCClient.INSTANCE.send(clientHelloPacket);
+            while (BareBonesVCClient.instance.isRunning() && BareBonesVCClient.instance.config == null && count < MAX_SENDS) {
+                BareBonesVCClient.instance.send(clientHelloPacket);
                 try {
                     Thread.sleep(300);
                 } catch (InterruptedException ignored) {}
@@ -25,7 +25,7 @@ public class MiscTasks {
                 count++;
             }
             if (count >= MAX_SENDS) {
-                BareBonesVCClient.INSTANCE.onDisconnect("Failed to connect to voice server", true);
+                BareBonesVCClient.instance.onDisconnect("Failed to connect to voice server", true);
             }
         }, "BareBonesVCHandshakeThread");
         thread.setDaemon(true);

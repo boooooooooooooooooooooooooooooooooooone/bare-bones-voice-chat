@@ -29,7 +29,7 @@ public class ScreenMixin {
 
         if (OPEN_MENU.matchesKey(input) && this.client.currentScreen instanceof TitleScreen) {
 
-            this.client.setScreen(BareBonesVCClient.INSTANCE.isRunning() ? new ManagementScreen() : new ConnectionScreen());
+            this.client.setScreen(BareBonesVCClient.instance.isRunning() ? new ManagementScreen() : new ConnectionScreen());
             cir.setReturnValue(true);
         }
     }

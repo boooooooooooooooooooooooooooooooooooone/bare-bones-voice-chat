@@ -17,7 +17,7 @@ public class ClientManagerMixin {
             cancellable = true
     )
     private void injectAuthenticate(CallbackInfo ci) {
-        if (BareBonesVCClient.INSTANCE.isRunning()) {
+        if (BareBonesVCClient.instance.isRunning()) {
             ci.cancel();
         }
     }
@@ -33,7 +33,7 @@ public class ClientManagerMixin {
             cancellable = true
     )
     private void injectOnJoinWorld(CallbackInfo ci) {
-        if (BareBonesVCClient.INSTANCE.isRunning()) {
+        if (BareBonesVCClient.instance.isRunning()) {
             ci.cancel();
         }
     }
@@ -44,7 +44,7 @@ public class ClientManagerMixin {
             cancellable = true
     )
     private void injectOnDisconnect(CallbackInfo ci) {
-        if (BareBonesVCClient.INSTANCE.isConnected()) {
+        if (BareBonesVCClient.instance.isConnected()) {
             ci.cancel();
         }
     }

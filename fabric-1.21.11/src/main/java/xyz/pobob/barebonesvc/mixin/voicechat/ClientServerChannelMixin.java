@@ -15,7 +15,7 @@ public class ClientServerChannelMixin {
             cancellable = true
     )
     private void injectOnClientPacket(CallbackInfo ci) {
-        if (BareBonesVCClient.INSTANCE.isRunning()) {
+        if (BareBonesVCClient.instance.isRunning()) {
             ci.cancel();
         }
     }

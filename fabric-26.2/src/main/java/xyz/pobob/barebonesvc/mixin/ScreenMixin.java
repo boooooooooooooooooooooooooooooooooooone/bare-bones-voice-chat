@@ -25,7 +25,7 @@ public class ScreenMixin {
 
         if (OPEN_MENU.matches(event) && Minecraft.getInstance().gui.screen() instanceof TitleScreen) {
 
-            Minecraft.getInstance().setScreenAndShow(BareBonesVCClient.INSTANCE.isRunning() ? new ManagementScreen() : new ConnectionScreen());
+            Minecraft.getInstance().setScreenAndShow(BareBonesVCClient.instance.isRunning() ? new ManagementScreen() : new ConnectionScreen());
             cir.setReturnValue(true);
         }
     }

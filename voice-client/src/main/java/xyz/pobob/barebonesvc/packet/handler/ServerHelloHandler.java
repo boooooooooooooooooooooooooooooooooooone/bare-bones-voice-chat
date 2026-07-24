@@ -22,11 +22,9 @@ public class ServerHelloHandler implements ServerPacketHandler {
         if (waitingForServerHello) {
             waitingForServerHello = false;
 
-            BareBonesVCClient.INSTANCE.clearPlayerStates();
-
             this.serverHelloPacket.deserialize(data);
 
-            BareBonesVCClient.INSTANCE.config = new SessionConfig(
+            BareBonesVCClient.instance.config = new SessionConfig(
                     this.serverHelloPacket.getMojangAuth(),
                     (float) this.serverHelloPacket.getVoiceDistance(),
                     (float) this.serverHelloPacket.getWhisperDistance(),
@@ -34,22 +32,22 @@ public class ServerHelloHandler implements ServerPacketHandler {
             );
 
             if (this.serverHelloPacket.getMojangAuth()) {
-                BareBonesVCClient.INSTANCE.sendFeed("Verifying with Minecraft session server...");
+                BareBonesVCClient.instance.sendFeed("Verifying with Minecraft session server...");
 
                 try {
-                    final String digest = BareBonesVCClient.INSTANCE.getDigest(this.serverHelloPacket.getPublicKey());
+                    final String digest = BareBonesVCClient.instance.getDigest(this.serverHelloPacket.getPublicKey());
 
-                    BareBonesVCClient.INSTANCE.getIoWorkerExecutor().execute(() -> {
+                    BareBonesVCClient.instance.submitToIoThread(() -> {
 
-                        if (BareBonesVCClient.INSTANCE.requestSessionServerJoin(digest)) {
+                        if (BareBonesVCClient.instance.requestSessionServerJoin(digest)) {
 
                             this.clientHashPacket.create(digest);
 
                             int[] count = {0};
                             try {
-                                this.task = BareBonesVCClient.INSTANCE.scheduler.scheduleAtFixedRate(() -> {
-                                    if (!BareBonesVCClient.INSTANCE.isConnected() && count[0] < 10) {
-                                        BareBonesVCClient.INSTANCE.send(this.clientHashPacket);
+                                this.task = BareBonesVCClient.instance.scheduler.scheduleAtFixedRate(() -> {
+                                    if (!BareBonesVCClient.instance.isConnected() && count[0] < 10) {
+                                        BareBonesVCClient.instance.send(this.clientHashPacket);
                                     } else {
                                         this.task.cancel(false);
                                         return;
@@ -59,16 +57,16 @@ public class ServerHelloHandler implements ServerPacketHandler {
                             } catch (RejectedExecutionException ignored) {
                             }
                         } else {
-                            BareBonesVCClient.INSTANCE.onDisconnect("Failed to verify with voice server!", true);
+                            BareBonesVCClient.instance.onDisconnect("Failed to verify with voice server!", true);
                         }
                     });
 
                 } catch (Exception e) {
-                    BareBonesVCClient.INSTANCE.sendMessage("An error occurred. Check logs!", true);
+                    BareBonesVCClient.instance.sendMessage("An error occurred. Check logs!", true);
                     throw new IllegalStateException("Protocol error", e);
                 }
             } else {
-                BareBonesVCClient.INSTANCE.onAuthenticated();
+                BareBonesVCClient.instance.onAuthenticated();
             }
         }
     }

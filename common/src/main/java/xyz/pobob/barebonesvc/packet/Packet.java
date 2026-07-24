@@ -8,7 +8,7 @@ public interface Packet {
 
     byte MAGIC_BYTE = 0x65;
     byte VERSION = 0x07;
-    byte RELIABLE_MASK = (byte) 0b10000000;
+    byte RELIABLE_BIT = (byte) 0b10000000;
 
     int MAGIC_BYTE_INDEX = 0;
     int VERSION_INDEX = 1;
@@ -50,7 +50,7 @@ public interface Packet {
     }
 
     static boolean isReliable(byte[] data) {
-        return (data[TYPE_INDEX] & RELIABLE_MASK) == RELIABLE_MASK;
+        return (data[TYPE_INDEX] & RELIABLE_BIT) == RELIABLE_BIT;
     }
 
     static short getPayloadLength(byte[] data) {

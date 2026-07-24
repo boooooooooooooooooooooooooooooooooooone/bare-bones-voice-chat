@@ -10,18 +10,17 @@ import xyz.pobob.barebonesvc.voice.MiscTasks;
 import xyz.pobob.barebonesvc.voice.SessionConfig;
 
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetSocketAddress;
-import java.net.SocketException;
+import java.net.*;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.*;
 
 public abstract class BareBonesVCClient {
 
-    public static BareBonesVCClient INSTANCE;
     public static final int TIMEOUT_MILLIS = 20000;
+    public static BareBonesVCClient instance;
+    public static String hostCache;
+    public static String portCache;
 
     private final ClientUpdatePlayerPacket clientUpdatePlayerPacket = new ClientUpdatePlayerPacket();
 
@@ -44,27 +43,49 @@ public abstract class BareBonesVCClient {
 
     private volatile boolean running = false;
 
-    public void start(String host, int port) {
+    public void start(final String hostInput, final String portInput) {
+        hostCache = hostInput;
+        portCache = portInput;
+
+        this.submitToIoThread(() -> {
+            try {
+                URI uri = new URI("http", null, hostInput, Integer.parseInt(portInput), null, null, null);
+
+                final InetSocketAddress address = new InetSocketAddress(uri.getHost(), uri.getPort());
+                if (address.isUnresolved()) {
+                    this.sendMessage("A DNS issue occurred", true);
+                    this.closeScreen();
+                    return;
+                }
+
+                this.submitToRenderThread(() -> this.connect(address));
+
+            } catch (NumberFormatException | URISyntaxException e) {
+                this.sendMessage("Malformed input", true);
+                this.closeScreen();
+            }
+        });
+    }
+
+    private synchronized void connect(SocketAddress address) {
+        if (this.running) return;
+
         this.scheduler = Executors.newSingleThreadScheduledExecutor();
         this.pool = Executors.newSingleThreadExecutor();
 
-        InetSocketAddress address = new InetSocketAddress(host, port);
-        if (address.isUnresolved()) {
-            this.sendMessage("Failed to resolve address", true);
-            return;
-        } else {
-            this.recvPacket.setSocketAddress(address);
-            this.sendPacket.setSocketAddress(address);
-        }
+        this.recvPacket.setSocketAddress(address);
+        this.sendPacket.setSocketAddress(address);
 
         try {
             this.socket = new DatagramSocket();
         } catch (SocketException e) {
             this.logError("An error occurred while starting voice client", e);
+            this.sendMessage("An error occurred while starting voice client", true);
             return;
         }
         this.running = true;
 
+        this.showManagementScreen();
         this.shutdownVoiceChat();
 
         Thread networkReceiveThread = new Thread(null, () -> {
@@ -140,7 +161,7 @@ public abstract class BareBonesVCClient {
     }
 
     public void onAuthenticated() {
-        BareBonesVCClient.INSTANCE.lastKeepAlive = System.currentTimeMillis();
+        BareBonesVCClient.instance.lastKeepAlive = System.currentTimeMillis();
         this.startOurSVC();
 
         this.sendFeed(this.getOwnUsername() + " joined");
@@ -231,6 +252,10 @@ public abstract class BareBonesVCClient {
 
     public abstract void clearFeed();
 
+    public abstract void showManagementScreen();
+
+    public abstract void closeScreen();
+
     public abstract void startVanillaSVC();
 
     public abstract void startOurSVC();
@@ -241,11 +266,11 @@ public abstract class BareBonesVCClient {
 
     public abstract void updatePlayerState(UUID uuid, String username, boolean disabled, boolean disconnected);
 
-    public abstract void clearPlayerStates();
-
     public abstract void registerClientQuitEvent(Runnable action);
 
-    public abstract Executor getIoWorkerExecutor();
+    public abstract void submitToRenderThread(Runnable runnable);
+
+    public abstract void submitToIoThread(Runnable runnable);
 
     public abstract String getDigest(byte[] publicKey) throws Exception;
 

@@ -28,7 +28,7 @@ public class ManagementScreen extends VoiceChatScreenBase {
         this.clearWidgets();
 
         Button disconnect = Button.builder(DISCONNECT, _ -> {
-            BareBonesVCClient.INSTANCE.onDisconnect(null, true);
+            BareBonesVCClient.instance.onDisconnect(null, true);
             Minecraft.getInstance().setScreen(null);
         }).bounds(this.guiLeft + 68, this.guiTop + this.ySize - 27, this.xSize - 136, 20).build();
         this.addRenderableWidget(disconnect);
@@ -67,7 +67,7 @@ public class ManagementScreen extends VoiceChatScreenBase {
     public void tick() {
         super.tick();
 
-        if (!BareBonesVCClient.INSTANCE.isRunning()) {
+        if (!BareBonesVCClient.instance.isRunning()) {
             Minecraft.getInstance().setScreen(null);
         }
     }

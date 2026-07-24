@@ -15,7 +15,7 @@ import xyz.pobob.barebonesvc.gui.ManagementScreen;
 public class FabricBareBonesVCInitializer implements ClientModInitializer {
 
     static {
-        BareBonesVCClient.INSTANCE = new FabricBareBonesVCClient();
+        BareBonesVCClient.instance = new FabricBareBonesVCClient();
     }
 
     @Override
@@ -25,7 +25,7 @@ public class FabricBareBonesVCInitializer implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (OPEN_MENU.wasPressed()) {
                 if (client.currentScreen == null) {
-                    client.setScreen(BareBonesVCClient.INSTANCE.isRunning() ? new ManagementScreen() : new ConnectionScreen());
+                    client.setScreen(BareBonesVCClient.instance.isRunning() ? new ManagementScreen() : new ConnectionScreen());
                 }
             }
         });

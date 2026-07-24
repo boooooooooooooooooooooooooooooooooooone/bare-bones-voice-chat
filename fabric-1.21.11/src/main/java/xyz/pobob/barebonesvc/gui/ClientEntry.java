@@ -36,7 +36,7 @@ public class ClientEntry extends ElementListWidget.Entry<ClientEntry> {
                 context.fill(this.getX(), this.getY(), this.getX() + this.getWidth() - 3, this.getY() + this.getHeight(), 0x20FFFFFF);
             }
 
-            Double latency = BareBonesVCClient.INSTANCE.latencies.get(this.state.getUuid());
+            Double latency = BareBonesVCClient.instance.latencies.get(this.state.getUuid());
             if (latency != null) {
                 this.renderLatency(
                         context,

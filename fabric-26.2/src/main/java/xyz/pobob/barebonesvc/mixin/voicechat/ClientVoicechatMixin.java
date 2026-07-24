@@ -19,15 +19,15 @@ public class ClientVoicechatMixin {
             at = @At("TAIL")
     )
     private void injectClientVoicechatConstructor(CallbackInfo ci) {
-        if (BareBonesVCClient.INSTANCE.isConnected()) {
+        if (BareBonesVCClient.instance.isConnected()) {
             try {
                 this.connection = new ClientVoicechatConnection(null, new InitializationData(
-                        BareBonesVCClient.INSTANCE.host,
+                        BareBonesVCClient.instance.host,
                         null
                 ));
             } catch (Exception e) {
-                BareBonesVCClient.INSTANCE.logError("An error occurred while starting voice chat!", e);
-                BareBonesVCClient.INSTANCE.shutdownVoiceChat();
+                BareBonesVCClient.instance.logError("An error occurred while starting voice chat!", e);
+                BareBonesVCClient.instance.shutdownVoiceChat();
             }
         }
     }

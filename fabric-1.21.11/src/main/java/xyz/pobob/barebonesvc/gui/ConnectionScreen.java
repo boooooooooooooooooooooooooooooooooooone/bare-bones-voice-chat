@@ -1,7 +1,6 @@
 package xyz.pobob.barebonesvc.gui;
 
 import de.maxhenkel.voicechat.gui.VoiceChatScreenBase;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -10,9 +9,6 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import xyz.pobob.barebonesvc.BareBonesVC;
 import xyz.pobob.barebonesvc.client.BareBonesVCClient;
-
-import java.net.URI;
-import java.net.URISyntaxException;
 
 public class ConnectionScreen extends VoiceChatScreenBase {
     private static final Identifier TEXTURE = Identifier.of(BareBonesVC.MOD_ID, "textures/gui/gui_barebonesvc_connect.png");
@@ -23,9 +19,6 @@ public class ConnectionScreen extends VoiceChatScreenBase {
 
     private TextFieldWidget host;
     private TextFieldWidget port;
-
-    private static String hostCache;
-    private static String portCache;
 
     public ConnectionScreen() {
         super(TITLE, 195, 101);
@@ -45,10 +38,10 @@ public class ConnectionScreen extends VoiceChatScreenBase {
                 14,
                 Text.empty()
         );
-        this.host.setMaxLength(48);
+        this.host.setMaxLength(64);
         this.addDrawableChild(this.host);
-        if (hostCache != null) {
-            this.host.setText(hostCache);
+        if (BareBonesVCClient.hostCache != null) {
+            this.host.setText(BareBonesVCClient.hostCache);
         }
 
         this.port = new TextFieldWidget(
@@ -61,35 +54,18 @@ public class ConnectionScreen extends VoiceChatScreenBase {
         );
         this.port.setMaxLength(5);
         this.addDrawableChild(this.port);
-        if (portCache != null) {
-            this.port.setText(portCache);
+        if (BareBonesVCClient.portCache != null) {
+            this.port.setText(BareBonesVCClient.portCache);
         }
 
         ButtonWidget connect = ButtonWidget.builder(CONNECT, button ->
-                MinecraftClient.getInstance().setScreen(this.connect() ? new ManagementScreen() : null)).dimensions(this.guiLeft + 6, this.guiTop + this.ySize - 27, this.xSize - 12, 20).build();
+                        BareBonesVCClient.instance.start(
+                                this.host.getText().trim(),
+                                this.port.getText().trim()
+                        )
+                ).dimensions(this.guiLeft + 6, this.guiTop + this.ySize - 27, this.xSize - 12, 20)
+                .build();
         this.addDrawableChild(connect);
-    }
-
-    private boolean connect() {
-        String host = this.host.getText().trim();
-        String portText = this.port.getText().trim();
-
-        int port;
-
-        try {
-            port = Integer.parseInt(portText);
-
-            URI uri = new URI("http", null, host, port, null, null, null);
-
-            BareBonesVCClient.INSTANCE.start(uri.getHost(), uri.getPort());
-
-            hostCache = host;
-            portCache = portText;
-            return true;
-        } catch (URISyntaxException | NumberFormatException e) {
-            BareBonesVCClient.INSTANCE.sendMessage("Failed to resolve address", true);
-            return false;
-        }
     }
 
     @Override

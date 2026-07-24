@@ -12,15 +12,15 @@ public class ServerUpdatePlayerHandler implements ServerPacketHandler {
         this.serverUpdatePlayerPacket.deserialize(data);
 
         if (this.serverUpdatePlayerPacket.shouldLog()) {
-            BareBonesVCClient.INSTANCE.sendFeed(this.serverUpdatePlayerPacket.getUsername() +
+            BareBonesVCClient.instance.sendFeed(this.serverUpdatePlayerPacket.getUsername() +
                     (this.serverUpdatePlayerPacket.isDisconnected() ? " disconnected" : " joined"));
         }
 
         if (this.serverUpdatePlayerPacket.isDisconnected()) {
-            BareBonesVCClient.INSTANCE.latencies.remove(this.serverUpdatePlayerPacket.getUUID());
+            BareBonesVCClient.instance.latencies.remove(this.serverUpdatePlayerPacket.getUUID());
         }
 
-        BareBonesVCClient.INSTANCE.updatePlayerState(
+        BareBonesVCClient.instance.updatePlayerState(
                 this.serverUpdatePlayerPacket.getUUID(),
                 this.serverUpdatePlayerPacket.getUsername(),
                 this.serverUpdatePlayerPacket.isDisabled(),

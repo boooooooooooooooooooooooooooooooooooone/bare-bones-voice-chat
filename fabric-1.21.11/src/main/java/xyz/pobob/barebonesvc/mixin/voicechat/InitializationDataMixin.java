@@ -33,7 +33,7 @@ public class InitializationDataMixin {
             )
     )
     private int port(SecretPacket instance) {
-        return (instance == null) ? BareBonesVCClient.INSTANCE.port : instance.getServerPort();
+        return (instance == null) ? BareBonesVCClient.instance.port : instance.getServerPort();
     }
 
     @Redirect(
@@ -66,7 +66,7 @@ public class InitializationDataMixin {
             )
     )
     private ServerConfig.Codec codec(SecretPacket instance) {
-        return (instance == null) ? switch (BareBonesVCClient.INSTANCE.config.getCodec()) {
+        return (instance == null) ? switch (BareBonesVCClient.instance.config.getCodec()) {
             case VOIP -> ServerConfig.Codec.VOIP;
             case AUDIO -> ServerConfig.Codec.AUDIO;
             case RESTRICTED_LOWDELAY -> ServerConfig.Codec.RESTRICTED_LOWDELAY;

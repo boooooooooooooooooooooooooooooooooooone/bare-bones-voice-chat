@@ -19,7 +19,7 @@ public class ClientPlayerStateManagerMixin {
             cancellable = true
     )
     private void injectIsDisconnected(CallbackInfoReturnable<Boolean> cir) {
-        if (BareBonesVCClient.INSTANCE.isConnected()) cir.setReturnValue(false);
+        if (BareBonesVCClient.instance.isConnected()) cir.setReturnValue(false);
     }
 
     @Inject(
@@ -32,7 +32,7 @@ public class ClientPlayerStateManagerMixin {
             cancellable = true
     )
     private void injectIsPlayerDisconnected(CallbackInfoReturnable<Boolean> cir) {
-        if (BareBonesVCClient.INSTANCE.isConnected()) cir.setReturnValue(true);
+        if (BareBonesVCClient.instance.isConnected()) cir.setReturnValue(true);
     }
 
     @Unique
@@ -43,9 +43,9 @@ public class ClientPlayerStateManagerMixin {
             at = @At("HEAD")
     )
     private void injectSetDisabled(boolean disabled, CallbackInfo ci) {
-        if (BareBonesVCClient.INSTANCE.isConnected()) {
+        if (BareBonesVCClient.instance.isConnected()) {
             this.clientUpdatePlayerPacket.create(disabled, false);
-            BareBonesVCClient.INSTANCE.send(this.clientUpdatePlayerPacket);
+            BareBonesVCClient.instance.send(this.clientUpdatePlayerPacket);
         }
     }
 
@@ -55,7 +55,7 @@ public class ClientPlayerStateManagerMixin {
             cancellable = true
     )
     private void injectOnDisconnect(CallbackInfo ci) {
-        if (BareBonesVCClient.INSTANCE.isConnected()) {
+        if (BareBonesVCClient.instance.isConnected()) {
             ci.cancel();
         }
     }
