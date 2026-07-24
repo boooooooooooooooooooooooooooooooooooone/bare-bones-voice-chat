@@ -54,7 +54,7 @@ public abstract class BareBonesVCClient {
                 final InetSocketAddress address = new InetSocketAddress(uri.getHost(), uri.getPort());
                 if (address.isUnresolved()) {
                     this.sendMessage("A DNS issue occurred", true);
-                    this.closeScreen();
+                    this.submitToRenderThread(this::closeScreen);
                     return;
                 }
 
@@ -62,7 +62,7 @@ public abstract class BareBonesVCClient {
 
             } catch (NumberFormatException | URISyntaxException e) {
                 this.sendMessage("Malformed input", true);
-                this.closeScreen();
+                this.submitToRenderThread(this::closeScreen);
             }
         });
     }
@@ -85,6 +85,7 @@ public abstract class BareBonesVCClient {
         }
         this.running = true;
 
+        this.clearPlayerStates();
         this.showManagementScreen();
         this.shutdownVoiceChat();
 
@@ -265,6 +266,8 @@ public abstract class BareBonesVCClient {
     public abstract void passSoundPacketToSVC(byte[] audio, long sequenceNumber, UUID uuid, boolean whispering);
 
     public abstract void updatePlayerState(UUID uuid, String username, boolean disabled, boolean disconnected);
+
+    public abstract void clearPlayerStates();
 
     public abstract void registerClientQuitEvent(Runnable action);
 

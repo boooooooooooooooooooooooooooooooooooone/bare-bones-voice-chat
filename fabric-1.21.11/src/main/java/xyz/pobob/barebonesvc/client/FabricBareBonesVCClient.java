@@ -106,8 +106,6 @@ public class FabricBareBonesVCClient extends BareBonesVCClient {
 
     @Override
     public void shutdownVoiceChat() {
-        ClientManager.getPlayerStateManager().clearStates();
-
         if (ClientManager.getClient() != null) {
             ClientManager.getClient().close();
             ((ClientManagerAccessor) ClientManager.instance()).setClient(null);
@@ -128,11 +126,16 @@ public class FabricBareBonesVCClient extends BareBonesVCClient {
     }
 
     @Override
-    public synchronized void updatePlayerState(UUID uuid, String username, boolean disabled, boolean disconnected) {
+    public void updatePlayerState(UUID uuid, String username, boolean disabled, boolean disconnected) {
         ((ClientPlayerStateManagerInvoker) ClientManager.getPlayerStateManager()).invokeUpdatePlayerState(
                 null,
                 new PlayerStatePacket(new PlayerState(uuid, username, disabled, disconnected))
         );
+    }
+
+    @Override
+    public void clearPlayerStates() {
+        ClientManager.getPlayerStateManager().clearStates();
     }
 
     @Override
