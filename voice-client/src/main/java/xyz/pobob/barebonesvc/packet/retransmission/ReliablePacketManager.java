@@ -27,8 +27,10 @@ public final class ReliablePacketManager {
     private ScheduledFuture<?> checkPendingPackets;
 
     public void registerSequence(ReliablePacket packet) {
-        packet.setSequenceNumber(this.nextSendSequence.getAndIncrement());
-        this.sentPendingPackets.put(packet.getSequenceNumber(), new PendingPacket(packet.serialize(), System.currentTimeMillis()));
+        int sequence = this.nextSendSequence.getAndIncrement();
+
+        packet.setSequenceNumber(sequence);
+        this.sentPendingPackets.put(sequence, new PendingPacket(packet.serialize(), System.currentTimeMillis()));
     }
 
     public void onServerAcknowledge(int sequence) {

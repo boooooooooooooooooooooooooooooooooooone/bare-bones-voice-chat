@@ -25,8 +25,10 @@ public final class ReliablePacketManager {
     public void registerSequence(ReliablePacket packet, SocketAddress clientAddress) {
         ClientConnection conn = this.server.getClient(clientAddress);
         if (conn != null) {
-            packet.setSequenceNumber(conn.getAndIncrementNextSendSequence());
-            conn.setSentPendingPacket(packet.getSequenceNumber(), new PendingPacket(packet.serialize(), System.currentTimeMillis()));
+            int sequence = conn.getAndIncrementNextSendSequence();
+
+            packet.setSequenceNumber(sequence);
+            conn.setSentPendingPacket(sequence, new PendingPacket(packet.serialize(), System.currentTimeMillis()));
         }
     }
 
@@ -84,14 +86,14 @@ public final class ReliablePacketManager {
         }
     }
 
-    private void processSequential(byte[] data, SocketAddress clientAddress, ClientConnection connection) {
+    private void processSequential(byte[] data, SocketAddress clientAddress, ClientConnection conn) {
         byte[] current = data;
 
         while (current != null) {
 
             PacketRegistry.dispatchClientPacket(data, clientAddress);
 
-            current = connection.pollReceivedQueue(connection.getAndIncrementExpectedReceiveSequence());
+            current = conn.pollReceivedQueue(conn.getAndIncrementExpectedReceiveSequence());
         }
     }
 

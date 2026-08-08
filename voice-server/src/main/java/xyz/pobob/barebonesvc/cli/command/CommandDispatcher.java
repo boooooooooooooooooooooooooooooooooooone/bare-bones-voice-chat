@@ -14,6 +14,8 @@ public class CommandDispatcher {
         COMMANDS.put("stop", new StopCommand());
         COMMANDS.put("list", new ListCommand());
         COMMANDS.put("kick", new KickCommand());
+        COMMANDS.put("ban", new BanCommand());
+        COMMANDS.put("unban", new UnbanCommand());
         COMMANDS.put("voicedistance", new VoiceDistanceCommand());
         COMMANDS.put("whisperdistance", new WhisperDistanceCommand());
     }

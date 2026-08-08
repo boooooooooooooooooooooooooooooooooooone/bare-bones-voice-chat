@@ -68,7 +68,7 @@ public abstract class BareBonesVCClient {
     }
 
     private synchronized void connect(SocketAddress address) {
-        if (this.running) return;
+        if (this.isRunning()) return;
 
         this.scheduler = Executors.newSingleThreadScheduledExecutor();
         this.pool = Executors.newSingleThreadExecutor();
@@ -162,10 +162,12 @@ public abstract class BareBonesVCClient {
     }
 
     public void onAuthenticated() {
-        BareBonesVCClient.instance.lastKeepAlive = System.currentTimeMillis();
-        this.startOurSVC();
+        if (this.isRunning()) {
+            BareBonesVCClient.instance.lastKeepAlive = System.currentTimeMillis();
+            this.startOurSVC();
 
-        this.sendFeed(this.getOwnUsername() + " joined");
+            this.sendFeed(this.getOwnUsername() + " joined");
+        }
     }
 
     public void onTimeout() {
@@ -181,6 +183,8 @@ public abstract class BareBonesVCClient {
         if (this.isConnected()) {
             this.clientUpdatePlayerPacket.create(false, true);
             this.send(this.clientUpdatePlayerPacket);
+        } else {
+            this.submitToRenderThread(this::closeScreen);
         }
 
         this.close(notQuitting);

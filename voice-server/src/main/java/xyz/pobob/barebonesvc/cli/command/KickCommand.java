@@ -6,6 +6,8 @@ import xyz.pobob.barebonesvc.voiceserver.BareBonesVCServer;
 import xyz.pobob.barebonesvc.voiceserver.ClientConnection;
 
 import java.net.SocketAddress;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class KickCommand implements Command {
@@ -19,23 +21,29 @@ public class KickCommand implements Command {
             return;
         }
 
-        String target = args[0];
+        var targets = getTargets(args[0], server);
+        if (!targets.isEmpty()) {
+            for (var target : targets) {
+                server.send(this.serverKickPacket, target.getKey());
+                server.onDisconnect(target.getKey());
 
-        boolean didntKick = true;
-        for (Map.Entry<SocketAddress, ClientConnection> entry : server.getAuthenticatedEntries()) {
+                BareBonesVC.LOGGER.info("Kicked client: " + target.getValue().getUsername() + " (" + target.getValue().getUUID() + ")");
+            }
+        } else {
+            BareBonesVC.LOGGER.warning("Unable to find target client");
+        }
+    }
+
+    public static List<Map.Entry<SocketAddress, ClientConnection>> getTargets(String target, BareBonesVCServer server) {
+        List<Map.Entry<SocketAddress, ClientConnection>> kicked = new ArrayList<>();
+
+        for (var entry : server.getAuthenticatedEntries()) {
             if (entry.getValue().getUsername().equalsIgnoreCase(target)
                     || entry.getValue().getUUID().toString().equalsIgnoreCase(target)) {
-                didntKick = false;
-
-                server.send(this.serverKickPacket, entry.getKey());
-                server.onDisconnect(entry.getKey());
-
-                BareBonesVC.LOGGER.info("Kicked " + entry.getValue().getUsername());
+                kicked.add(entry);
             }
         }
 
-        if (didntKick) {
-            BareBonesVC.LOGGER.info("No client found");
-        }
+        return kicked;
     }
 }

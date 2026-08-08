@@ -14,8 +14,4 @@ public abstract class ReliablePacket implements Packet {
     public void setSequenceNumber(int value) {
         this.sequenceNumber = value;
     }
-
-    public int getSequenceNumber() {
-        return this.sequenceNumber;
-    }
 }

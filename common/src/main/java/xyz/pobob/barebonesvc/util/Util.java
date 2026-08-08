@@ -8,6 +8,7 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 public class Util {
     public static final Random RANDOM = new Random();
@@ -16,7 +17,7 @@ public class Util {
             .connectTimeout(Duration.ofSeconds(10))
             .build();
 
-    public static CompletableFuture<HttpResponse<String>> httpRequestAsync(String method, String url, String body, Map<String, String> headers) {
+    public static CompletableFuture<HttpResponse<String>> httpRequestAsync(String method, String url, String body, Map<String, String> headers, Executor executor) {
 
         HttpRequest.Builder builder = HttpRequest.newBuilder()
                 .uri(URI.create(url))
@@ -43,9 +44,12 @@ public class Util {
             default -> throw new IllegalArgumentException("Unsupported HTTP method: " + method);
         }
 
-        return CLIENT.sendAsync(
-                builder.build(),
-                HttpResponse.BodyHandlers.ofString()
-        );
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return CLIENT.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+            } catch (Exception e) {
+                return null;
+            }
+        }, executor);
     }
 }

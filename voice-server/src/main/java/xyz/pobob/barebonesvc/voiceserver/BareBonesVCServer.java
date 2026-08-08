@@ -20,6 +20,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -40,7 +41,7 @@ public class BareBonesVCServer {
     private Thread networkReceiveThread;
     private final ExecutorService pool = Executors.newFixedThreadPool(4);
     public final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-    public final ExecutorService ioThread = Executors.newSingleThreadExecutor();
+    public final ExecutorService ioPool = Executors.newFixedThreadPool(2);
 
     private volatile boolean running = false;
 
@@ -87,6 +88,7 @@ public class BareBonesVCServer {
 
     public final LatencyManager latencyManager = new LatencyManager(this);
     public final ReliablePacketManager reliablePacketManager = new ReliablePacketManager(this);
+    public final Set<BanEntry> banlist = ConcurrentHashMap.newKeySet();
     public final Config config;
     public KeyPair keyPair;
 
@@ -264,9 +266,7 @@ public class BareBonesVCServer {
 
         this.running = false;
 
-        if (this.socket != null) {
-            this.socket.close();
-        }
+        this.socket.close();
 
         this.pool.shutdown();
         this.scheduler.shutdown();

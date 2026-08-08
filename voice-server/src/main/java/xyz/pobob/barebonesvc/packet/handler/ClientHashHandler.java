@@ -23,8 +23,8 @@ public class ClientHashHandler implements ClientPacketHandler {
     }
 
     private final ThreadLocal<ClientHashPacket> localClientHashPacket = ThreadLocal.withInitial(ClientHashPacket::new);
-    private final ServerKickPacket serverKickPacket = new ServerKickPacket();
     private final ServerAuthenticatedPacket serverAuthenticatedPacket = new ServerAuthenticatedPacket();
+    private final ServerKickPacket serverKickPacket = new ServerKickPacket();
 
     @Override
     public void handle(byte[] data, final SocketAddress clientAddress) {
@@ -42,10 +42,11 @@ public class ClientHashHandler implements ClientPacketHandler {
                                 URLEncoder.encode(hash, StandardCharsets.UTF_8)
                         ),
                         null,
-                        Map.of("Accept", "application/json")
+                        Map.of("Accept", "application/json"),
+                        this.server.ioPool
                 );
 
-                response.thenAcceptAsync(httpResponse -> {
+                response.thenAccept(httpResponse -> {
                     if (httpResponse.statusCode() == 200) {
                         this.server.send(this.serverAuthenticatedPacket, clientAddress);
                         this.server.onAuthenticated(clientAddress, conn);
@@ -53,7 +54,7 @@ public class ClientHashHandler implements ClientPacketHandler {
                         this.server.send(this.serverKickPacket, clientAddress);
                         this.server.onDisconnect(clientAddress);
                     }
-                }, this.server.ioThread);
+                });
             }
         }
     }
