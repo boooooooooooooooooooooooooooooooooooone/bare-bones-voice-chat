@@ -37,8 +37,8 @@ public abstract class BareBonesVCClient {
     public ReliablePacketManager reliablePacketManager;
 
     public volatile SessionConfig config;
-    public String host;
-    public int port;
+    public volatile String host;
+    public volatile int port;
     public long lastKeepAlive = -1;
 
     private volatile boolean running = false;
@@ -59,6 +59,8 @@ public abstract class BareBonesVCClient {
                 }
 
                 this.submitToRenderThread(() -> this.connect(address));
+                this.host = uri.getHost();
+                this.port = uri.getPort();
 
             } catch (NumberFormatException | URISyntaxException e) {
                 this.sendMessage("Malformed input", true);
