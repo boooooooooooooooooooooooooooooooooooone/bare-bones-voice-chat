@@ -12,7 +12,7 @@ import xyz.pobob.barebonesvc.client.BareBonesVCClient;
 
 public class ManagementScreen extends VoiceChatScreenBase {
     private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(BareBonesVC.MOD_ID, "textures/gui/gui_barebonesvc.png");
-    private static final Component TITLE = Component.literal("Bare Bones VC");
+    private static final Component TITLE = Component.literal("Bare Bones Voice Chat");
     private static final Component DISCONNECT = Component.literal("Disconnect");
 
     protected ClientList clientList;

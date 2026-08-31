@@ -5,7 +5,7 @@ import xyz.pobob.barebonesvc.voice.Codec;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.Inet4Address;
+import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Locale;
 import java.util.Properties;
@@ -25,7 +25,7 @@ public final class ConfigParser {
             String listenAddressString = properties.getProperty("listen-address");
             if (listenAddressString != null) {
                 try {
-                    config.listenAddress = Inet4Address.getByName(listenAddressString);
+                    config.listenAddress = InetAddress.getByName(listenAddressString);
                 } catch (UnknownHostException e) {
                     BareBonesVC.LOGGER.warning("Failed config parsing because listen address is invalid");
                     return null;
@@ -147,9 +147,9 @@ public final class ConfigParser {
 
             try {
                 if (line.isEmpty()) {
-                    config.listenAddress = Inet4Address.getByName("0.0.0.0");
+                    config.listenAddress = InetAddress.getByName("0.0.0.0");
                 } else {
-                    config.listenAddress = Inet4Address.getByName(line);
+                    config.listenAddress = InetAddress.getByName(line);
                 }
                 System.out.println("Set listen address to " + config.listenAddress.getHostAddress() + "\n");
                 break;
