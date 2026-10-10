@@ -57,7 +57,7 @@ public class ServerAudioPacket implements Packet {
 
         this.audio = Arrays.copyOfRange(data, start, start + len - 8 - 1 - 16);
         this.sequenceNumber = Bytes.getLong(data, start + len - 8 - 1 - 16);
-        this.whispering = (data[start + len - 1 - 16] & 1) == 1;
+        this.whispering = data[start + len - 1 - 16] == 1;
         this.uuid = new UUID(
                 Bytes.getLong(data, start + len - 16),
                 Bytes.getLong(data, start + len - 8)

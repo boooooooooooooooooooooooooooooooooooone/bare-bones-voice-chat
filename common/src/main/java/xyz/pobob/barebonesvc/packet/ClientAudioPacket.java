@@ -48,6 +48,6 @@ public class ClientAudioPacket implements Packet {
 
         this.audio = Arrays.copyOfRange(data, start, start + len - 8 - 1);
         this.sequenceNumber = Bytes.getLong(data, start + len - 8 - 1);
-        this.whispering = (data[start + len - 1] & 1) == 1;
+        this.whispering = data[start + len - 1] == 1;
     }
 }

@@ -22,6 +22,10 @@ import static xyz.pobob.barebonesvc.util.Util.httpRequestAsync;
 public class BanCommand implements Command {
     private final ServerKickPacket serverKickPacket = new ServerKickPacket();
 
+    public BanCommand() {
+        this.serverKickPacket.create(true);
+    }
+
     @Override
     public void execute(String[] args, BareBonesVCServer server) {
         if (args.length == 0) {

@@ -19,6 +19,7 @@ public class ClientHelloHandler implements ClientPacketHandler {
 
     public ClientHelloHandler(BareBonesVCServer server) {
         this.server = server;
+        this.serverKickPacket.create(true);
     }
 
     private final ThreadLocal<ClientHelloPacket> localClientHelloPacket = ThreadLocal.withInitial(ClientHelloPacket::new);

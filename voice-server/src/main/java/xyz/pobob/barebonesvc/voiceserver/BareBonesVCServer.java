@@ -207,7 +207,9 @@ public class BareBonesVCServer {
     public void onAuthenticated(SocketAddress clientAddress, ClientConnection client) {
         if (client.isAuthenticated()) return;
 
-        BareBonesVC.LOGGER.info("Client joined: " + client.getUsername() + " (" + client.getUUID() + ")");
+        BareBonesVC.LOGGER.info("Client joined: "
+                + client.getUsername()
+                + " (" + client.getUUID() + ")");
 
         client.setAuthenticated(true);
 
@@ -252,7 +254,7 @@ public class BareBonesVCServer {
     public void onTimeout(SocketAddress clientAddress) {
         ClientConnection connection = this.getClient(clientAddress);
         if (connection != null) {
-            BareBonesVC.LOGGER.info(connection.getUsername() + " timed out!");
+            BareBonesVC.LOGGER.info(connection.getUsername() + " timed out");
             this.onDisconnect(clientAddress);
         }
     }

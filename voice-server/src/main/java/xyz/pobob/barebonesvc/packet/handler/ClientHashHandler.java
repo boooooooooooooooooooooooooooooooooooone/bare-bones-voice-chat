@@ -20,6 +20,7 @@ public class ClientHashHandler implements ClientPacketHandler {
 
     public ClientHashHandler(BareBonesVCServer server) {
         this.server = server;
+        this.serverKickPacket.create(false);
     }
 
     private final ThreadLocal<ClientHashPacket> localClientHashPacket = ThreadLocal.withInitial(ClientHashPacket::new);

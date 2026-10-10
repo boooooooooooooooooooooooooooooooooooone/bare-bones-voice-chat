@@ -14,6 +14,10 @@ public class KickCommand implements Command {
 
     private final ServerKickPacket serverKickPacket = new ServerKickPacket();
 
+    public KickCommand() {
+        this.serverKickPacket.create(false);
+    }
+
     @Override
     public void execute(String[] args, BareBonesVCServer server) {
         if (args.length == 0) {
