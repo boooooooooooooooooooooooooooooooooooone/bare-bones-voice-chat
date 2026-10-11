@@ -93,13 +93,16 @@ public class BanCommand implements Command {
         response.thenAccept(httpResponse -> {
             if (httpResponse.statusCode() == 200) {
                 BanEntry banEntry = fromJson(httpResponse.body());
-                if (banEntry == null) return;
+                if (banEntry != null) {
+                    server.banlist.add(banEntry);
+                    this.saveBans(List.of(banEntry));
 
-                server.banlist.add(banEntry);
-                this.saveBans(List.of(banEntry));
-
-                BareBonesVC.LOGGER.info("Banned offline client: " + banEntry.username() + " (" + banEntry.uuid() + ")");
+                    BareBonesVC.LOGGER.info("Banned offline client: " + banEntry.username() + " (" + banEntry.uuid() + ")");
+                    return;
+                }
             }
+
+            BareBonesVC.LOGGER.warning("Unable to ban client");
         });
     }
 
@@ -115,13 +118,16 @@ public class BanCommand implements Command {
         response.thenAcceptAsync(httpResponse -> {
             if (httpResponse.statusCode() == 200) {
                 BanEntry banEntry = fromJson(httpResponse.body());
-                if (banEntry == null) return;
+                if (banEntry != null) {
+                    server.banlist.add(banEntry);
+                    this.saveBans(List.of(banEntry));
 
-                server.banlist.add(banEntry);
-                this.saveBans(List.of(banEntry));
-
-                BareBonesVC.LOGGER.info("Banned offline client: " + banEntry.username() + " (" + banEntry.uuid() + ")");
+                    BareBonesVC.LOGGER.info("Banned offline client: " + banEntry.username() + " (" + banEntry.uuid() + ")");
+                    return;
+                }
             }
+
+            BareBonesVC.LOGGER.warning("Unable to ban client");
         });
     }
 
