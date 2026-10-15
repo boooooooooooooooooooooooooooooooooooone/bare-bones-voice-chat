@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "barebonesvc",
+  "version": "${version}",
+
+  "name": "Bare Bones Voice Chat",
+  "description": "A Simple Voice Chat addon that enables use of the Bare Bones VC server",
+  "authors": ["Bone"],
+  "contact": {},
+
+  "license": "All-Rights-Reserved",
+  "icon": "assets/barebonesvc/icon.png",
+
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "xyz.pobob.barebonesvc.FabricBareBonesVCInitializer"
+    ]
+  },
+
+  "mixins": [
+    "barebonesvc.mixins.json"
+  ],
+
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-api": "*",
+    "minecraft": "${minecraft_version}",
+    "voicechat": ">=${voicechat_version}"
+  }
+}

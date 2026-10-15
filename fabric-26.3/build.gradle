@@ -1,0 +1,26 @@
+plugins {
+    id "net.fabricmc.fabric-loom" version "1.17-SNAPSHOT"
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+def target = project.findProperty("target") ?: "26.3"
+
+ext {
+    props = new Properties()
+}
+
+def propsFile = file("versions/${target}.properties")
+if (!propsFile.exists()) {
+    propsFile = file("versions/26.3.properties")
+}
+
+propsFile.withInputStream {
+    props.load(it)
+}
+
+apply from: rootProject.file("gradle/fabric-module.gradle")

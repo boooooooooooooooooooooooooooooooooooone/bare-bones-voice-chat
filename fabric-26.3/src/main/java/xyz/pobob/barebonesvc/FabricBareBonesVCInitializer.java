@@ -1,0 +1,43 @@
+package xyz.pobob.barebonesvc;
+
+import com.mojang.blaze3d.platform.InputConstants;
+import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.resources.Identifier;
+import xyz.pobob.barebonesvc.client.BareBonesVCClient;
+import xyz.pobob.barebonesvc.client.FabricBareBonesVCClient;
+import xyz.pobob.barebonesvc.gui.ConnectionScreen;
+import xyz.pobob.barebonesvc.gui.ManagementScreen;
+
+public class FabricBareBonesVCInitializer implements ClientModInitializer {
+
+    static {
+        BareBonesVCClient.instance = new FabricBareBonesVCClient();
+    }
+
+    @Override
+    public void onInitializeClient() {
+        BareBonesVC.onStartup();
+
+        ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            while (OPEN_MENU.consumeClick()) {
+                if (client.gui.screen() == null) {
+                    client.setScreenAndShow(BareBonesVCClient.instance.isRunning() ? new ManagementScreen() : new ConnectionScreen());
+                }
+            }
+        });
+    }
+
+    public static final KeyMapping.Category CATEGORY = KeyMapping.Category.register(Identifier.fromNamespaceAndPath(BareBonesVC.MOD_ID, "bare_bones_voice_chat"));
+
+    public static final KeyMapping OPEN_MENU = KeyMappingHelper.registerKeyMapping(
+            new KeyMapping(
+                    "key.open_menu",
+                    InputConstants.Type.KEYBOARD,
+                    InputConstants.KEY_B,
+                    CATEGORY
+            )
+    );
+}
