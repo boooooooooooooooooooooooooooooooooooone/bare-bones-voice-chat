@@ -1,15 +1,15 @@
 # Bare Bones Voice Chat
 ## About
-Bare Bones VC is a Fabric client mod that aims to provide players a way to use Simple Voice Chat's proximity VC on Minecraft servers that don't support it.
+Bare Bones VC is a Simple Voice Chat client add-on and standalone server app which makes voice chats possible on any Minecraft server.
 
-This is achieved through the Bare Bones VC server jar that does (almost) everything the Simple Voice Chat server does, but without the Minecraft server.
+To talk to your friends with the mod, you can setup your own server with the instructions below or join the public server at `vc.pobob.xyz` and port `55555` (uptime not guaranteed).
 
 ## Server Setup
 ### Prerequisites
-One person in your group must host the voice server, the host will need:
+To host a server you will need:
 * A way to open a UDP port
 * A reliable internet connection
-* [Java 21](https://www.oracle.com/java/technologies/javase/jdk21-archive-downloads.html) installed
+* At least Java 21 installed
 
 If port forwarding is an issue or you aren't comfortable with sharing your IP address, you may look into a VPS or proxying solutions.
 
@@ -19,7 +19,7 @@ Both can be found [here](https://github.com/booooooooooooooooooooooooooooooooooo
 
 2) To start hosting the server, open Command Prompt and run `java -Xmx1G -jar <server file path>`.
 
-3) After answering all the questions, the server will start
+3) After providing all config, the server will start
 
 4) To make your server accessible to your friends, you will need to access your internet router and forward the server port with UDP.
 The process is different for each router. You may need to google "port forwarding" along with your router's brand/model.
@@ -31,10 +31,9 @@ the host will be your public IPv4 address and the port will be whichever port yo
 ![Connection screen](https://i.imgur.com/3sCyeFg.png)
 
 ## Dependencies
-The Bare Bones VC Fabric mod requires both [Fabric API](https://modrinth.com/mod/fabric-api) and [Simple Voice Chat](https://modrinth.com/mod/simple-voice-chat).
+Requires both [Fabric API](https://modrinth.com/mod/fabric-api) and [Simple Voice Chat](https://modrinth.com/mod/simple-voice-chat).
 
 ## Disclaimer
-This mod is an independent addon for [Simple Voice Chat](https://github.com/henkelmax/simple-voice-chat) and is not affiliated with or endorsed by its original developers.
+This mod is an independent add-on for [Simple Voice Chat](https://github.com/henkelmax/simple-voice-chat) and is not affiliated with or endorsed by its original developers.
 
 All credit for the underlying voice chat system belongs to the Simple Voice Chat project.
-
