@@ -24,10 +24,10 @@ Both can be found [here](https://github.com/booooooooooooooooooooooooooooooooooo
 4) To make your server accessible to your friends, you will need to access your internet router and forward the server port with UDP.
 The process is different for each router. You may need to google "port forwarding" along with your router's brand/model.
 
-5) Find your public IPv4 address by typing `curl -4 ifconfig.me` in a new Command Prompt window.
+5) Find your public IP address by typing `curl ifconfig.me` in a new Command Prompt window.
 
 6) To connect to the server, open the Bare Bones VC connection screen with the default keybind B,
-the host will be your public IPv4 address and the port will be whichever port you opened
+the host will be your public IP address and the port will be whichever port you opened
 ![Connection screen](https://i.imgur.com/3sCyeFg.png)
 
 ## Dependencies
